@@ -78,23 +78,49 @@ bus.undo(); // undoes the whole group
 command plus the history tools (`undo`, `redo`, `list_history`, `save_version`,
 `list_versions`, `restore_version`). `packages/agent` generates Claude's tools from these.
 
+## Builders
+
+Builder tools hold the carpentry knowledge (ADR-0002 §A4). Claude says *what* to build
+("a 20ft wall, 9ft tall, sliding door here"); deterministic code lays out every stud,
+header, joist, fastener and joint, US platform framing with nominal lumber.
+
+| Tool | Makes |
+|---|---|
+| `pour_slab` | Slab on grade with thickened-edge footings (`FD1`) |
+| `build_wall` | A whole stud wall with plates, studs, openings, sheathing or let-in braces (`W1`) |
+| `add_opening` | A window or door framed into a builder wall (`O1`, framing goes in the wall) |
+| `frame_floor` | Platform floor: sills or piers, rims, joists, blocking, subfloor (`F1`) |
+| `build_roof` | Gable or shed stick-framed roof on the walls (`R1`) |
+| `build_fence` | Posts in concrete, rails and boards (`M1`) |
+| `place_structure` | Site context: an existing house, pool, tree, shed or box (`X1`), no joints |
+
+Wall conventions (also in the `build_wall` tool description):
+
+- `start` and `end` are plan points (`{ x, z }`) on the **outside face of the framing**.
+  Walls may run at any plan angle.
+- The exterior is on the **left** walking from `start` to `end` in a north-up plan, so
+  walls listed clockwise face outward. `exterior: "right"` flips it.
+- `height` is the overall framed height, bottom of the bottom plate to the top of the
+  double top plate: `"9ft"` gives 103 1/2in studs. `studLength` overrides it.
+- The wall stands on the highest slab or floor under it, or on the ground (the summary
+  says which). Sheathing projects outward from the framing face by its thickness.
+- An end that lands on the end of an existing wall's outside face butts into it as a
+  California corner: its framing is shortened by that wall's depth, its sheathing laps
+  past, and a flat backer stud is added to the through wall. Studs are always laid out
+  16/24in on center from the wall's `start`.
+
+Header sizes come from IRC 2021 Table R602.7(1) (`HEADER_TABLE`, `pickHeader` in
+`src/builders/rules.ts`), using the project's ground snow load or 30 psf, and the building
+width (input, or the short side of the slab under the wall). `findClashes` /
+`findAllClashes` (`src/model/clash.ts`) check parts against each other with a 1 mm
+tolerance; every builder refuses to run new parts through existing ones.
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for how builders are put together, how to add
+one, and a reference for each.
+
 ## Adding a command
 
-1. Write a `defineCommand({ name, description, exposed: true, schema, check, apply })` in
-   `src/commands/<area>.ts`.
-   - `schema` is a `z.strictObject`. Use `zLength`/`zPositiveLength`/`zVec3Input` for
-     lengths and `.describe()` every field, because these descriptions become Claude's
-     tool docs.
-   - `check(project, input, ctx)` is pure and returns `CommandError[]`. Use `notFound(...)`
-     for "did you mean" hints and `formatBoth(mm)` for lengths in messages.
-   - `apply(project, input, ctx)` is pure and returns `{ project, inverse, redo, summary,
-     created }`. Build `inverse` with `putWithInverse`/`removeWithInverse` or the internal
-     `set_site`/`replace_project`. `redo` is the *resolved* input, with generated IDs and
-     mm values filled in.
-2. Add it to the area's list, which `src/commands/registry.ts` collects.
-3. Add tests to `test/commands/`: the happy path, the inverse restoring the exact
-   pre-state and redo reproducing the post-state (`expectRoundTrip`), each semantic error,
-   and one schema error. Add a generator to `inverse.property.test.ts`.
+See [CONTRIBUTING.md § How to add a command](../../CONTRIBUTING.md#how-to-add-a-command).
 
 ## Scripts
 
