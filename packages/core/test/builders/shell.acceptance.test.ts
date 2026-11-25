@@ -4,7 +4,7 @@
  * 6 in 12 gable roof.
  */
 import { describe, expect, it } from 'vitest';
-import { createProject, findAllClashes, formatErrors, type CommandBus, type Project } from '../../src/index.ts';
+import { createProject, findAllClashes, formatErrors, partBox, type CommandBus, type Part, type Project } from '../../src/index.ts';
 import { makeBus, model } from '../helpers.ts';
 
 const IN = 25.4;
@@ -81,6 +81,25 @@ describe('acceptance: 16 × 20 shell, 9ft walls, sliding door + window, 6/12 gab
     // Along 20ft at 16in: ends at 0 and 238 1/2in, commons 16 … 224in (14) → 16 pairs.
     expect(inAsm(p, 'R1').filter((x) => x.role === 'rafter')).toHaveLength(32);
     expect(inAsm(p, 'R1').filter((x) => x.tags.includes('rafter-tie'))).toHaveLength(16);
+  });
+
+  it('roof joints sit on the parts they join, and the end ties hold the gable walls', () => {
+    /** Distance from a point to a part's box, mm (0 inside). */
+    const outside = (part: Part, at: { x: number; y: number; z: number }) => {
+      const b = partBox(part);
+      const d = [at.x - b.center.x, at.y - b.center.y, at.z - b.center.z];
+      return Math.hypot(...b.axes.map((a, i) => Math.max(0, Math.abs(a.x * d[0]! + a.y * d[1]! + a.z * d[2]!) - b.half[i]!)));
+    };
+    const roofToWall = Object.values(p.joints).filter((j) => p.parts[j.partIds[0]]?.assemblyId === 'R1' && p.parts[j.partIds[1]]?.assemblyId?.startsWith('W'));
+    expect(roofToWall.length).toBeGreaterThan(0);
+    for (const j of roofToWall) expect(outside(p.parts[j.partIds[1]]!, j.at), j.id).toBeLessThan(1);
+    // The ridge runs along x, so W2 (east) and W4 (west) are the gable walls; 16ft of cap
+    // plate at one pair of toenails per 48in.
+    for (const wall of ['W2', 'W4']) {
+      const toGable = roofToWall.filter((j) => j.note === 'toenail to gable wall' && p.parts[j.partIds[1]]!.assemblyId === wall);
+      expect(toGable.length, wall).toBeGreaterThanOrEqual(4);
+      for (const j of toGable) expect(p.parts[j.partIds[0]]!.tags, j.id).toContain('rafter-tie');
+    }
   });
 
   it('every non-site part has a joint and a build phase consistent with its assembly', () => {

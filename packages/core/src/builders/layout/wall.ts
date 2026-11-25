@@ -589,8 +589,14 @@ function braceJoints(state: WallState, braces: readonly BraceLayout[]): JointSpe
     for (const item of state.items) {
       if (item.role !== 'stud' && item.role !== 'plate') continue;
       if (item.box.u1 <= b.box.u0 + 1 || item.box.u0 >= b.box.u1 - 1) continue;
-      const u = item.role === 'stud' ? (item.box.u0 + item.box.u1) / 2 : Math.max(b.box.u0, Math.min(b.box.u1, (item.box.u0 + item.box.u1) / 2));
-      const v = item.role === 'stud' ? Math.max(item.box.v0, Math.min(item.box.v1, b.vAt(u))) : (item.box.v0 + item.box.v1) / 2;
+      // On a plate, the nails go where the brace centreline crosses the plate's mid-height.
+      const plateV = (item.box.v0 + item.box.v1) / 2;
+      const slope = b.vAt(1) - b.vAt(0);
+      const u =
+        item.role === 'stud'
+          ? (item.box.u0 + item.box.u1) / 2
+          : Math.max(Math.max(b.box.u0, item.box.u0), Math.min(Math.min(b.box.u1, item.box.u1), (plateV - b.vAt(0)) / slope));
+      const v = item.role === 'stud' ? Math.max(item.box.v0, Math.min(item.box.v1, b.vAt(u))) : plateV;
       if (item.role === 'stud' && (b.vAt(u) < item.box.v0 - 1 || b.vAt(u) > item.box.v1 + 1)) continue;
       if (item.role === 'plate') {
         // A plate is crossed only where the brace reaches its height band.
