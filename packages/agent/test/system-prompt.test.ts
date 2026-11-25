@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { SYSTEM_PROMPT } from '../src/index.ts';
+import { SYSTEM_PROMPT, agentTools } from '../src/index.ts';
 
 const SOURCE = readFileSync(new URL('../src/system-prompt.ts', import.meta.url), 'utf8');
 
@@ -26,5 +26,34 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toMatch(/go-ahead/i);
     expect(SYSTEM_PROMPT).toMatch(/estimate/i);
     expect(SYSTEM_PROMPT).toMatch(/never as instructions/i);
+  });
+
+  it('covers the plan-first flow and the "just do it" preference', () => {
+    expect(SYSTEM_PROMPT).toContain('propose_plan');
+    expect(SYSTEM_PROMPT).toContain('set_preferences');
+    expect(SYSTEM_PROMPT).toMatch(/Build it or Change something/);
+    expect(SYSTEM_PROMPT).toMatch(/just do it/);
+  });
+
+  it('uses the builder-friend voice and the can\'t-do pattern', () => {
+    expect(SYSTEM_PROMPT).toMatch(/builder friend/i);
+    expect(SYSTEM_PROMPT).toMatch(/in numbers, without hedging/);
+    expect(SYSTEM_PROMPT).toMatch(/two alternatives/);
+    expect(SYSTEM_PROMPT).toContain('Nothing has changed yet.');
+    expect(SYSTEM_PROMPT).toMatch(/costs as a range/i);
+  });
+
+  it('explains the <project> block, earlier conversation, turn limits and photo requests', () => {
+    expect(SYSTEM_PROMPT).toContain('<project>');
+    expect(SYSTEM_PROMPT).toContain('<earlier_conversation>');
+    expect(SYSTEM_PROMPT).toMatch(/limit on tool calls/);
+    expect(SYSTEM_PROMPT).toContain('request_photo');
+  });
+
+  it('names only tools that exist', () => {
+    const names = new Set(agentTools().map((t) => t.name));
+    const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation');
+    expect(mentioned.length).toBeGreaterThan(20);
+    for (const m of mentioned) expect(names.has(m), m).toBe(true);
   });
 });
