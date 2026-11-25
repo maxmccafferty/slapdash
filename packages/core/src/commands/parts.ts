@@ -21,7 +21,7 @@ import { putWithInverse, removeWithInverse } from './internal.ts';
 import { defineCommand } from './types.ts';
 
 /** Default build phase for parts in each kind of assembly. */
-const PHASE_FOR_KIND: Record<AssemblyKind, BuildPhase> = {
+export const PHASE_FOR_KIND: Record<AssemblyKind, BuildPhase> = {
   foundation: 'foundation',
   floor: 'floor',
   wall: 'framing',
