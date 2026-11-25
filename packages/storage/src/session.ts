@@ -6,7 +6,16 @@
  * save keeps the session dirty and sets an error status; the next change or flush
  * retries. The app should call `flush()` on `pagehide`/`visibilitychange`.
  */
-import { CommandBus, createProject, formatErrors, type Catalog, type CatalogIndex, type Project } from '@slapdash/core';
+import {
+  CommandBus,
+  createProject,
+  formatErrors,
+  type Catalog,
+  type CatalogIndex,
+  type Project,
+  type CommandBusOptions,
+  type SiteDefaults,
+} from '@slapdash/core';
 import { emptyChatLog, zChatLog, zChatMessage, type ChatLog, type ChatMessage, type JsonValue } from './chat.ts';
 import { describeError, StorageError } from './errors.ts';
 import {
@@ -32,6 +41,11 @@ export interface SessionDeps {
   newId?: () => string;
   /** Autosave delay after the last change. Default 500 ms. */
   debounceMs?: number;
+  /**
+   * The app's site defaults (design loads), handed to the command bus so builders size
+   * members from them. Read each time a command runs.
+   */
+  siteDefaults?: () => SiteDefaults | undefined;
 }
 
 export type SaveStatus =
@@ -71,6 +85,7 @@ interface Resolved {
   now: () => number;
   newId: () => string;
   debounceMs: number;
+  siteDefaults: (() => SiteDefaults | undefined) | undefined;
 }
 
 function resolve(deps: SessionDeps): Resolved {
@@ -81,10 +96,14 @@ function resolve(deps: SessionDeps): Resolved {
     now: deps.now ?? Date.now,
     newId: deps.newId ?? defaultNewId,
     debounceMs: deps.debounceMs ?? DEFAULT_AUTOSAVE_MS,
+    siteDefaults: deps.siteDefaults,
   };
 }
 
 export class ProjectSession {
+  /** The project file id the Projects list reads its card picture from. */
+  static readonly THUMBNAIL_FILE_ID = 'thumbnail';
+
   readonly id: string;
   readonly bus: CommandBus;
   readonly #deps: Resolved;
@@ -106,7 +125,8 @@ export class ProjectSession {
     this.#meta = { ...record.meta };
     this.#chat = record.chat;
     this.#persisted = persisted;
-    const busOpts = { project: record.project, catalog: deps.catalog, now: deps.now };
+    const busOpts: CommandBusOptions = { project: record.project, catalog: deps.catalog, now: deps.now };
+    if (deps.siteDefaults) busOpts.siteDefaults = deps.siteDefaults;
     this.bus = record.history ? CommandBus.hydrate(busOpts, record.history) : new CommandBus(busOpts);
     this.#unsubscribeBus = this.bus.subscribe(() => this.#markDirty());
   }
@@ -144,17 +164,20 @@ export class ProjectSession {
     return new ProjectSession(d, record, true);
   }
 
-  /** Start a fresh, unnamed project. Nothing is stored until the first change. */
-  static newProject(deps: SessionDeps): ProjectSession {
-    return ProjectSession.#fresh(resolve(deps));
+  /**
+   * Start a fresh project. Nothing is stored until the first change. Without a name it is
+   * the unnamed "New project"; with one it starts named (e.g. a sample built in the app).
+   */
+  static newProject(deps: SessionDeps, opts: { name?: string } = {}): ProjectSession {
+    return ProjectSession.#fresh(resolve(deps), opts.name?.trim() || undefined);
   }
 
-  static #fresh(d: Resolved): ProjectSession {
+  static #fresh(d: Resolved, name?: string): ProjectSession {
     const at = d.now();
-    const project = createProject({ name: NEW_PROJECT_NAME });
+    const project = createProject({ name: name ?? NEW_PROJECT_NAME });
     const record: ProjectRecord = {
       id: d.newId(),
-      meta: { name: project.name, named: false, createdAt: at, updatedAt: at },
+      meta: { name: project.name, named: name !== undefined, createdAt: at, updatedAt: at },
       project,
       history: null,
       chat: emptyChatLog(),
@@ -165,16 +188,19 @@ export class ProjectSession {
   /**
    * Import a .slapdash file as a new project (always a new id). Files keep their ids,
    * so references to them in the chat still work. Open it with `openById`.
+   * With `now`, the import counts as an edit on this device (`updatedAt` = now), so it lists
+   * first; without it the file's times are kept exactly.
    */
   static async importFile(
     text: string,
-    deps: Pick<SessionDeps, 'store' | 'newId'>,
+    deps: Pick<SessionDeps, 'store' | 'newId' | 'now'>,
   ): Promise<ImportResult> {
     const decoded = decodeSlapdashFile(text);
     if (!decoded.ok) return decoded;
     const id = (deps.newId ?? defaultNewId)();
+    const meta = deps.now ? { ...decoded.record.meta, updatedAt: deps.now() } : decoded.record.meta;
     try {
-      await deps.store.save({ id, ...decoded.record });
+      await deps.store.save({ id, ...decoded.record, meta });
       for (const f of decoded.files) {
         await deps.store.files.put(id, { id: f.id, name: f.name, mimeType: f.mimeType, createdAt: f.createdAt, bytes: f.bytes });
       }
@@ -339,6 +365,23 @@ export class ProjectSession {
       this.#setStatus({ kind: 'error', message });
       return { ok: false, message };
     }
+  }
+
+  // ── Files ───────────────────────────────────────────────────────────────
+
+  /**
+   * Store the Projects-list picture (a PNG). Only once the project is stored: an unsaved
+   * project has no card to show it on. Returns whether it was stored.
+   */
+  async setThumbnail(png: Uint8Array): Promise<boolean> {
+    if (!this.#persisted || this.#closed) return false;
+    await this.#deps.store.files.put(this.id, {
+      id: ProjectSession.THUMBNAIL_FILE_ID,
+      name: 'thumbnail.png',
+      mimeType: 'image/png',
+      bytes: png,
+    });
+    return true;
   }
 
   // ── Export ────────────────────────────────────────────────────────────────

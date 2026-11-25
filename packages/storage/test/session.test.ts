@@ -209,6 +209,19 @@ describe('ProjectSession', () => {
     await s2.close();
   });
 
+  it('import with a clock stamps updatedAt, so the copy lists first', async () => {
+    const b = backendOn(new IDBFactory());
+    const s = ProjectSession.newProject(deps(b, { now: () => 5 }));
+    s.bus.execute('add_assembly', { name: 'A', kind: 'wall' });
+    const text = (await s.exportFile()).text;
+    await s.close();
+    const res = await ProjectSession.importFile(text, { store: b.store, newId: () => 'copy', now: () => 9_000 });
+    expect(res.ok).toBe(true);
+    const copy = await b.store.load('copy');
+    expect(copy!.meta).toMatchObject({ createdAt: 5, updatedAt: 9_000 });
+    expect((await b.store.list())[0]!.id).toBe('copy');
+  });
+
   it('import of a bad file stores nothing and explains why', async () => {
     const b = backendOn(new IDBFactory());
     const res = await ProjectSession.importFile('{"format":"slapdash","formatVersion":3}', { store: b.store });
@@ -340,5 +353,55 @@ describe('ProjectSession', () => {
     await s2.close();
     expect(await b.device.getLastProjectId()).toBe(s2.id);
     expect(await b.store.list()).toHaveLength(2);
+  });
+  it('passes the app\'s site defaults to the bus, for new and reopened projects', async () => {
+    const factory = new IDBFactory();
+    const b = backendOn(factory);
+    const table = { 'snowy, st': { label: 'Snowy, ST', loads: { groundSnow: { value: 2.394, unit: 'kPa' as const, source: 'test' } } } };
+    const siteDefaults = () => ({ location: { label: 'Snowy, ST' }, table });
+    const s1 = await ProjectSession.open(deps(b, { siteDefaults }));
+    expect(s1.bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }).ok).toBe(true);
+    const wall = { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', openings: [{ kind: 'window', centerAt: '8ft' }] };
+    const first = s1.bus.execute('build_wall', wall);
+    expect(first.ok && first.summary).toContain("Snowy, ST's 50 psf ground snow load");
+    await s1.close();
+
+    const s2 = await ProjectSession.open(deps(b, { siteDefaults }));
+    expect(s2.bus.listHistory().length).toBeGreaterThan(0);
+    const second = s2.bus.execute('build_wall', { ...wall, start: { x: '20ft', z: 0 }, end: { x: '20ft', z: '16ft' } });
+    expect(second.ok && second.summary).toContain("Snowy, ST's 50 psf ground snow load");
+    await s2.close();
+  });
+
+  it('newProject({ name }) starts a named project', async () => {
+    const b = backendOn(new IDBFactory());
+    const s = ProjectSession.newProject(deps(b), { name: 'Pool house' });
+    expect(s.project.name).toBe('Pool house');
+    expect(s.meta.named).toBe(true);
+    expect(s.isPersisted).toBe(false);
+    const blank = ProjectSession.newProject(deps(b), { name: '  ' });
+    expect(blank.project.name).toBe('New project');
+    expect(blank.meta.named).toBe(false);
+    await s.close();
+    await blank.close();
+  });
+
+  it('setThumbnail stores the card picture only once the project is stored', async () => {
+    const b = backendOn(new IDBFactory());
+    const s = ProjectSession.newProject(deps(b));
+    const png = new Uint8Array([137, 80, 78, 71]);
+    expect(await s.setThumbnail(png)).toBe(false);
+    expect(await b.store.files.list(s.id)).toEqual([]);
+    s.bus.execute('add_assembly', { name: 'A', kind: 'wall' });
+    await s.flush();
+    expect(await s.setThumbnail(png)).toBe(true);
+    const file = await b.store.files.get(s.id, ProjectSession.THUMBNAIL_FILE_ID);
+    expect(file?.mimeType).toBe('image/png');
+    expect(Array.from(file!.bytes)).toEqual([137, 80, 78, 71]);
+    // Replaced, not added.
+    expect(await s.setThumbnail(new Uint8Array([1]))).toBe(true);
+    expect(await b.store.files.list(s.id)).toHaveLength(1);
+    await s.close();
+    expect(await s.setThumbnail(png)).toBe(false);
   });
 });

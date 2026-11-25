@@ -4,9 +4,9 @@ Project storage behind small interfaces (ADR-0001 §10). The app talks only to
 `ProjectStore`, `Auth` and `DeviceState`. Backend SDKs are imported only under
 `src/adapters/<name>/`, and `test/boundaries.test.ts` fails if anything else imports one.
 
-> **Where this lives.** ADR-0002 §E2 puts the adapters in `apps/web`. There is no app yet,
-> and the shared adapter suites need to be importable by the later Supabase adapter, so
-> storage is its own package. When `apps/web` exists it depends on this package.
+> **Where this lives.** ADR-0002 §E2 puts the adapters in `apps/web`. The shared adapter
+> suites need to be importable by the later Supabase adapter, so storage is its own package,
+> and `apps/web` depends on it.
 
 ## Entry points
 
@@ -68,12 +68,15 @@ await session.save({ name: 'Pool house' }); // → { ok: true, message: 'Saved "
   project named and saves.
 - Also: `openById`, `newProject`, `appendChat`, `exportFile`, `importFile` (static), `close`.
 
-**What the app must wire** (not done here, as there is no app shell yet):
+- `siteDefaults` (optional) is handed to the bus, so builders size members from the app's
+  design loads. `newProject(deps, { name })` starts a named project. `setThumbnail(png)`
+  stores the Projects card picture as the project file `thumbnail` (only once stored).
+- `importFile(text, { store, now })`: with `now`, the copy's `updatedAt` is the import time,
+  so it lists first.
 
-- Call `session.flush()` on `pagehide` and on `visibilitychange` to hidden.
-- Turn `await session.exportFile()` (`{ fileName, mimeType, text }`) into a `Blob` download.
-- For Import, read the file as text and pass it to `ProjectSession.importFile(text, { store })`,
-  then `ProjectSession.openById(id, deps)`.
+**In the app** (`apps/web/src/projects/projects-controller.ts`): `flush()` runs on `pagehide`
+and on `visibilitychange` to hidden; Import reads the file as text, calls `importFile`, then
+`openById`. Still to wire: turning `exportFile()` into a `Blob` download.
 
 ## The `.slapdash` file
 
