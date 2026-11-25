@@ -18,7 +18,7 @@ const zCapacityOverrideInput = z
 
 const zFastenerCount = z.number().int().min(1).describe('Number of fasteners. Defaults to the joint type\'s usual count.');
 
-interface JointFields {
+export interface JointFields {
   jointTypeId: string;
   partIds: readonly [string, string];
   /** Joint being edited, excluded from the duplicate check. */
@@ -26,7 +26,7 @@ interface JointFields {
 }
 
 /** Semantic checks shared by connect and update_joint. */
-function checkJoint(project: Project, j: JointFields, catalog: CatalogIndex): CommandError[] {
+export function checkJoint(project: Project, j: JointFields, catalog: CatalogIndex): CommandError[] {
   const errors: CommandError[] = [];
   const type = catalog.jointTypes.get(j.jointTypeId);
   if (!type) errors.push(notFound('joint type', j.jointTypeId, catalog.jointTypes.keys(), 'jointTypeId'));
