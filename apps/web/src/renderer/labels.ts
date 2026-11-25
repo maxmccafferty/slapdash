@@ -4,9 +4,10 @@
  * keep a fixed pixel size: `scaleScreenSprites` sets their scale for a camera and viewport.
  */
 import { CanvasTexture, LinearFilter, SRGBColorSpace, type Camera, type Object3D, type OrthographicCamera, type PerspectiveCamera } from 'three';
+import { LABEL_FONT_FAMILY } from '../styles/fonts.ts';
 import { SCENE_COLORS } from '../styles/tokens.ts';
 
-export const LABEL_FONT_FAMILY = '"Geist Variable", Geist, system-ui, sans-serif';
+export { LABEL_FONT_FAMILY };
 /** Label text size in CSS px (the app's minimum). */
 export const LABEL_PX = 14;
 /** Canvas texels per CSS px, so labels stay sharp on 3× screens and in large snapshots. */

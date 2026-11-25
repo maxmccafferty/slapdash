@@ -6,14 +6,12 @@
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import { Matrix4, Vector3, type InstancedMesh } from 'three';
+import { debugEnabled, exposeDebug } from '../debug.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { frameStats, useRendererStore } from './renderer-store.ts';
 import { renderSnapshot } from './snapshot/registry.ts';
 
-export function debugEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  return import.meta.env.DEV || new URLSearchParams(window.location.search).has('e2e');
-}
+export { debugEnabled };
 
 export function useRendererDebug(): void {
   const get = useThree((s) => s.get);
@@ -69,9 +67,6 @@ export function useRendererDebug(): void {
         return null;
       },
     };
-    (window as unknown as { __slapdash?: unknown }).__slapdash = api;
-    return () => {
-      delete (window as unknown as { __slapdash?: unknown }).__slapdash;
-    };
+    return exposeDebug(api);
   }, [get]);
 }
