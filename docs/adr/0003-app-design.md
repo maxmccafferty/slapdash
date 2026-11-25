@@ -56,6 +56,7 @@ The exploded view is not a view mode. Assembly is a **Build steps** screen: the 
 
 1. A modal over the model area only; the chat stays usable beside it.
 2. Content: the total at the top, then a plain list grouped by part of the build (Slab, Walls, Roof), each group header carrying the Amount and Cost column labels, a texture swatch on each row, and a Total row at the bottom. Export PDF and close.
+   - Two tabs: **Materials** (above) and **Cut list**. The cut list groups pieces by the board they are cut from (for example "From 2×4 precut studs, 104⅝″"), with each piece's length and count. One Export PDF covers both.
 3. **No edit buttons.** Unpriced rows say "no price yet". Prices, quantities and changes are made by telling Claude; a price you give replaces the table for that project and is marked with the orange dot (ADR-0001 §11).
 
 ### G. Conversation
@@ -86,7 +87,7 @@ All corner buttons are icon-only, 40px keys inside units.
 1. **Stress finds a weak spot.** With Stress on, the most loaded part gets a callout ("Door header, about 90% of its limit"); Claude explains in one or two sentences and offers a fix or leave it.
 2. **Monthly limit** (ADR-0002 §D9). A note in the chat at 80% of the $10 budget; at the cap the chat explains when Claude is back and disables the input, while everything else keeps working.
 3. **Sign in** (hosted copy). Email and password or a passkey on a plain card over the dotted floor; "You'll stay signed in on this device." No sign-up screen.
-4. **Exported PDF.** One letter page: name and specs, the 2D sheet, the materials list with totals, and the estimate note in the footer; the cut list follows on page 2.
+4. **Exported PDF.** Two letter pages. Page 1: name and specs, the 2D sheet, the materials list with totals, and the estimate note in the footer. Page 2: the cut list, grouped by board, with a tick box per piece.
 
 ### J. Left out on purpose
 
@@ -105,5 +106,6 @@ MIT (resolves the open question in ADR-0002). No AGPL code is to be copied in, p
 - The 2D sheet is new scope relative to ADR-0002; it is drawn from the parts model, not from screenshots.
 - Build steps needs each builder to tag its parts with a step, so the sequence comes from the model.
 - Materials needs a texture swatch per catalog entry; the swatch can be generated from the entry's render colours.
+- The cut list comes from the in-house cut-list optimizer (ADR-0002 §E7): every part's length is in the model, and the optimizer assigns parts to stock boards.
 - Design tokens live in the design system artifact; the app's CSS variables should be generated from its `tokens.json` so the two never drift.
 - ADR-0002 §C16's list of view modes and the mention of an exploded slider are superseded by §C and §E here.
