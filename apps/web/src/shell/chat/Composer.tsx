@@ -7,12 +7,14 @@ import { useMediaQuery } from '../../hooks/useMediaQuery.ts';
 import { useChatStore } from '../../state/chat-store.ts';
 import { useModelStore } from '../../state/model-store.ts';
 import { PartChip } from './PartChip.tsx';
+import { Waveform } from './Waveform.tsx';
 import styles from './Chat.module.css';
 
 /**
  * The message field with the pointed-part chip and any photos above it, Send (Stop while
- * Claude works) and Talk. On a fine pointer Enter sends and Shift+Enter adds a line; on touch
- * Enter adds a line and the Send key sends.
+ * Claude works or reads a reply aloud) and Talk. On a fine pointer Enter sends and Shift+Enter
+ * adds a line; on touch Enter adds a line and the Send key sends. While Talk is held the field
+ * gives way to the listening strip; Talk is hidden where the browser can't recognise speech.
  */
 export function Composer({ phone }: { phone: boolean }) {
   const chat = useChat();
@@ -26,6 +28,9 @@ export function Composer({ phone }: { phone: boolean }) {
   const changingPlan = useChatStore((s) => s.changingPlan);
   const focusRequest = useChatStore((s) => s.focusRequest);
   const resetsAt = useChatStore((s) => s.budget?.resetsAt);
+  const canListen = useChatStore((s) => s.voice.listen);
+  const listening = useChatStore((s) => s.listening !== null);
+  const speaking = useChatStore((s) => s.speaking);
   const selectedId = useModelStore((s) => s.selectedPartId);
   const selectedLabel = useModelStore((s) => s.selectedPartLabel);
   const swatch = useModelStore((s) => {
@@ -89,10 +94,13 @@ export function Composer({ phone }: { phone: boolean }) {
         <label htmlFor={fieldId} className="visually-hidden">
           Message Claude
         </label>
+        {listening && <Waveform />}
+        {/* Hidden, not unmounted, while listening: the draft and focus requests stay intact. */}
         <textarea
           ref={fieldRef}
           id={fieldId}
           className={styles.field}
+          hidden={listening}
           rows={1}
           enterKeyHint="send"
           placeholder={placeholder}
@@ -101,12 +109,20 @@ export function Composer({ phone }: { phone: boolean }) {
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={onKeyDown}
         />
-        {running ? (
+        {running || speaking ? (
           <Key className={styles.send} label="Stop" icon="stop" iconSize={iconSize} iconOnly tone="dark" onClick={() => chat.stop()} />
         ) : (
           <Key className={styles.send} type="submit" label="Send" icon="send" iconSize={iconSize} iconOnly tone="dark" disabled={unavailable} />
         )}
-        <TalkKey iconOnly={phone} iconSize={iconSize} disabled={unavailable} />
+        {canListen && (
+          <TalkKey
+            iconOnly={phone}
+            iconSize={iconSize}
+            disabled={unavailable || running}
+            onHoldStart={() => chat.startTalking()}
+            onHoldEnd={() => void chat.stopTalking()}
+          />
+        )}
       </form>
     </div>
   );

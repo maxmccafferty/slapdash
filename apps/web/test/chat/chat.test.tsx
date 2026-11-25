@@ -8,6 +8,7 @@ import { useChatStore } from '../../src/state/chat-store.ts';
 import { useModelStore } from '../../src/state/model-store.ts';
 import { useShellStore } from '../../src/state/shell-store.ts';
 import { setViewportWidth } from '../setup.ts';
+import { fakeVoice } from '../voice/fake-voice.ts';
 import { gatedClient, setupChat, status } from './harness.tsx';
 
 const field = () => screen.getByRole('textbox', { name: 'Message Claude' });
@@ -209,7 +210,7 @@ describe('chat: monthly limit', () => {
   });
 
   it('capped: the field and Talk are disabled with the return date; the header and view controls still work', async () => {
-    await setupChat({ status: status({ state: 'capped', spentUsd: 10, fraction: 1 }) });
+    await setupChat({ voice: fakeVoice(), status: status({ state: 'capped', spentUsd: 10, fraction: 1 }) });
     expect(field()).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Talk' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
@@ -229,7 +230,7 @@ describe('chat: monthly limit', () => {
 
 describe('chat: no API key', () => {
   it('explains, disables the field and Talk, and opens the sample pool house', async () => {
-    await setupChat({ status: status({}, false), openSample: () => openSampleProject() });
+    await setupChat({ voice: fakeVoice(), status: status({}, false), openSample: () => openSampleProject() });
     expect(field()).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Talk' })).toBeDisabled();
     expect(screen.getByTestId('no-key-note')).toHaveTextContent("Claude isn't connected");

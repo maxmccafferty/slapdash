@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { formatSseEvent, type BudgetStatus, type KeyholeStatus } from '@slapdash/agent';
 import { BUDGET, call, replyEvents, say, type ScriptedReply } from '@slapdash/agent/testing';
+import { installFakeVoice, type FakeVoiceWindow } from './fake-voice.ts';
 
 /**
  * The chat states from the handoff's Chat states artboard, in a real browser, with the keyhole
@@ -33,7 +34,8 @@ async function mockKeyhole(page: Page, mock: Mock = {}) {
   });
 }
 
-async function open(page: Page, isMobile: boolean, search = '?e2e') {
+async function open(page: Page, isMobile: boolean, search = '?e2e', voice: { unsupported?: boolean } = {}) {
+  await installFakeVoice(page, voice);
   await page.goto(`/${search}`);
   await page.evaluate(() => document.fonts.ready);
   if (isMobile) await page.getByRole('button', { name: 'Chat' }).click();
@@ -186,4 +188,48 @@ test('no key: explains and offers the sample', async ({ page, isMobile }) => {
   await expect
     .poll(() => page.evaluate(() => (window as unknown as { __slapdash: { chat: { partCount: () => number } } }).__slapdash.chat.partCount()))
     .toBeGreaterThan(50);
+});
+
+test('talking by voice: words show as heard, the reply is read aloud, Stop cuts it off', async ({ page, isMobile }) => {
+  await mockKeyhole(page, { replies: [say("Added a 6′ 0″ bench. It's 16×20 overall.")] });
+  await open(page, isMobile);
+  const talk = page.getByRole('button', { name: 'Talk' });
+  await talk.hover();
+  await page.mouse.down();
+  await expect(page.getByRole('button', { name: 'Let go' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('status').filter({ hasText: 'Listening' })).toBeVisible();
+  await expect(page.locator('textarea')).toBeHidden();
+
+  await page.evaluate(() => (window as unknown as FakeVoiceWindow).__fakeVoice.hear('Add a', 'bench'));
+  const live = page.locator('[data-listening] p');
+  await expect(live).toHaveText('Add a bench');
+  await expect(live.locator('[class*="unconfirmed"]')).toHaveText('bench');
+  await expectNoAxeViolations(page);
+  expect(await smallText(page)).toEqual([]);
+  await shot(page, 'voice-listening', isMobile);
+
+  await page.evaluate(() => (window as unknown as FakeVoiceWindow).__fakeVoice.hear('Add a bench', ''));
+  await page.mouse.up();
+  await expect(page.getByText("Added a 6′ 0″ bench. It's 16×20 overall.", { exact: true })).toBeVisible();
+  await expect(live).toHaveCount(0);
+  await expect(page.getByText('Add a bench', { exact: true })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => (window as unknown as FakeVoiceWindow).__fakeVoice.spoken))
+    .toContain("Added a 6 feet bench. It's 16 by 20 overall.");
+
+  // Claude is speaking: Stop shows, and pressing it ends the speech.
+  const stop = page.getByRole('button', { name: 'Stop' });
+  await expect(stop).toBeVisible();
+  await stop.click();
+  await expect(page.getByRole('button', { name: 'Send' })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as FakeVoiceWindow).__fakeVoice.speaking)).toBe(false);
+});
+
+test("unsupported browser: no Talk key, and typing works", async ({ page, isMobile }) => {
+  await mockKeyhole(page, { replies: [say('Hello there.')] });
+  await open(page, isMobile, '?e2e', { unsupported: true });
+  await expect(page.getByRole('button', { name: 'Send' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Talk' })).toHaveCount(0);
+  await send(page, 'Hi');
+  await expect(page.getByText('Hello there.', { exact: true })).toBeVisible();
 });

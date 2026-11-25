@@ -3,6 +3,7 @@ import { displayText, type ChatItem } from '../../agent/chat-types.ts';
 import { useChatStore } from '../../state/chat-store.ts';
 import { ChatNote, ConnectionNote } from './ChatNote.tsx';
 import { ClaudeMessage } from './ClaudeMessage.tsx';
+import { ListeningMessage } from './ListeningMessage.tsx';
 import { UserMessage } from './UserMessage.tsx';
 import { WorkingLine } from './WorkingLine.tsx';
 import styles from './Chat.module.css';
@@ -26,6 +27,7 @@ export function Transcript() {
   const items = useChatStore((s) => s.items);
   const connection = useChatStore((s) => s.connection);
   const working = useChatStore((s) => s.running?.working ?? false);
+  const listening = useChatStore((s) => s.listening);
   const ref = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
 
@@ -42,7 +44,7 @@ export function Transcript() {
   useLayoutEffect(() => {
     const el = ref.current;
     if (el && stick.current) el.scrollTop = el.scrollHeight;
-  }, [items, working, connection]);
+  }, [items, working, connection, listening]);
 
   const finished = lastFinished(items);
   const seen = useRef<string | null>(finished?.id ?? null);
@@ -80,6 +82,7 @@ export function Transcript() {
           <ChatNote key={item.id} text={item.text} />
         ),
       )}
+      {listening && <ListeningMessage heard={listening.heard} unconfirmed={listening.unconfirmed} />}
       {working && <WorkingLine />}
       <ConnectionNote />
       <div className="visually-hidden" aria-live="polite" data-testid="chat-announcer">

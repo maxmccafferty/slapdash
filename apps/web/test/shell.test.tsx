@@ -1,9 +1,13 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/App.tsx';
+import { useChatStore } from '../src/state/chat-store.ts';
 import { useShellStore } from '../src/state/shell-store.ts';
 import { setViewportWidth } from './setup.ts';
+
+// Talk shows only where the browser can recognise speech; most of these tests expect it.
+beforeEach(() => useChatStore.setState({ voice: { listen: true, speak: true } }));
 
 describe('desktop shell (1440)', () => {
   it('has the header, model and chat landmarks', () => {
@@ -104,6 +108,17 @@ describe('desktop shell (1440)', () => {
       'Send',
       'Talk',
     ]);
+  });
+
+  it('hides Talk where the browser can\'t recognise speech; the tab order ends at Send', async () => {
+    useChatStore.setState({ voice: { listen: false, speak: true } });
+    const user = userEvent.setup();
+    render(<App />);
+    expect(screen.queryByRole('button', { name: 'Talk' })).not.toBeInTheDocument();
+    for (let i = 0; i < 13; i++) await user.tab();
+    expect(document.activeElement).toHaveAccessibleName('Send');
+    await user.tab();
+    expect(document.activeElement).not.toHaveAccessibleName('Talk');
   });
 });
 
