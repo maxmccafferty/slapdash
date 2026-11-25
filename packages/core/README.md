@@ -118,6 +118,15 @@ tolerance; every builder refuses to run new parts through existing ones.
 See [CONTRIBUTING.md](../../CONTRIBUTING.md) for how builders are put together, how to add
 one, and a reference for each.
 
+## Catalog and prices
+
+Core defines the shapes only: the catalog (`zCatalog`, `validateCatalog` in
+`src/catalog/`) and the dated price table (`zPriceTable`, `validatePriceTable` in
+`src/catalog/prices.ts`). Materials point into the table with `priceKey`; the table carries
+one `researchedOn` date and a `source` note per entry. The real tier-1 data lives in
+`@slapdash/catalog` (`packages/catalog`). `SAMPLE_CATALOG` is placeholder test data used by
+core's tests and the smoke script, not design values.
+
 ## Adding a command
 
 See [CONTRIBUTING.md § How to add a command](../../CONTRIBUTING.md#how-to-add-a-command).

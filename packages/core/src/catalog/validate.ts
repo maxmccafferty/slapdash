@@ -6,8 +6,9 @@ export type CatalogResult = { ok: true; catalog: Catalog } | { ok: false; errors
 
 /**
  * Validate a raw catalog: migrate it to the current version, check its shape, then
- * check what a schema can't: ids are unique within each list and every
- * `acceptsJoints` entry names a real joint type. Errors are plain sentences.
+ * check what a schema can't: ids are unique within each list, every
+ * `acceptsJoints` entry names a real joint type and every joint type's `hardwareId`
+ * names a fastener. Errors are plain sentences.
  */
 export function validateCatalog(raw: unknown): CatalogResult {
   const migrated = migrateCatalog(raw);
@@ -37,6 +38,17 @@ export function validateCatalog(raw: unknown): CatalogResult {
       if (!jointIds.has(j)) {
         errors.push(`Material "${m.id}" accepts joint type "${j}", which isn't in the catalog.`);
       }
+    }
+  }
+
+  const materials = new Map(catalog.materials.map((m) => [m.id, m]));
+  for (const j of catalog.jointTypes) {
+    if (j.hardwareId === undefined) continue;
+    const hw = materials.get(j.hardwareId);
+    if (!hw) {
+      errors.push(`Joint type "${j.id}" uses hardware "${j.hardwareId}", which isn't in the catalog.`);
+    } else if (hw.category !== 'fastener') {
+      errors.push(`Joint type "${j.id}" uses hardware "${j.hardwareId}", but "${j.hardwareId}" is ${hw.category}, not a fastener.`);
     }
   }
 
