@@ -10,6 +10,8 @@
  * - Concrete: the volume, rounded up to the next 1/4 yd³.
  * - Hardware comes from the joints (`hardwareId`, one per fastener or per joint) and goes
  *   with the later of its two parts' steps.
+ * - Masonry units, window and door units and loose hardware are counted as pieces, unless
+ *   they are priced by area or length (pavers, veneer, glass panels), like coverings.
  * - Anything else is measured in the unit it is priced in.
  *
  * Money is summed in cents; rounding to dollars is for display.
@@ -160,6 +162,11 @@ const MEASURE_OF: Record<PriceUnit, { kind: Kind; measure: RowMeasure }> = {
   lb: { kind: 'pieces', measure: 'pieces' },
 };
 
+/** The unit a part of this material is priced in: the person's own price first, then the table's, else each. */
+function pricedUnit(project: Project, table: PriceTable, material: Material, section: Section | undefined): PriceUnit {
+  return userPriceFor(project, material.id, section?.id)?.per ?? tableUnit(table, material.priceKey) ?? 'each';
+}
+
 function cents(usd: number): number {
   return Math.round(usd * 100);
 }
@@ -225,8 +232,14 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
         b.quantity += Math.abs(part.size.length) / MM_PER_FOOT;
         b.partIds.push(part.id);
       }
-    } else if (category !== undefined && (MEMBER_CATEGORIES.has(category) || category === 'masonry' || category === 'opening' || category === 'fastener')) {
+    } else if (
+      category !== undefined &&
+      (MEMBER_CATEGORIES.has(category) ||
+        ((category === 'masonry' || category === 'opening' || category === 'fastener') && pricedUnit(project, table, material, section) === 'each'))
+    ) {
       // Members without a section, masonry units, window and door units, loose hardware.
+      // Masonry, openings and hardware priced by area or length (pavers, veneer, glass)
+      // fall through to the coverings branch below.
       const unit: PriceUnit = MEMBER_CATEGORIES.has(category) ? 'linear-ft' : 'each';
       const m = MEASURE_OF[unit];
       const variant = section?.id;
@@ -236,7 +249,7 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
     } else {
       // Coverings and the rest: measured in the unit they are priced in.
       const variant = section?.id;
-      const unit = userPriceFor(project, material.id, variant)?.per ?? tableUnit(table, material.priceKey) ?? 'each';
+      const unit = pricedUnit(project, table, material, section);
       const m = MEASURE_OF[unit];
       const b = bucket({ ...base, ...m, key: `${m.kind}|${material.id}|${variant ?? ''}`, ...(section ? { section } : {}), ...(variant ? { variant } : {}), unit });
       const { a, b: w } = twoLargest(part);

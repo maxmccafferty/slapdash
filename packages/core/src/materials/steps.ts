@@ -1,7 +1,8 @@
 /**
  * Build steps for the materials list (ADR-0003 §F) and, later, the Build steps screen.
  * A step comes from a part's assembly: the slab, the floor, the walls (with their
- * openings), the roof, a fence, a structure. Site context isn't built, so it is left out.
+ * openings), the roof, a fence, a deck, a pergola, a structure, other items Claude placed
+ * by hand (plumbing, electrical). Site context isn't built, so it is left out.
  * Steps are ordered by the earliest build phase among their parts, then by the fixed
  * order below (phases alone can tie, e.g. a fence and a structure are both site work).
  */
@@ -11,7 +12,7 @@ import { BUILDER_DEFAULTS } from '../builders/defaults.ts';
 import { GROUND } from '../model/ids.ts';
 import { BUILD_PHASES, type Assembly, type Joint, type Part, type Project } from '../model/schema.ts';
 
-export const STEP_KEYS = ['slab', 'foundation', 'floor', 'walls', 'roof', 'fence', 'structures', 'site'] as const;
+export const STEP_KEYS = ['slab', 'foundation', 'floor', 'walls', 'roof', 'fence', 'deck', 'pergola', 'structures', 'other', 'site'] as const;
 export type StepKey = (typeof STEP_KEYS)[number];
 
 export const STEP_TITLES: Record<StepKey, string> = {
@@ -21,7 +22,10 @@ export const STEP_TITLES: Record<StepKey, string> = {
   walls: 'Walls',
   roof: 'Roof',
   fence: 'Fence',
+  deck: 'Deck',
+  pergola: 'Pergola',
   structures: 'Structures',
+  other: 'Other items',
   site: 'Site',
 };
 
@@ -34,8 +38,18 @@ export interface BuildStepGroup {
   phaseIndex: number;
 }
 
-/** The step an assembly's parts belong to. */
+/** Builders whose assemblies form their own step, whatever the assembly kind (a deck is a floor, a pergola roof a roof). */
+const BUILDER_STEPS: Readonly<Record<string, StepKey>> = {
+  build_fence: 'fence',
+  build_deck: 'deck',
+  build_pergola: 'pergola',
+};
+
+/** The step an assembly's parts belong to: its builder's step first, then its kind. */
 export function stepOfAssembly(assembly: Assembly | undefined): StepKey {
+  const name = assembly?.builder?.name;
+  const byBuilder = name !== undefined && Object.hasOwn(BUILDER_STEPS, name) ? BUILDER_STEPS[name] : undefined;
+  if (byBuilder) return byBuilder;
   switch (assembly?.kind) {
     case 'foundation':
       return assembly.builder?.name === 'pour_slab' ? 'slab' : 'foundation';
@@ -47,7 +61,7 @@ export function stepOfAssembly(assembly: Assembly | undefined): StepKey {
     case 'roof':
       return 'roof';
     case 'misc':
-      return 'fence';
+      return 'other';
     case 'structure':
       return 'structures';
     default:

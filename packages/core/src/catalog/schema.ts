@@ -35,6 +35,12 @@ export const MATERIAL_CATEGORIES = [
   'finish',
   'site',
   'other',
+  'plumbing',
+  'electrical',
+  'mechanical',
+  'fencing',
+  'decking',
+  'sealant',
 ] as const;
 export const zMaterialCategory = z.enum(MATERIAL_CATEGORIES);
 export type MaterialCategory = z.infer<typeof zMaterialCategory>;
@@ -134,7 +140,7 @@ export const zMaterial = z.strictObject({
 });
 export type Material = z.infer<typeof zMaterial>;
 
-export const SECTION_SHAPES = ['rect', 'sheet', 'round', 'tube', 'i-beam', 'angle'] as const;
+export const SECTION_SHAPES = ['rect', 'sheet', 'round', 'tube', 'i-beam', 'angle', 'channel'] as const;
 export const zSectionShape = z.enum(SECTION_SHAPES);
 export type SectionShape = z.infer<typeof zSectionShape>;
 
@@ -185,6 +191,7 @@ export const JOINT_CATEGORIES = [
   'threaded',
   'crimped',
   'sweated',
+  'clamped',
 ] as const;
 export const zJointCategory = z.enum(JOINT_CATEGORIES);
 export type JointCategory = z.infer<typeof zJointCategory>;
