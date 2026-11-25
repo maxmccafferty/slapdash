@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findParts, getPartInfo, listMaterials, measure, type QueryResult } from '../src/index.ts';
+import { findParts, getPartInfo, listMaterials, measure, searchCatalog, type QueryResult } from '../src/index.ts';
 import { poolHouseBus } from './helpers.ts';
 
 const bus = poolHouseBus();
@@ -109,5 +109,32 @@ describe('list_materials', () => {
 
   it('never changes the project', () => {
     expect(bus.project).toBe(p);
+  });
+});
+
+describe('search_catalog', () => {
+  it('matches every word in the id, name or description, with a count and flags', () => {
+    const out = text(searchCatalog(p, c, { text: 'pool fence' }));
+    expect(out).toMatch(/^\d+ materials? match/);
+    expect(out).toContain('glass-pool-fence-panel · ');
+    expect(out).toMatch(/glass-pool-fence-panel · .* · fencing · .*safety-glazing/);
+  });
+
+  it('filters by category and flag, and clips descriptions', () => {
+    const out = text(searchCatalog(p, c, { category: 'fencing', flag: 'pool-barrier' }));
+    const rows = out.split('\n').filter((l) => l.startsWith('- '));
+    expect(rows.length).toBeGreaterThanOrEqual(2);
+    expect(rows.every((r) => r.includes(' · fencing · ') && r.includes('pool-barrier'))).toBe(true);
+    for (const l of out.split('\n').filter((x) => x.startsWith('  '))) expect(l.length).toBeLessThanOrEqual(102);
+  });
+
+  it('caps the list, says how many more, and handles no match and bad input', () => {
+    const out = text(searchCatalog(p, c, { category: 'plumbing', limit: 3 }));
+    expect(out.split('\n').filter((l) => l.startsWith('- '))).toHaveLength(3);
+    expect(out).toMatch(/…and \d+ more; narrow the search or raise "limit"\./);
+    expect(text(searchCatalog(p, c, { text: 'unobtainium' }))).toContain('No materials match');
+    expect(searchCatalog(p, c, { category: 'kryptonite' }).ok).toBe(false);
+    // Site context isn't something to build with.
+    expect(text(searchCatalog(p, c, { text: 'site context' }))).toContain('No materials match');
   });
 });

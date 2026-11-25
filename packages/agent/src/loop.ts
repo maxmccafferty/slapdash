@@ -111,6 +111,7 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
     versions: bus.listVersions().map((v) => v.name),
     pendingPlan,
     confirmBigChanges: memory.prefs.confirmBigChanges,
+    catalog: bus.catalog,
   });
   const userContent: StoredBlock[] = [{ type: 'slapdash_project', text: summary }];
   for (const photo of input.photos ?? []) userContent.push({ type: 'slapdash_file', fileId: photo.fileId, mimeType: photo.mimeType, kind: 'photo' });

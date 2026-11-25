@@ -18,6 +18,7 @@ describe('agent tools', () => {
       'get_part',
       'measure',
       'list_materials',
+      'search_catalog',
       'snapshot',
       'check_structure',
       'propose_plan',

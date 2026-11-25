@@ -1,5 +1,6 @@
 /**
- * The read-only query tools: find_parts, get_part, measure and list_materials. Pure
+ * The read-only query tools: find_parts, get_part, measure, list_materials and
+ * search_catalog. Pure
  * functions over (project, catalog): they never change the project, and they answer in
  * compact text with every length in feet and inches.
  */
@@ -21,7 +22,7 @@ import {
 } from '@slapdash/core';
 import type { z } from 'zod';
 import { compareIds, ft, ftMm, plural } from '../format.ts';
-import { zFindParts, zGetPart, zListMaterials, zMeasure, type QueryPoint } from './schemas.ts';
+import { zFindParts, zGetPart, zListMaterials, zMeasure, zSearchCatalog, type QueryPoint } from './schemas.ts';
 
 export type QueryResult = { ok: true; text: string } | { ok: false; errors: CommandError[] };
 
@@ -354,9 +355,41 @@ export const listMaterials: Query = (project, catalog, raw) => {
   return { ok: true, text: lines.join('\n') };
 };
 
+// ── search_catalog ──────────────────────────────────────────────────────────
+
+const DESCRIPTION_CLIP = 100;
+
+/** Catalog materials matching words, a category and a flag, in catalog order. */
+export const searchCatalog: Query = (_project, catalog, raw) => {
+  const p = parsed(zSearchCatalog, raw);
+  if (!p.ok) return p;
+  const words = (p.data.text ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = [...catalog.materials.values()].filter((m) => {
+    if (m.category === 'site') return false;
+    if (p.data.category !== undefined && m.category !== p.data.category) return false;
+    if (p.data.flag !== undefined && !(m.flags ?? []).includes(p.data.flag)) return false;
+    const hay = `${m.id} ${m.name} ${m.description ?? ''}`.toLowerCase();
+    return words.every((w) => hay.includes(w));
+  });
+  if (matches.length === 0) return { ok: true, text: 'No materials match. Try fewer words, or search by category.' };
+  const shown = matches.slice(0, p.data.limit);
+  const lines = [`${plural(matches.length, 'material')} match${matches.length === 1 ? 'es' : ''}.`];
+  for (const m of shown) {
+    const flags = m.flags && m.flags.length > 0 ? m.flags.join(', ') : 'no flags';
+    lines.push(`- ${m.id} · ${m.name} · ${m.category} · ${flags}`);
+    if (m.description) {
+      const d = m.description.length > DESCRIPTION_CLIP ? `${m.description.slice(0, DESCRIPTION_CLIP - 1).trimEnd()}…` : m.description;
+      lines.push(`  ${d}`);
+    }
+  }
+  if (matches.length > shown.length) lines.push(`…and ${matches.length - shown.length} more; narrow the search or raise "limit".`);
+  return { ok: true, text: lines.join('\n') };
+};
+
 export const QUERY_TOOLS: Readonly<Record<string, Query>> = {
   find_parts: findParts,
   get_part: getPartInfo,
   measure,
   list_materials: listMaterials,
+  search_catalog: searchCatalog,
 };
