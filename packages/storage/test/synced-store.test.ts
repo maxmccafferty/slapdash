@@ -13,12 +13,11 @@ class FlakyStore implements ProjectStore {
   readonly inner: ProjectStore;
   constructor(inner: ProjectStore) {
     this.inner = inner;
-    const self = this;
     this.files = {
-      put: (p: string, f: NewFile): Promise<FileRef> => self.#call(() => inner.files.put(p, f)),
-      get: (p: string, id: string): Promise<StoredFile | null> => self.#call(() => inner.files.get(p, id)),
-      list: (p: string): Promise<FileRef[]> => self.#call(() => inner.files.list(p)),
-      delete: (p: string, id: string): Promise<void> => self.#call(() => inner.files.delete(p, id)),
+      put: (p: string, f: NewFile): Promise<FileRef> => this.#call(() => inner.files.put(p, f)),
+      get: (p: string, id: string): Promise<StoredFile | null> => this.#call(() => inner.files.get(p, id)),
+      list: (p: string): Promise<FileRef[]> => this.#call(() => inner.files.list(p)),
+      delete: (p: string, id: string): Promise<void> => this.#call(() => inner.files.delete(p, id)),
     };
   }
   async #call<T>(fn: () => Promise<T>): Promise<T> {

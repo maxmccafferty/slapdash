@@ -17,7 +17,6 @@ import { SPACING_MM, STOCK_LENGTH_MM, anchorBoltCount, framingNailCount, type Sp
 import {
   buildingWidth,
   builderSeq,
-  compass,
   fi,
   partAabb,
   requireMaterial,

@@ -118,6 +118,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
 
   // Filtered member lists are cached per Batch object, so an unchanged batch keeps the same
   // array and its (memoised) PartBatch doesn't re-render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- a new isVisible must drop the cache.
   const filtered = useMemo(() => new WeakMap<Batch, Part[]>(), [isVisible]);
   const visibleParts = (b: Batch): Part[] => {
     let list = filtered.get(b);

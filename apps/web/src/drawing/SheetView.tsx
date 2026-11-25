@@ -62,7 +62,7 @@ export function SheetView() {
     } else if (!store.fit || store.fit.scale !== fitted.scale) {
       store.setFit(fitted);
     }
-    // The sheet changes with Floors and Dimensions; that alone doesn't refit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the sheet changes with Floors and Dimensions; that alone doesn't refit.
   }, [size, loadId, hasParts]);
 
   // The readout.

@@ -34,7 +34,6 @@ export interface Contact {
 /** The shared face of two boxes that touch (and don't interpenetrate), or null. */
 export function contactOf(a: FrameBox, b: FrameBox): Contact | null {
   let normal: Axis | null = null;
-  let plane = 0;
   const face = {} as FrameBox;
   for (const ax of AXES) {
     const o0 = Math.max(lo(a, ax), lo(b, ax));
@@ -46,7 +45,7 @@ export function contactOf(a: FrameBox, b: FrameBox): Contact | null {
     }
     if (Math.abs(o1 - o0) <= TOUCH && normal === null) {
       normal = ax;
-      plane = (o0 + o1) / 2;
+      const plane = (o0 + o1) / 2;
       face[`${ax}0`] = plane;
       face[`${ax}1`] = plane;
       continue;

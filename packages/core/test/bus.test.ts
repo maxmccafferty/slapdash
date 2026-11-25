@@ -338,7 +338,7 @@ describe('serialize / hydrate', () => {
 
 describe('CommandBus siteDefaults', () => {
   it('reads the site defaults each time a command runs', () => {
-    let defaults: { location: { label: string }; table: Record<string, { label: string; loads: { groundSnow: { value: number; unit: 'kPa'; source: string } } }> } | undefined;
+    let defaults: { location: { label: string }; table: Record<string, { label: string; loads: { groundSnow: { value: number; unit: 'kPa'; source: string } } }> } | undefined = undefined;
     const bus = new CommandBus({ project: createProject({ name: 't' }), catalog: SAMPLE_CATALOG, now: fixedClock(), siteDefaults: () => defaults });
     bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
     const first = bus.execute('build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', openings: [{ kind: 'window', centerAt: '8ft' }] });

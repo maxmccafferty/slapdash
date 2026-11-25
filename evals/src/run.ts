@@ -88,7 +88,7 @@ const totals = totalsOf(results, budgetAfter ?? budgetBefore);
 for (const line of summaryLines(results, totals)) console.log(line);
 if (budgetAfter) console.log(`\nBudget now: ${describeBudget(budgetAfter)}`);
 
-let gitSha: string | null = null;
+let gitSha: string | null;
 try {
   gitSha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 } catch {

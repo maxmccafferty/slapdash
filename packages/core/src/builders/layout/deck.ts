@@ -47,8 +47,7 @@ const BOARD_GAP = 0.125 * IN;
 const PAD_THICKNESS = 4 * IN;
 const HANDRAIL_ABOVE_NOSING = 34 * IN;
 const CABLE_POST_MAX_SPACING_MM = 4 * FT;
-const SIDES = ['north', 'south', 'east', 'west'] as const;
-type Side = (typeof SIDES)[number];
+type Side = 'north' | 'south' | 'east' | 'west';
 
 export interface BuildDeckInput {
   from: PlanPoint;
