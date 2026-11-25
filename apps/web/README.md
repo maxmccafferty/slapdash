@@ -1,8 +1,8 @@
 # @slapdash/web
 
-The Slapdash web app (Vite + React + TypeScript, ADR-0002 §E1–E2). For now it is the **app
-shell**: the frame around the model and the chat, built from the design handoff
-(`docs/design/HANDOFF.md`, ADR-0003).
+The Slapdash web app (Vite + React + TypeScript, ADR-0002 §E1–E2). It is the **app shell** (the
+frame around the model and the chat, built from the design handoff `docs/design/HANDOFF.md`,
+ADR-0003) and the **3D renderer** that draws the model inside it.
 
 ```sh
 pnpm dev                                   # from the repo root; or:
@@ -12,7 +12,7 @@ pnpm --filter @slapdash/web typecheck
 pnpm --filter @slapdash/web build
 pnpm --filter @slapdash/web tokens         # regenerate src/styles/tokens.{css,ts}
 pnpm --filter @slapdash/web exec playwright install chromium   # once
-pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion
+pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion, the 3D view
 ```
 
 E2E is not part of `pnpm -r test`, so the workspace tests stay headless. It saves screenshots
@@ -29,17 +29,94 @@ Mobile, MobileViews, MobileFloors, MobileChat).
   (Project popover with Save/Load/Undo/Redo, Materials, Build steps, Floors popover) top right;
   the eye key (view controls popover) bottom left; the orange chat key bottom right, which opens
   the chat as a bottom sheet while the model slides up. No logo.
-- **Not here yet:** the 3D scene (the model area is an empty dot-grid floor), chat behaviour and
-  voice, the Materials/Steps/Projects modals (only their latched keys), and real spec values.
+- **Not here yet:** the 2D sheet (in 2D the 3D canvas is hidden), the stress overlay, chat
+  behaviour and voice, the Materials/Steps/Projects modals (only their latched keys), and real spec values.
 
 UI state (view controls, floor, latched panel, phone popovers and sheet) lives in a Zustand
-store, `src/state/shell-store.ts`. It never holds project data.
+store, `src/state/shell-store.ts`. It never holds project data; the project lives in
+`src/state/model-store.ts` (below).
 
 ## The `ShellActions` seam
 
 Save, Load, Undo and Redo call `ShellActions` (`src/shell/actions.ts`), which `App` takes as a
 prop and defaults to no-ops. Later tickets wire the command bus and `ProjectStore` there, in one
 place.
+
+## The 3D renderer (`src/renderer/`)
+
+three.js through React Three Fiber, lazy-loaded as its own chunk (`SceneCanvas`), so the
+shell's first paint doesn't wait for it. Without WebGL 2 (and in jsdom) the model area keeps
+the CSS dot-grid floor, labelled as "3D isn't available".
+
+- **Where the model comes from.** `src/model/bootstrap.ts` creates the `CommandBus` with
+  `TIER1_CATALOG`; `src/state/model-store.ts` mirrors `bus.project` (it follows every execute,
+  undo, redo and restore) and holds renderer-only state: the selection and its label, parts in
+  progress, and a proposal. Until ProjectStore is wired in, the app starts empty.
+  `?sample=pool-house` builds the 16 × 20 shell from the core acceptance test
+  (`src/model/sample-shell.ts`); add `&context=1` for a stippled house and tree.
+- **Drawing.** Every part is a box, so parts are batched by `materialId|sectionId`
+  (`batches.ts`) into one `InstancedMesh` each (`PartBatch.tsx`). Batches are structurally
+  shared like the project: an edit only rewrites the matrices of parts whose reference changed.
+  Scene units are metres (mm ÷ 1000 at the matrix). Materials (`materials.ts`) come from the
+  catalog swatch plus the KTX2 texture set at real-world scale, with box UVs whose u axis runs
+  along the board, so grain follows each board, plus a small per-board variation.
+- **The view rules** are pure functions in `visibility.ts`: Floors (Foundation / Floor 1 /
+  Roof, mapped onto assembly kinds while a project has one level) and Look from (Inside removes
+  the roof and cuts walls, openings and structures at 4′ 0″, with the cut faces drawn dark).
+  The slider's heights come from the model (`src/model/floor-stops.ts`).
+- **The floor and site.** A bounded dot-grid floor around the build, a compass on the floor
+  near its front corner, site context (`place_structure`) drawn stippled, a sun placed with
+  `suncalc` from the site's location, and dimensions as hairlines with `′ ″` labels.
+- **Pointing.** A tap (one pointer, ≤ 6 px, ≤ 500 ms) selects a part, and a drag orbits
+  (`picking.ts`). The selection and the parts Claude is working on get orange outlines only,
+  never fill; a proposal is a dashed orange box. Escape clears the selection.
+- **Camera.** Orbit, pan, and wheel or pinch zoom toward the pointer (`OrbitControls` with
+  `zoomToCursor`). The camera fits the build once and then never moves on model edits. The
+  zoom readout is the fitted distance over the current one.
+- **Motion.** The canvas renders on demand (no frames at rest), so it stays cool on phones.
+  New parts drop in over 250 ms unless the user prefers reduced motion, which also turns off
+  orbit damping.
+
+Scene colours come from `tokens.json` too: `SCENE_COLORS` in the generated `tokens.ts`.
+
+### Quality tiers
+
+`quality.ts`: phones (coarse pointer, < 900px) start on **low**, other touch devices (iPad) on
+**medium**, everything else on **high**. The tier sets the pixel-ratio cap, the shadow map
+size, ambient occlusion (off / half / full), MSAA or SMAA, and whether normal and roughness
+maps load. While the user interacts, a governor steps the tier down on slow frames and back up
+with headroom, with a limit on flip-flops. For device testing:
+
+- `?perf` shows frames per second and the tier.
+- `?tier=low|medium|high` forces the starting tier.
+
+### Snapshots
+
+`renderSnapshot(request)` (from `src/renderer/index.ts`) renders a PNG of the model for Claude
+(ADR-0002 §B10). It draws a separate scene offscreen in the same WebGL context, so **the
+user's camera and view never move**. The request (`zSnapshotRequest`) takes:
+
+- `angle`: `sheet` (default: top, front, right and 3D on a 2 × 2 sheet), `top`, `front`,
+  `back`, `left`, `right`, `iso`, or `{ frame: '<part or assembly id>' }`;
+- `mode`: `textured` (default), `blueprint` or `xray`. Blueprint and x-ray exist only for
+  snapshots, not in the UI (ADR-0003 §C). `stress` and `exploded` are rejected with a plain
+  sentence;
+- `highlight` (part ids, outlined orange), `labels` (ID labels), `dimensions`, `lookFrom`,
+  `floor`, and `size` (long edge, 256–2048 px, default 768).
+
+Unknown ids are rejected with suggestions. Requests are served one at a time, with a 10 s
+timeout. Wiring it into the agent's `snapshot` tool is a later ticket.
+
+### Debugging and e2e
+
+In dev, or with `?e2e`, `window.__slapdash` exposes `renderSnapshot`, `camera()`,
+`selection()`, `select()`, `frameStats()` and the bus. Playwright runs Chromium with
+SwiftShader (`--use-angle=swiftshader`) so WebGL 2 works headless; `e2e/renderer.spec.ts`
+checks drawing, tap versus drag, Inside and Floors, and that snapshots leave the view
+untouched. Snapshot PNGs are saved to `test-results/screens/`.
+
+To check on real devices, run `pnpm --filter @slapdash/web dev --host` and open
+`http://<lan-ip>:5173/?sample=pool-house&perf`.
 
 ## Tokens and the raw-value rule
 
