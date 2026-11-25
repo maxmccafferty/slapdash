@@ -19,6 +19,7 @@ ADR-0001 and ADR-0002 set the architecture and the product decisions but left th
 2. **The model is the only colour.** Lumber, concrete and steel get their own colours; nothing else on screen does.
 3. **Orange means one thing.** `#E8590C` marks what is selected or what Claude is working on right now: the dot on a chosen option, the floor knob, parts being added, the Talk key. It is never used as decoration or as body text on white.
 4. **The site is drawn, not modelled in detail.** The build area is a bounded floor shown as a dot grid. Site context (house, trees, pool) is stippled dots.
+   A compass is drawn on the floor near its front corner (dotted ring, solid arrow to north, N E S W letters), so walls can be named by direction when talking to Claude ("the south wall"). It lies on the ground plane and turns with the model.
 5. **Logo: a stud wall.** Three thick black studs under an orange top plate; white studs on black for the app icon. Files and rules are in the design system.
 
 ### B. Desktop layout (1440 × 900)
