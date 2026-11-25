@@ -26,6 +26,7 @@ export {
   type FetchInitLike,
   type FetchLike,
   type FetchResponseLike,
+  type HeadersGetter,
   type KeyholeClient,
   type KeyholeRequestFailure,
 } from './client.ts';

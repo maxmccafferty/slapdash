@@ -73,6 +73,8 @@ function describeFailure(f: KeyholeRequestFailure): string {
       return 'This site is not allowed to use the Claude server.';
     case 'method_not_allowed':
       return 'The Claude server refused the request method.';
+    case 'sign_in_required':
+      return 'Sign in to talk to Claude.';
     case 'network':
       return `The Claude server could not be reached: ${f.message}`;
     default:
@@ -84,14 +86,18 @@ function isKeyholeFailure(value: unknown): value is KeyholeRequestFailure {
   return typeof value === 'object' && value !== null && typeof (value as { error?: unknown }).error === 'string';
 }
 
-export function fetchKeyholeClient(opts: { url?: string; fetch: FetchLike }): KeyholeClient {
+/** Extra request headers, read before each request (e.g. the signed-in user's bearer token). */
+export type HeadersGetter = () => Promise<Record<string, string>> | Record<string, string>;
+
+export function fetchKeyholeClient(opts: { url?: string; fetch: FetchLike; headers?: HeadersGetter }): KeyholeClient {
   const url = opts.url ?? '/api/claude';
   return async function* keyhole(messages, signal) {
     let res: FetchResponseLike;
     try {
+      const extra = opts.headers ? await opts.headers() : {};
       res = await opts.fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
+        headers: { ...extra, 'Content-Type': 'application/json', Accept: 'text/event-stream' },
         body: JSON.stringify({ messages }),
         ...(signal ? { signal } : {}),
       });

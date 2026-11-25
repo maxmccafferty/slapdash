@@ -18,6 +18,7 @@ import { budgetStatus, monthKey } from './budget.ts';
 import { anthropicTransport, buildClaudeParams, type ClaudeTransport } from './claude.ts';
 import type { KeyholeConfig } from './config.ts';
 import { identifyUser, type Identify } from './identify.ts';
+import type { Authenticate } from './supabase-identify.ts';
 import { costMicroUsd, type TokenUsage } from './pricing.ts';
 import { checkRateLimit } from './rate-limit.ts';
 import type { UsageStore } from './usage-store.ts';
@@ -29,6 +30,12 @@ export interface KeyholeDeps {
   transport?: ClaudeTransport;
   now?: () => Date;
   identify?: Identify;
+  /**
+   * The sign-in gate (hosted copy with Supabase): the signed-in user's id for a request, or
+   * null. When set, POST needs a user (401 `sign_in_required`) and GET only includes the
+   * default location for one.
+   */
+  authenticate?: Authenticate;
   warn?: (message: string) => void;
 }
 
@@ -92,6 +99,7 @@ export function createKeyhole(deps: KeyholeDeps): KeyholeHandler {
 
   async function post(request: Request): Promise<Response> {
     if (!originAllowed(request)) return json(403, { error: 'forbidden_origin' });
+    if (deps.authenticate && !(await deps.authenticate(request))) return json(401, { error: 'sign_in_required' });
     const apiKey = config.apiKey;
     if (!apiKey) return json(503, { error: 'not_configured' });
 
@@ -197,7 +205,9 @@ export function createKeyhole(deps: KeyholeDeps): KeyholeHandler {
     try {
       if (request.method === 'GET') {
         const status: KeyholeStatus = { configured: Boolean(config.apiKey), model: config.model, budget: await currentBudget(now()) };
-        if (config.defaultLocation) status.defaultLocation = config.defaultLocation;
+        if (config.defaultLocation && (!deps.authenticate || (await deps.authenticate(request)))) {
+          status.defaultLocation = config.defaultLocation;
+        }
         return json(200, status);
       }
       if (request.method === 'POST') return await post(request);

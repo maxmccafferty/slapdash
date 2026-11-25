@@ -1,6 +1,7 @@
 /**
  * Who is calling, for the per-user rate limit. Without sign-in the user is the client IP,
- * hashed so raw IPs are never stored. Sign-in can later supply its own `identify`.
+ * hashed so raw IPs are never stored. With Supabase sign-in, `supabase-identify.ts` supplies
+ * the signed-in user's id instead.
  */
 import { createHash } from 'node:crypto';
 
