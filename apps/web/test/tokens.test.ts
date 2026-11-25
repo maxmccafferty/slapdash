@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { SCENE_COLORS } from '../src/styles/tokens.ts';
 import {
+  SCENE_COLOR_TOKENS,
   TOKENS_CSS_PATH,
   TOKENS_TS_PATH,
   generateCss,
@@ -33,6 +35,12 @@ describe('generated tokens', () => {
       '--font-sans:',
     ];
     for (const property of expected) expect(css).toContain(property);
+  });
+
+  it('SCENE_COLORS match the colour tokens', () => {
+    for (const [key, name] of Object.entries(SCENE_COLOR_TOKENS)) {
+      expect(css, key).toContain(`--color-${name}: ${SCENE_COLORS[key as keyof typeof SCENE_COLORS]};`);
+    }
   });
 
   it('has no text smaller than 14px', () => {
