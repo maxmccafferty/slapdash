@@ -8,6 +8,7 @@ import { commandError, type CommandError } from '../../commands/errors.ts';
 import { boxInFrame, placeOriented, toWorld, type FrameBox, type PlanFrame } from '../../geometry/frame.ts';
 import { aabbOf, partBox } from '../../geometry/obb.ts';
 import type { Project } from '../../model/schema.ts';
+import type { SiteDefaults } from '../../site/design-loads.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../../units/length.ts';
 import { contactJoints, type Member } from '../contact.ts';
 import { BUILDER_DEFAULTS, resolveMaterials, type BuilderMaterialsInput } from '../defaults.ts';
@@ -146,6 +147,7 @@ export function resolveWall(
   project: Project,
   input: BuildWallInput,
   catalog: CatalogIndex,
+  siteDefaults?: SiteDefaults,
 ): { ok: true; params: WallParams; butts: { start: Butt | null; end: Butt | null }; notes: string[] } | { ok: false; errors: CommandError[] } {
   const bad = (msg: string, path?: string, hint?: string) => ({
     ok: false as const,
@@ -233,7 +235,7 @@ export function resolveWall(
     };
   }
 
-  const snow = snowLoad(project);
+  const snow = snowLoad(project, siteDefaults);
   const bw = buildingWidth(project, input.buildingWidth, found);
 
   const params: WallParams = {

@@ -13,6 +13,7 @@ import { contactJoints } from '../contact.ts';
 import { BUILDER_DEFAULTS, resolveMaterials, type BuilderMaterialsInput } from '../defaults.ts';
 import { SpecList, fail, type JointSpec, type LayoutResult, type Ref } from '../emit.ts';
 import { JOIST_TO_RIM_NAILS, SPACING_MM, STOCK_LENGTH_MM, anchorBoltCount, type SpacingLabel } from '../rules.ts';
+import type { SiteDefaults } from '../../site/design-loads.ts';
 import { builderSeq, compass, fi, footingDepth, requireMaterial, requireSection, round6, sectionDims, supportUnder, type PlanPoint } from '../util.ts';
 
 const IN = MM_PER_INCH;
@@ -33,7 +34,7 @@ export interface FrameFloorInput {
   name?: string;
 }
 
-export function layoutFloor(project: Project, input: FrameFloorInput, catalog: CatalogIndex): LayoutResult {
+export function layoutFloor(project: Project, input: FrameFloorInput, catalog: CatalogIndex, siteDefaults?: SiteDefaults): LayoutResult {
   const x0 = Math.min(input.from.x, input.to.x);
   const x1 = Math.max(input.from.x, input.to.x);
   const z0 = Math.min(input.from.z, input.to.z);
@@ -195,7 +196,7 @@ export function layoutFloor(project: Project, input: FrameFloorInput, catalog: C
       });
     }
   } else {
-    const fd = footingDepth(project);
+    const fd = footingDepth(project, siteDefaults);
     const half = 6 * IN;
     const count = Math.max(2, Math.ceil(LK / (6 * FT) - 1e-9) + 1);
     for (const end of [0, 1] as const) {

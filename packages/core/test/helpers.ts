@@ -21,18 +21,19 @@ export function makeBus(project: Project = createProject({ name: 'Test' }), opts
 export type RunResult = ({ ok: true } & ApplyResult) | { ok: false; errors: CommandError[] };
 
 /** Run any command (exposed or internal) directly against a project, bypassing the bus. */
-export function run(project: Project, cmd: AppliedCommand): RunResult {
+export function run(project: Project, cmd: AppliedCommand, extra: Partial<CommandContext> = {}): RunResult {
   const def = commandRegistry.get(cmd.name);
   if (!def) throw new Error(`no command ${cmd.name}`);
   const parsed = def.schema.safeParse(cmd.input);
   if (!parsed.success) return { ok: false, errors: zodIssuesToErrors(parsed.error.issues, cmd.input) };
-  const errors = def.check(project, parsed.data, ctx);
+  const c = { ...ctx, ...extra };
+  const errors = def.check(project, parsed.data, c);
   if (errors.length > 0) return { ok: false, errors };
-  return { ok: true, ...def.apply(project, parsed.data, ctx) };
+  return { ok: true, ...def.apply(project, parsed.data, c) };
 }
 
-export function runOk(project: Project, name: string, input: unknown): ApplyResult {
-  const res = run(project, { name, input });
+export function runOk(project: Project, name: string, input: unknown, extra: Partial<CommandContext> = {}): ApplyResult {
+  const res = run(project, { name, input }, extra);
   if (!res.ok) throw new Error(`${name} failed: ${res.errors.map((e) => e.message).join(' | ')}`);
   return res;
 }

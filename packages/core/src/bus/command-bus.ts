@@ -6,6 +6,7 @@
 import type { Catalog } from '../catalog/schema.ts';
 import { indexCatalog, isCatalogIndex, type CatalogIndex } from '../catalog/validate.ts';
 import type { Project } from '../model/schema.ts';
+import type { SiteDefaults } from '../site/design-loads.ts';
 import { commandError, notFound, suggest, zodIssuesToErrors, type CommandError } from '../commands/errors.ts';
 import { commandRegistry } from '../commands/registry.ts';
 import type { AppliedCommand, CommandContext } from '../commands/types.ts';
@@ -38,6 +39,11 @@ export interface CommandBusOptions {
   historyLimit?: number;
   /** Deep-freeze every project state (catches accidental mutation). Default true. */
   freeze?: boolean;
+  /**
+   * The app's site defaults, read each time a command runs (they may arrive after the
+   * bus is made, e.g. once the keyhole says the default location).
+   */
+  siteDefaults?: () => SiteDefaults | undefined;
 }
 
 export interface SerializedBus {
@@ -81,7 +87,14 @@ export class CommandBus {
 
   constructor(opts: CommandBusOptions) {
     this.catalog = isCatalogIndex(opts.catalog) ? opts.catalog : indexCatalog(opts.catalog);
-    this.#ctx = { catalog: this.catalog, now: opts.now ?? Date.now };
+    const siteDefaults = opts.siteDefaults;
+    this.#ctx = {
+      catalog: this.catalog,
+      now: opts.now ?? Date.now,
+      get siteDefaults() {
+        return siteDefaults?.();
+      },
+    };
     this.#historyLimit = opts.historyLimit ?? DEFAULT_HISTORY_LIMIT;
     this.#freeze = opts.freeze ?? true;
     this.#project = this.#maybeFreeze(opts.project);

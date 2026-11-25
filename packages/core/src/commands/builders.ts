@@ -8,19 +8,31 @@ import { z } from 'zod';
 import { checkCatalogRefs, emit, fail, type Layout, type LayoutResult } from '../builders/emit.ts';
 import { contactJoints } from '../builders/contact.ts';
 import { zBuilderMaterials } from '../builders/defaults.ts';
-import { SPACINGS } from '../builders/rules.ts';
-import { builderSeq, fi, sectionDims, zBuilderName, zPlanPoint } from '../builders/util.ts';
+import { SPACINGS, largestHeader, pickHeader } from '../builders/rules.ts';
+import { builderSeq, fi, sectionDims, snowLoad, zBuilderName, zPlanPoint } from '../builders/util.ts';
 import { layoutFence } from '../builders/layout/fence.ts';
 import { layoutFloor } from '../builders/layout/floor.ts';
-import { bottomPlates, frameOpening, resolveOpening, zOpeningFields, zOpeningItem, type ResolvedOpening } from '../builders/layout/opening.ts';
+import {
+  bottomPlates,
+  frameHeader,
+  frameOpening,
+  headerHeight,
+  headerName,
+  parseHeaderSize,
+  resolveOpening,
+  zOpeningFields,
+  zOpeningItem,
+  type ResolvedOpening,
+} from '../builders/layout/opening.ts';
 import { layoutRoof } from '../builders/layout/roof.ts';
 import { layoutSlab } from '../builders/layout/slab.ts';
 import { STRUCTURE_KINDS, layoutStructure } from '../builders/layout/structure.ts';
 import { layoutWall, neighbourMembers, openingUnitMaterial, openingsIn, resolveWall, supportJoints } from '../builders/layout/wall.ts';
-import { OPENING_BUILDER, WALL_BUILDER, loadWallState, wallParamsOf, type WallParams } from '../builders/layout/wall-state.ts';
+import { OPENING_BUILDER, WALL_BUILDER, hasTag, loadWallState, removeItem, studTop, wallParamsOf, type WallParams } from '../builders/layout/wall-state.ts';
 import { describeClashes, findClashes } from '../model/clash.ts';
 import { jointsForParts } from '../model/queries.ts';
-import type { Project } from '../model/schema.ts';
+import type { Assembly, Project } from '../model/schema.ts';
+import { MM_PER_INCH } from '../units/length.ts';
 import { LENGTH_DESCRIPTION, zLength, zPitch, zPositiveLength } from '../units/zod.ts';
 import { commandError, formatErrors, notFound, type CommandError } from './errors.ts';
 import { patchWithInverse } from './internal.ts';
@@ -89,7 +101,7 @@ export const pourSlab = builderCommand({
     materials,
     name: zBuilderName,
   }),
-  layout: (project, input, ctx) => layoutSlab(project, input, ctx.catalog),
+  layout: (project, input, ctx) => layoutSlab(project, input, ctx.catalog, ctx.siteDefaults),
 });
 
 // ── build_wall ──────────────────────────────────────────────────────────────
@@ -98,7 +110,7 @@ const WALL_CONVENTIONS =
   '"start" and "end" are plan points on the OUTSIDE face of the framing. The exterior is on the LEFT walking from start to end in a north-up plan, so list walls clockwise (or set "exterior"). "height" is the overall framed height, bottom of the bottom plate to the top of the double top plate: "9ft" gives 103 1/2in studs. The wall stands on the highest slab or floor under it (or on the ground). If an end lands on the end of an existing wall\'s outside face, it butts into that wall as a California corner (framing shortened, sheathing lapped, a backer stud added).';
 
 function wallLayout(project: Project, input: z.output<typeof buildWallSchema>, ctx: CommandContext): LayoutResult {
-  const r = resolveWall(project, input, ctx.catalog);
+  const r = resolveWall(project, input, ctx.catalog, ctx.siteDefaults);
   if (!r.ok) return fail(...r.errors);
   const openings = input.openings ?? [];
   const openingSeq = builderSeq(project, OPENING_BUILDER);
@@ -290,7 +302,7 @@ export const frameFloor = builderCommand({
     materials,
     name: zBuilderName,
   }),
-  layout: (project, input, ctx) => layoutFloor(project, input, ctx.catalog),
+  layout: (project, input, ctx) => layoutFloor(project, input, ctx.catalog, ctx.siteDefaults),
 });
 
 // ── build_roof ──────────────────────────────────────────────────────────────
@@ -355,4 +367,213 @@ export const placeStructure = builderCommand({
   layout: (project, input, ctx) => layoutStructure(project, input, ctx.catalog),
 });
 
-export const builderCommands = [pourSlab, buildWall, addOpening, frameFloor, buildRoof, buildFence, placeStructure];
+
+// ── resize_header ───────────────────────────────────────────────────────────
+
+/** The recipe add_opening stores on an opening assembly (only the fields resize_header uses). */
+interface OpeningParams {
+  wallId: string;
+  kind: string;
+  at: number;
+  width: number;
+  roTop: number;
+  header: { plies: number; sectionId: string; flat: boolean; length: number };
+  jacks: number;
+  kings: number;
+  headerRule: string;
+}
+
+const resizeHeaderSchema = z.strictObject({
+  opening: z
+    .string()
+    .trim()
+    .min(1)
+    .describe('The opening assembly made by add_opening (e.g. "O1"), or the ID of one of its header plies.'),
+  size: z
+    .string()
+    .trim()
+    .min(1)
+    .optional()
+    .describe(
+      'Header size, e.g. "2-2x10" (two 2x10 plies on edge), "3-2x12" or "flat 2x4". Default: sized from IRC Table R602.7(1) for the current ground snow load and the wall\'s building width.',
+    ),
+});
+
+/** The opening assembly a resize_header "opening" names: its ID, or one of its header plies. */
+function findOpening(project: Project, ref: string): { asm: Assembly } | { error: CommandError } {
+  const openings = Object.values(project.assemblies).filter((a) => a.kind === 'opening').map((a) => a.id);
+  let asm = Object.hasOwn(project.assemblies, ref) ? project.assemblies[ref] : undefined;
+  if (!asm && Object.hasOwn(project.parts, ref)) {
+    const part = project.parts[ref]!;
+    const tag = part.role === 'header' ? part.tags.find((t) => t.startsWith('opening:')) : undefined;
+    if (!tag) {
+      return {
+        error: commandError('invalid_input', `${part.id} is a ${part.role}, not an opening's header.`, {
+          path: 'opening',
+          hint: openings.length > 0 ? `Openings: ${openings.join(', ')}.` : 'There are no openings yet.',
+        }),
+      };
+    }
+    asm = project.assemblies[tag.slice('opening:'.length)];
+  }
+  if (!asm) {
+    const err = notFound('opening', ref, openings, 'opening');
+    return { error: err.hint ? err : { ...err, hint: openings.length > 0 ? `Openings: ${openings.join(', ')}.` : 'There are no openings yet.' } };
+  }
+  if (asm.builder?.name !== OPENING_BUILDER) {
+    return {
+      error: commandError('not_allowed', `${asm.id} wasn't made with add_opening, so resize_header can't re-frame its header.`, {
+        path: 'opening',
+        hint: 'Change the header parts with update_part, or frame the opening with add_opening.',
+      }),
+    };
+  }
+  return { asm };
+}
+
+function resizeHeaderLayout(project: Project, input: z.output<typeof resizeHeaderSchema>, ctx: CommandContext): LayoutResult {
+  const found = findOpening(project, input.opening);
+  if ('error' in found) return fail(found.error);
+  const asm = found.asm;
+  const op = asm.builder!.params as unknown as OpeningParams;
+  const wall = wallParamsOf(project, op.wallId);
+  if (!wall) {
+    return fail(commandError('not_allowed', `${asm.id}'s wall ${op.wallId} wasn't made with build_wall, so its header can't be re-framed.`, { path: 'opening' }));
+  }
+  const T = 1.5 * MM_PER_INCH;
+  const maxPlies = Math.floor((wall.depth + 0.5) / T);
+  const notes: string[] = [];
+
+  // The new header.
+  let header: { plies: number; sectionId: string; flat: boolean };
+  let rule: string;
+  let tableJacks: number | null = null;
+  if (input.size !== undefined) {
+    const parsed = parseHeaderSize(input.size);
+    if (!parsed) {
+      return fail(
+        commandError('invalid_input', `Couldn't read "${input.size}" as a header size.`, {
+          path: 'size',
+          hint: 'Write it like "2-2x10" (two 2x10 plies), "3-2x12" or "flat 2x4".',
+        }),
+      );
+    }
+    if (!ctx.catalog.sections.has(parsed.sectionId)) return fail(notFound('section', parsed.sectionId, ctx.catalog.sections.keys(), 'size'));
+    if (!parsed.flat && parsed.plies > maxPlies) {
+      return fail(
+        commandError('invalid_input', `A ${fi(wall.depth)}-deep ${wall.studSectionId} wall fits at most ${maxPlies} plies side by side; you asked for ${parsed.plies}.`, {
+          path: 'size',
+        }),
+      );
+    }
+    header = parsed;
+    rule = `${headerName(parsed)}, as asked`;
+  } else if (!wall.loadBearing) {
+    header = { plies: 1, sectionId: '2x4', flat: true };
+    rule = 'IRC R602.7.4: flat 2x4 header in a non-bearing wall';
+  } else {
+    const snow = snowLoad(project, ctx.siteDefaults);
+    const q = { snowPsf: snow.psf, buildingWidthFt: wall.buildingWidthFt, maxPlies };
+    const choice = pickHeader({ ...q, spanMm: op.width });
+    if (!choice) {
+      const big = largestHeader(q);
+      const why =
+        snow.psf > 70
+          ? `the ${Number(snow.psf.toFixed(1))} psf ground snow load is past the prescriptive header table (70 psf max)`
+          : wall.buildingWidthFt > 36
+            ? `a ${Number(wall.buildingWidthFt.toFixed(1))}ft-wide building is past the prescriptive header table (36ft max)`
+            : `a ${fi(op.width)} opening is longer than any built-up 2x header allows here${big ? ` (${headerName({ ...big, flat: false })} max ${fi(big.maxSpanMm)})` : ''}`;
+      return fail(
+        commandError('not_allowed', `No header in IRC Table R602.7(1) works for ${asm.id}: ${why}. It needs an engineered beam.`, {
+          path: 'opening',
+          hint: 'Give an explicit "size", or ask an engineer for a beam.',
+        }),
+      );
+    }
+    header = { plies: choice.plies, sectionId: choice.sectionId, flat: false };
+    tableJacks = choice.jacks;
+    rule = `IRC Table R602.7(1): ${choice.snowPsf} psf, ${choice.buildingWidthFt}ft building width column`;
+    notes.push(`Sized for ${snow.note} and ${wall.buildingWidthNote}.`);
+  }
+  const depth = header.flat ? T : sectionDims(ctx.catalog, header.sectionId).depth;
+  const name = headerName(header);
+
+  // Does it fit under the top plate?
+  const top = studTop(wall, T);
+  const height = headerHeight({ flat: header.flat, depth });
+  if (op.roTop + height > top + 1e-6) {
+    return fail(
+      commandError(
+        'invalid_input',
+        `A ${name} header doesn't fit over ${asm.id}: the rough opening tops out at ${fi(op.roTop)} and the top plate is at ${fi(top)}, which leaves ${fi(top - op.roTop)} for a ${fi(height)}-deep header.`,
+        { path: input.size !== undefined ? 'size' : 'opening', hint: 'Use a shallower header with more plies, or lower the opening.' },
+      ),
+    );
+  }
+
+  // Take out the old header and the cripples above it; frame the new ones.
+  const state = loadWallState(project, op.wallId, wall);
+  const tag = `opening:${asm.id}`;
+  for (const item of [...state.items]) {
+    const ours = hasTag(item, tag);
+    if (ours && item.role === 'header') removeItem(state, item);
+    else if (ours && item.role === 'stud' && hasTag(item, 'cripple') && item.box.v0 >= op.roTop - 1) removeItem(state, item);
+  }
+  const resolvedHeader = { ...header, depth, length: op.width + 2 * op.jacks * T, name };
+  frameHeader(state, { roU0: op.at, roU1: op.at + op.width, roTop: op.roTop, jacks: op.jacks, header: resolvedHeader }, asm.id);
+
+  const fresh = state.items.filter((i) => i.isNew);
+  const kept = state.items.filter((i) => !i.isNew && i.role !== 'brace');
+  const joints = contactJoints(state.frame, fresh, kept);
+  const removedJoints = jointsForParts(project, state.removed).map((j) => j.id);
+  if (tableJacks !== null && tableJacks > op.jacks) {
+    notes.push(
+      `The table asks for ${tableJacks} jack studs a side for a ${name} here and ${asm.id} has ${op.jacks}; I kept the jacks as framed, so add ${tableJacks - op.jacks} more a side when it's built (re-framing the jacks moves the king studs and sheathing).`,
+    );
+  }
+
+  // Say what was there, from the parts themselves (update_part may have changed them).
+  const oldPlies = Object.values(project.parts).filter((x) => x.role === 'header' && x.tags.includes(tag));
+  const oldSection = oldPlies[0]?.sectionId;
+  const before =
+    oldPlies.length > 0 && oldSection
+      ? headerName({ plies: oldPlies.length, sectionId: oldSection, flat: oldPlies.length === 1 && op.header.flat })
+      : headerName(op.header);
+  const updated: Assembly = {
+    ...asm,
+    builder: {
+      name: OPENING_BUILDER,
+      params: {
+        ...asm.builder!.params,
+        header: { plies: header.plies, sectionId: header.sectionId, flat: header.flat, length: resolvedHeader.length },
+        headerRule: rule,
+      },
+    },
+  };
+  const cripples = fresh.filter((i) => i.role === 'stud').length;
+  return {
+    ok: true,
+    layout: {
+      assemblies: [],
+      updateAssemblies: [updated],
+      parts: state.specs,
+      joints,
+      remove: { parts: state.removed, joints: removedJoints },
+      notes,
+      what: `The new ${name} header`,
+      summary: () =>
+        `Re-framed ${asm.id}'s header in ${op.wallId}: ${before} → ${name}` +
+        (cripples > 0 ? `, with ${cripples} cripple${cripples === 1 ? '' : 's'} above it.` : ', with no room for cripples above it.'),
+    },
+  };
+}
+
+export const resizeHeader = builderCommand({
+  name: 'resize_header',
+  description:
+    'Re-size the header over an opening made by add_opening, re-framing the header plies and the cripples above them (jack and king studs stay). With no "size" it picks the smallest header in IRC Table R602.7(1) for the current ground snow load and the wall\'s building width; use it to fix an over-stressed header.',
+  schema: resizeHeaderSchema,
+  layout: resizeHeaderLayout,
+});
+
+export const builderCommands = [pourSlab, buildWall, addOpening, resizeHeader, frameFloor, buildRoof, buildFence, placeStructure];

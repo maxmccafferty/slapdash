@@ -5,7 +5,7 @@ import type { CatalogIndex } from '../catalog/validate.ts';
 import { commandError, notFound, type CommandError } from '../commands/errors.ts';
 import { aabbOf, partBox, type Aabb } from '../geometry/obb.ts';
 import type { Assembly, Part, Project } from '../model/schema.ts';
-import { KPA_PER_PSF } from '../site/design-loads.ts';
+import { KPA_PER_PSF, resolveDesignLoads, type ResolvedDesignLoad, type ResolvedSite, type SiteDefaults } from '../site/design-loads.ts';
 import { formatFeetInches, MM_PER_FOOT } from '../units/length.ts';
 import { LENGTH_DESCRIPTION, zLength } from '../units/zod.ts';
 import { BUILDER_DEFAULTS } from './defaults.ts';
@@ -26,19 +26,33 @@ export const fi = (mm: number) => {
   return s.replace(/^(-?)0' /, '$1');
 };
 
-export function snowLoad(project: Project): { psf: number; note: string } {
-  const o = project.site.designLoads.groundSnow;
+/** Whose value it is, for notes: "the project's", "Bend, OR's" or "the default". */
+function whose(site: ResolvedSite, v: ResolvedDesignLoad): string {
+  if (v.origin === 'project') return "the project's";
+  if (v.origin === 'table' && site.location) return `${site.location.label}'s`;
+  return 'the default';
+}
+
+/** Where a value came from, for notes: " (ASCE 7-22 Hazard Tool)". Project overrides already say "the project's". */
+const sourceNote = (v: ResolvedDesignLoad) => (v.origin === 'project' ? '' : ` (${v.source})`);
+
+/** The ground snow load headers are sized for: project override, the loads table, the app fallback, else 30 psf. */
+export function snowLoad(project: Project, defaults?: SiteDefaults): { psf: number; note: string } {
+  const site = resolveDesignLoads(project, defaults);
+  const o = site.loads.groundSnow;
   if (o) {
     const psf = o.value / KPA_PER_PSF;
-    return { psf, note: `the project's ${Number(psf.toFixed(1))} psf ground snow load` };
+    return { psf, note: `${whose(site, o)} ${Number(psf.toFixed(1))} psf ground snow load${sourceNote(o)}` };
   }
   return { psf: BUILDER_DEFAULTS.groundSnowPsf, note: `the default ${BUILDER_DEFAULTS.groundSnowPsf} psf ground snow load` };
 }
 
-export function footingDepth(project: Project): { mm: number; note: string } {
-  const o = project.site.designLoads.frostDepth;
+/** Footing depth: the resolved frost depth, at least 12in. */
+export function footingDepth(project: Project, defaults?: SiteDefaults): { mm: number; note: string } {
+  const site = resolveDesignLoads(project, defaults);
+  const o = site.loads.frostDepth;
   if (o && o.value > BUILDER_DEFAULTS.footingDepth) {
-    return { mm: o.value, note: `the project's ${fi(o.value)} frost depth` };
+    return { mm: o.value, note: `${whose(site, o)} ${fi(o.value)} frost depth${sourceNote(o)}` };
   }
   return {
     mm: BUILDER_DEFAULTS.footingDepth,
