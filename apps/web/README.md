@@ -48,6 +48,38 @@ Save, Load, Undo and Redo call `ShellActions` (`src/shell/actions.ts`), which `A
 prop and defaults to no-ops. Later tickets wire the command bus and `ProjectStore` there, in one
 place.
 
+## Chat (`src/agent/`, `src/shell/chat/`)
+
+The chat runs Claude turns in the browser through `@slapdash/agent` (`runTurn`), against the
+bus the model store follows.
+
+- **Store and controller.** `src/state/chat-store.ts` holds what the chat shows: connection,
+  budget, transcript items (`src/agent/chat-types.ts`), the running turn, the draft and
+  pending photos. `src/agent/chat-controller.ts` is framework-free and the only writer: it
+  owns the `AgentMemory` (one per bus; a new bus starts a new chat) and the turn's
+  `AbortController`, maps agent events and keyhole errors into the store, outlines new parts
+  with `markInProgress` and draws a plan's footprint with `setProposal`. State lives outside
+  React because the phone's `BottomSheet` unmounts the panel when it closes. `main.tsx` builds
+  the controller and passes it down with `ChatProvider`; tests inject one with a scripted
+  client (`@slapdash/agent/testing`).
+- **How each state is reached.** `start()` reads `GET /api/claude`: `configured: false` is
+  the no-key state, `budget.state: 'capped'` is the capped state, `'warning'` adds the 80% note
+  once. No answer (a static preview) counts as ready. While sending, a 402 switches to capped
+  and a 503 to no key; a rate limit, an upstream failure or a network error adds a note.
+  `propose_plan`, `request_photo` and `offer_options` give a plan card, a photo request and
+  option keys under that turn's message. A turn that changed something gets an Undo key, usable
+  while its step is the newest one. Tapping a part puts it in a chip above the field; it is sent
+  as `pointedAt`.
+- **Photos only when asked** (ADR-0003 §J.4). Take photo and Choose photo exist only under a
+  pending photo request. Photos are downscaled to 1568px JPEG and kept in memory
+  (`src/agent/photos.ts`) until project storage is wired in.
+- **The modal rule.** Modals (Materials, Steps, Projects) cover the model only. On desktop they
+  mount inside `<main>`, and the chat is a grid sibling. On the phone they go inside `.main`
+  below the chat sheet's z-index. Nothing may make the chat or the app root `inert` or
+  `aria-hidden`. `test/chat/chat.test.tsx` checks this with each panel open.
+- **Persistence.** `onChatChanged(memory.toChatLog())` runs after every turn. It is a no-op
+  until `ProjectSession` is wired in, and that is where `session.replaceChat` goes.
+
 ## The 3D renderer (`src/renderer/`)
 
 three.js through React Three Fiber, lazy-loaded as its own chunk (`SceneCanvas`), so the

@@ -384,14 +384,17 @@ the hard backstop.
 
 ### States the chat shows
 
-| State | How the keyhole reports it |
-| --- | --- |
-| No API key | `GET` → `configured: false`; `POST` → 503 `{ error: 'not_configured' }` |
-| Budget below 80% | `budget.state: 'ok'` |
-| Budget at 80% or more | `budget.state: 'warning'` (GET, and the first stream event) |
-| Budget at the cap | `POST` → 402 `{ error: 'budget_capped', budget }` with `resetsAt` (first of next month, 00:00 UTC). Claude is not called. |
-| Rate limited | 429 `{ error: 'rate_limited', retryAfterSeconds }` and `Retry-After` |
-| Claude failed mid-stream | an `error` event `{ error: 'upstream', message, retryable }` |
+| State | How the keyhole reports it | What the chat shows |
+| --- | --- | --- |
+| No API key | `GET` → `configured: false`; `POST` → 503 `{ error: 'not_configured' }` | "Claude isn't connected" with how to add the key and an Open the sample pool house key. The field and Talk are disabled. |
+| Budget below 80% | `budget.state: 'ok'` | Nothing extra. |
+| Budget at 80% or more | `budget.state: 'warning'` (GET, and the first stream event) | One muted note: "80% of this month's Claude budget is used: $8.00 of $10.00." |
+| Budget at the cap | `POST` → 402 `{ error: 'budget_capped', budget }` with `resetsAt` (first of next month, 00:00 UTC). Claude is not called. | "Claude is back on December 1. Everything else keeps working." The field and Talk are disabled; the rest of the app works. |
+| Rate limited | 429 `{ error: 'rate_limited', retryAfterSeconds }` and `Retry-After` | A note: "Too many messages. Try again in N seconds." |
+| Claude failed mid-stream | an `error` event `{ error: 'upstream', message, retryable }` | A note asking to try again. The field stays usable. |
+
+Modals cover the model area only; never make the chat inert. They mount inside `<main>`,
+and on the phone the chat sheet stacks above them (see `apps/web/README.md`, Chat).
 
 Spend is counted in integer micro-dollars from each reply's usage (`src/pricing.ts`; check
 the table against the pricing page when prices change). Unknown models are priced at the most
