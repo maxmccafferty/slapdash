@@ -1,0 +1,288 @@
+[
+  {
+    "id": "spf-no2",
+    "name": "SPF No.2 lumber",
+    "description": "Spruce-pine-fir, grade No.2: the everyday framing lumber at US big-box stores. Reference design values, unadjusted; size and other adjustment factors are applied by the solver.",
+    "category": "lumber",
+    "species": "spruce-pine-fir",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 9653,
+      "Fb_MPa": 6.03,
+      "Fv_MPa": 0.93,
+      "Ft_MPa": 3.1,
+      "Fc_MPa": 7.93,
+      "Fc_perp_MPa": 2.93
+    },
+    "density_kg_m3": 444,
+    "textureSet": "wood-pine",
+    "swatch": {
+      "color": "#dcc394",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "priceKey": "lumber.spf-no2",
+    "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Spruce-Pine-Fir No.1/No.2 row (NLGA): Fb 875, Ft 450, Fv 135, Fc⊥ 425, Fc 1150, E 1,400,000 psi; G 0.42; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "df-l-no2",
+    "name": "Douglas fir-larch No.2 lumber",
+    "description": "Douglas fir-larch, grade No.2: stiffer and stronger than SPF; the common framing lumber in the West. Reference design values, unadjusted.",
+    "category": "lumber",
+    "species": "douglas-fir-larch",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 11032,
+      "Fb_MPa": 6.21,
+      "Fv_MPa": 1.24,
+      "Ft_MPa": 3.96,
+      "Fc_MPa": 9.31,
+      "Fc_perp_MPa": 4.31
+    },
+    "density_kg_m3": 528,
+    "textureSet": "wood-pine",
+    "swatch": {
+      "color": "#d2a874",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "priceKey": "lumber.df-l-no2",
+    "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Douglas Fir-Larch No.2 row: Fb 900, Ft 575, Fv 180, Fc⊥ 625, Fc 1350, E 1,600,000 psi; G 0.50; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "syp-no2",
+    "name": "Southern yellow pine No.2 lumber",
+    "description": "Southern pine, grade No.2: dense, strong framing lumber common in the South and East. Southern pine values are size-specific; these are the 2x8 row. Reference values, unadjusted.",
+    "category": "lumber",
+    "species": "southern-pine",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 9653,
+      "Fb_MPa": 6.38,
+      "Fv_MPa": 1.21,
+      "Ft_MPa": 3.79,
+      "Fc_MPa": 9.31,
+      "Fc_perp_MPa": 3.9
+    },
+    "density_kg_m3": 581,
+    "textureSet": "wood-pine",
+    "swatch": {
+      "color": "#e0b97a",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "priceKey": "lumber.syp-no2",
+    "source": "NDS 2018 Supplement Table 4B (Southern Pine, size-specific), No.2, 8\" wide row: Fb 925, Ft 550, Fv 175, Fc⊥ 565, Fc 1350, E 1,400,000 psi (the 2\"–4\" wide row is higher: Fb 1100, Ft 675, Fc 1450); G 0.55; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "pt-spf-no2",
+    "name": "Pressure-treated lumber No.2 (above ground)",
+    "description": "Pressure-treated No.2 lumber for above-ground use (UC3B), such as sill plates on concrete. The species varies by region (southern pine in the East, hem-fir or Douglas fir in the West); design values here are SPF No.2 as the conservative case.",
+    "category": "lumber",
+    "species": "spruce-pine-fir",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 9653,
+      "Fb_MPa": 6.03,
+      "Fv_MPa": 0.93,
+      "Ft_MPa": 3.1,
+      "Fc_MPa": 7.93,
+      "Fc_perp_MPa": 2.93
+    },
+    "density_kg_m3": 444,
+    "textureSet": "wood-pine",
+    "swatch": {
+      "color": "#a7a46e",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "lumber.pt-spf-no2",
+    "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Spruce-Pine-Fir No.1/No.2 row (NLGA): Fb 875, Ft 450, Fv 135, Fc⊥ 425, Fc 1150, E 1,400,000 psi; G 0.42; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "pt-syp-no2-gc",
+    "name": "Pressure-treated southern pine No.2 (ground contact)",
+    "description": "Pressure-treated southern pine No.2 rated for ground contact (UC4A): posts set in soil or concrete, and framing near the ground. Reference values (2x8 row), unadjusted; wet-service factors apply.",
+    "category": "lumber",
+    "species": "southern-pine",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 9653,
+      "Fb_MPa": 6.38,
+      "Fv_MPa": 1.21,
+      "Ft_MPa": 3.79,
+      "Fc_MPa": 9.31,
+      "Fc_perp_MPa": 3.9
+    },
+    "density_kg_m3": 581,
+    "textureSet": "wood-pine",
+    "swatch": {
+      "color": "#9c9a63",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "lumber.pt-syp-no2-gc",
+    "source": "NDS 2018 Supplement Table 4B (Southern Pine, size-specific), No.2, 8\" wide row: Fb 925, Ft 550, Fv 175, Fc⊥ 565, Fc 1350, E 1,400,000 psi (the 2\"–4\" wide row is higher: Fb 1100, Ft 675, Fc 1450); G 0.55; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "cedar-wrc",
+    "name": "Western red cedar lumber",
+    "description": "Western red cedar (graded as Western Cedars No.2): naturally decay-resistant and light, for trim, siding, fences and exposed posts. Weaker than framing lumber. Reference values, unadjusted.",
+    "category": "lumber",
+    "species": "western-cedars",
+    "grade": "No.2",
+    "structural": {
+      "E_MPa": 6895,
+      "Fb_MPa": 4.83,
+      "Fv_MPa": 1.07,
+      "Ft_MPa": 2.93,
+      "Fc_MPa": 4.48,
+      "Fc_perp_MPa": 2.93
+    },
+    "density_kg_m3": 380,
+    "textureSet": "wood-cedar",
+    "swatch": {
+      "color": "#b9774a",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "priceKey": "lumber.cedar-wrc",
+    "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Western Cedars No.2 row: Fb 700, Ft 425, Fv 155, Fc⊥ 425, Fc 650, E 1,000,000 psi; G 0.36; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  },
+  {
+    "id": "redwood-construction",
+    "name": "Redwood lumber (construction heart/common)",
+    "description": "Redwood, Construction grade (sold as construction heart or construction common): decay-resistant heartwood for decks, fences and trim. Construction grade is tabulated for 2–4in widths only; reference values, unadjusted.",
+    "category": "lumber",
+    "species": "redwood",
+    "grade": "Construction",
+    "structural": {
+      "E_MPa": 6205,
+      "Fb_MPa": 5.69,
+      "Fv_MPa": 1.1,
+      "Ft_MPa": 3.28,
+      "Fc_MPa": 6.38,
+      "Fc_perp_MPa": 2.93
+    },
+    "density_kg_m3": 391,
+    "textureSet": "wood-cedar",
+    "swatch": {
+      "color": "#9c4f36",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "nailed-16d",
+      "screwed-structural",
+      "screwed-deck",
+      "bolted-through",
+      "lag-screw",
+      "anchor-bolt",
+      "joist-hanger",
+      "hurricane-tie",
+      "post-base",
+      "post-embedded",
+      "notched",
+      "mortise-tenon"
+    ],
+    "priceKey": "lumber.redwood-construction",
+    "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Redwood Construction row (2\"–4\" wide): Fb 825, Ft 475, Fv 160, Fc⊥ 425, Fc 925, E 900,000 psi; G 0.37; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
+  }
+]

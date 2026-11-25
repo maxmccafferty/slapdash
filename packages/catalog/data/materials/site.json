@@ -1,0 +1,13 @@
+[
+  {
+    "id": "site-context",
+    "name": "Site context (not built)",
+    "description": "Existing things on the site, such as a house or pool, shown for context. Not built and not priced.",
+    "category": "site",
+    "swatch": {
+      "color": "#b8b8b0",
+      "roughness": 1
+    },
+    "acceptsJoints": []
+  }
+]

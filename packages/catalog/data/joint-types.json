@@ -1,0 +1,281 @@
+[
+  {
+    "id": "nailed-8d",
+    "name": "8d nails",
+    "category": "nailed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 311,
+      "withdrawal_N": 165,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 4,
+    "fastener": "8d common nail, 0.131 x 2 1/2in",
+    "hardwareId": "nail-8d-common",
+    "source": "NDS 2018 Table 12N (common wire nails), G 0.42 (SPF) column, 3/4in side member: Z = 70 lbf (smaller panel side members are in Tables 12P/12Q). Table 12.2C withdrawal (smooth shank), G 0.42: 21 lbf/in × 1 3/4in penetration."
+  },
+  {
+    "id": "nailed-10d",
+    "name": "10d nails",
+    "category": "nailed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 445,
+      "withdrawal_N": 156,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "10d common nail, 0.148 x 3in",
+    "hardwareId": "nail-10d-common",
+    "source": "NDS 2018 Table 12N (common wire nails), G 0.42 (SPF) column, 1 1/2in side member: Z = 100 lbf. Table 12.2C withdrawal (smooth shank), G 0.42: 23 lbf/in × 1 1/2in penetration."
+  },
+  {
+    "id": "nailed-16d",
+    "name": "16d nails",
+    "category": "nailed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 534,
+      "withdrawal_N": 231,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "16d common nail, 0.162 x 3 1/2in",
+    "hardwareId": "nail-16d-common",
+    "source": "NDS 2018 Table 12N (common wire nails), G 0.42 (SPF) column, 1 1/2in side member: Z = 120 lbf. Table 12.2C withdrawal (smooth shank), G 0.42: 26 lbf/in × 2in penetration."
+  },
+  {
+    "id": "nailed-roofing",
+    "name": "Roofing nails",
+    "category": "nailed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 222,
+      "withdrawal_N": 85,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 4,
+    "fastener": "1 1/4in galvanized roofing nail, 0.120in shank",
+    "hardwareId": "nail-roofing",
+    "source": "Estimate: withdrawal from NDS 2018 Table 12.2C, 0.120in nail at G 0.42 (19 lbf/in × 1in penetration); lateral not transcribed for a roofing nail, taken as 50 lbf, below the 8d (0.131in) value of 70 lbf in Table 12N."
+  },
+  {
+    "id": "screwed-structural",
+    "name": "Structural wood screws",
+    "category": "screwed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 1050,
+      "withdrawal_N": 1744,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "5/16in structural wood screw (GRK RSS type)",
+    "hardwareId": "screw-structural",
+    "source": "ICC-ES ESR-2442 (GRK RSS, rev. Mar 2026) Table 3, 5/16in, 1 1/2in side member, SG 0.42: Z⊥ = 236 lbf (Z∥ 239); Table 2 withdrawal 165 lbf/in × 2 3/8in embedment."
+  },
+  {
+    "id": "screwed-deck",
+    "name": "Deck screws",
+    "category": "screwed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 409,
+      "withdrawal_N": 596,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "#9 x 3in coated exterior wood screw",
+    "hardwareId": "screw-deck",
+    "source": "NDS 2018 Table 12L (wood screws), #9 (0.177in), 1 1/2in side member, G 0.42: Z = 92 lbf; Table 12.2B withdrawal 89 lbf/in × 1 1/2in thread."
+  },
+  {
+    "id": "screwed-roofing",
+    "name": "Metal roofing screws",
+    "category": "screwed",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 400,
+      "withdrawal_N": 467,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 4,
+    "fastener": "#10 x 1 1/2in hex-washer-head screw with EPDM washer",
+    "hardwareId": "screw-metal-roofing",
+    "source": "Estimate: SFS #10 WoodZac data sheet (07/2021) gives 524 lbf ultimate pull-out at 1in in SPF; ÷ 5 as an allowable value = 105 lbf. Lateral not published; taken as 90 lbf, near the NDS Table 12L #9 wood screw value."
+  },
+  {
+    "id": "bolted-through",
+    "name": "1/2in through bolts",
+    "category": "bolted",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 756,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "1/2in bolt, nut and washers",
+    "hardwareId": "bolt-1-2",
+    "source": "NDS 2018 Table 12A, 1/2in bolt, 1 1/2in side and main members, G 0.42: Z⊥ = 170 lbf (the lowest; Z∥ 410, Zs⊥ and Zm⊥ 240)."
+  },
+  {
+    "id": "lag-screw",
+    "name": "3/8in lag screws",
+    "category": "bolted",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 489,
+      "withdrawal_N": 2091,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "3/8 x 4in lag screw with washer",
+    "hardwareId": "lag-3-8",
+    "source": "NDS 2018 Table 12J, 3/8in lag, 1 1/2in side member, G 0.42: Z⊥ = 110 lbf (Z∥ 180); Table 12.2A withdrawal 235 lbf/in × 2in thread."
+  },
+  {
+    "id": "anchor-bolt",
+    "name": "Anchor bolts",
+    "category": "bolted",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 1512,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "1/2in anchor bolt, 7in embedment",
+    "hardwareId": "anchor-bolt-1-2",
+    "source": "NDS 2018 Table 12E, 1/2in bolt, 1 1/2in wood member to concrete, G 0.42: Z⊥ = 340 lbf (Z∥ 590); 6in minimum embedment, f'c ≥ 2500 psi. Count per IRC R403.1.6."
+  },
+  {
+    "id": "concrete-anchor",
+    "name": "1/2in wedge anchors",
+    "category": "bolted",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 6806,
+      "withdrawal_N": 7473,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "1/2in wedge anchor, 2 3/4in embedment",
+    "hardwareId": "wedge-anchor-1-2",
+    "source": "Simpson Strong-Bolt 2 (ICC-ES ESR-3037), TEB-A-STB2-24, 1/2in carbon steel at 2 3/4in embedment, f'c 2500 psi uncracked: static ASD allowable tension 1680 lbf, shear 1530 lbf."
+  },
+  {
+    "id": "joist-hanger",
+    "name": "Joist hanger",
+    "category": "hanger",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 4204,
+      "uplift_N": 4448,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "hardwareId": "joist-hanger",
+    "source": "Simpson Strong-Tie catalog C-C-2021, face-mount hangers, LUS28, SPF/HF: download 945 lbf (100%), uplift 1000 lbf (published at 160% load duration). Sized by the joist; this is the 2x8 row."
+  },
+  {
+    "id": "hurricane-tie",
+    "name": "Hurricane tie",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 489,
+      "uplift_N": 2736,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "hardwareId": "hurricane-tie",
+    "source": "Simpson Strong-Tie catalog C-C-2024, hurricane ties, H2.5A, SPF/HF: uplift 615 lbf (published at 160%), lateral F1 = F2 = 110 lbf."
+  },
+  {
+    "id": "post-base",
+    "name": "Post base",
+    "category": "post-base",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 33673,
+      "uplift_N": 8452,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "hardwareId": "post-base",
+    "source": "Simpson Strong-Tie catalog C-C-2026, ABU44Z post installation: download 7570 lbf (100%), uplift 1900 lbf (160%) with (12) 0.162 x 3 1/2in nails. Published for DF/SP only; no SPF/HF value. The bearing value goes in shear_N for want of a download field."
+  },
+  {
+    "id": "post-embedded",
+    "name": "Post embedded in concrete",
+    "category": "embedded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 8007,
+      "withdrawal_N": 6005,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: no published value. A 4x4 post set 2–3ft into a concrete pier is limited by the soil and the post, not the concrete; 1800 lbf lateral and 1350 lbf pull-out are conservative planning numbers, not design values."
+  },
+  {
+    "id": "cast-in-place",
+    "name": "Cast in place",
+    "category": "embedded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 20017,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: monolithic concrete poured together (slab and thickened edge) acts as one piece; 4500 lbf is a placeholder that never governs, not a design value."
+  },
+  {
+    "id": "rebar-embedded",
+    "name": "Rebar embedded in concrete",
+    "category": "embedded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 12811,
+      "withdrawal_N": 21351,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: a #4 grade 60 bar fully developed (ACI 318 development length) carries 0.4·fy·As = 0.4 × 60,000 × 0.20 = 4800 lbf in tension at working stress; shear taken as 0.6 of that."
+  },
+  {
+    "id": "mortared",
+    "name": "Mortared joint",
+    "category": "mortared",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 4448,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: unreinforced bed-joint shear of an 8in block in Type S mortar (TMS 402 context), about 1000 lbf per block length; grout and rebar for anything structural."
+  },
+  {
+    "id": "notched",
+    "name": "Notched (bearing)",
+    "category": "notched",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 4253,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: bearing of a 1 1/2in member on a 1 1/2in seat at Fc⊥ = 425 psi (SPF, NDS 2018 Supplement Table 4A) = 956 lbf; notch limits in NDS 2018 §3.4.3 are not checked."
+  },
+  {
+    "id": "mortise-tenon",
+    "name": "Mortise and tenon",
+    "category": "mortise-tenon",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 2224,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: a pegged mortise and tenon in softwood, 500 lbf; rare in a shell and not a design value."
+  }
+]

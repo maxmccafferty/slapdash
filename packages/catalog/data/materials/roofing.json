@@ -1,0 +1,128 @@
+[
+  {
+    "id": "shingle-asphalt-architectural",
+    "name": "Architectural asphalt shingles",
+    "description": "Laminated (architectural) fiberglass asphalt shingles, 3 bundles per 100 sq ft square.",
+    "category": "roofing",
+    "arealMass_kg_m2": 10.89,
+    "textureSet": "shingles-asphalt",
+    "swatch": {
+      "color": "#3f3f3f",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "roofing.shingle-asphalt-architectural",
+    "source": "CertainTeed Landmark technical data: 217–229 lb per square (100 sq ft), by plant"
+  },
+  {
+    "id": "metal-corrugated",
+    "name": "Corrugated metal roofing (29 ga)",
+    "description": "29 gauge galvalume or galvanized corrugated steel panels, screwed through the ribs.",
+    "category": "roofing",
+    "arealMass_kg_m2": 3.08,
+    "textureSet": "metal-corrugated",
+    "swatch": {
+      "color": "#b4b8bb",
+      "roughness": 0.4,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.metal-corrugated",
+    "source": "Metal Sales Classic Rib section properties, 29 ga: 0.63 psf"
+  },
+  {
+    "id": "metal-standing-seam",
+    "name": "Standing-seam metal roofing (24 ga)",
+    "description": "24 gauge painted steel standing-seam panels with concealed clips.",
+    "category": "roofing",
+    "arealMass_kg_m2": 5.57,
+    "textureSet": "metal-standing-seam",
+    "swatch": {
+      "color": "#4a5560",
+      "roughness": 0.5,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.metal-standing-seam",
+    "source": "Metal Sales Snap-Loc 24 product data, 24 ga: 1.14 psf"
+  },
+  {
+    "id": "underlayment-synthetic",
+    "name": "Synthetic roof underlayment",
+    "description": "Woven polypropylene roof underlayment under shingles or metal.",
+    "category": "roofing",
+    "arealMass_kg_m2": 0.11,
+    "swatch": {
+      "color": "#5c6670",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "roofing.underlayment-synthetic",
+    "source": "GAF FeltBuster data sheet: 23 lb per 1,000 sq ft roll (0.023 psf)"
+  },
+  {
+    "id": "drip-edge-aluminum",
+    "name": "Aluminum drip edge",
+    "description": "Pre-finished aluminum drip edge at eaves and rakes, 10ft lengths.",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.32,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#e8e8e4",
+      "roughness": 0.4,
+      "metalness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-roofing",
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.drip-edge-aluminum",
+    "source": "Approximate: computed for 0.019in aluminum sheet at 169 pcf (no published weight); 5in K-style gutter in 0.027in stock is about 0.38 lb/ft"
+  },
+  {
+    "id": "gutter-k5-aluminum",
+    "name": "5in K-style aluminum gutter",
+    "description": "5in K-style seamless or sectional aluminum gutter with hangers.",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.32,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.4,
+      "metalness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing",
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.gutter-k5-aluminum",
+    "source": "Approximate: computed for 0.019in aluminum sheet at 169 pcf (no published weight); 5in K-style gutter in 0.027in stock is about 0.38 lb/ft"
+  },
+  {
+    "id": "downspout-2x3-aluminum",
+    "name": "2x3 aluminum downspout",
+    "description": "2x3in rectangular aluminum downspout with elbows.",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.32,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.4,
+      "metalness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing",
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.downspout-2x3-aluminum",
+    "source": "Approximate: computed for 0.019in aluminum sheet at 169 pcf (no published weight); 5in K-style gutter in 0.027in stock is about 0.38 lb/ft"
+  }
+]

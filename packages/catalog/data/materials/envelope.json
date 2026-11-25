@@ -1,0 +1,179 @@
+[
+  {
+    "id": "house-wrap",
+    "name": "House wrap",
+    "description": "Spun-bonded polyolefin weather-resistive barrier over wall sheathing. Fastened with cap nails; the roofing-nail joint stands in for them.",
+    "category": "envelope",
+    "arealMass_kg_m2": 0.06,
+    "textureSet": "house-wrap",
+    "swatch": {
+      "color": "#f4f4f2",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "envelope.house-wrap",
+    "source": "DuPont Tyvek HomeWrap product information: basis weight 1.8 oz/yd² (TAPPI T-410), ≈0.0125 psf"
+  },
+  {
+    "id": "flashing-aluminum",
+    "name": "Aluminum flashing",
+    "description": "Aluminum roll and step flashing at roof-wall joints, windows and penetrations.",
+    "category": "envelope",
+    "arealMass_kg_m2": 1.32,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#c9cacb",
+      "roughness": 0.4,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "envelope.flashing-aluminum",
+    "source": "Approximate: computed for 0.019in aluminum sheet at 169 pcf (no published weight); 5in K-style gutter in 0.027in stock is about 0.38 lb/ft"
+  },
+  {
+    "id": "flashing-tape",
+    "name": "Flashing tape",
+    "description": "4in self-adhered butyl or acrylic flashing tape around window and door openings. Self-adhered; the roofing-nail joint stands in for its attachment.",
+    "category": "envelope",
+    "arealMass_kg_m2": 0.59,
+    "swatch": {
+      "color": "#2f3a44",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "envelope.flashing-tape",
+    "source": "Approximate: a 4in × 75ft butyl flashing tape roll weighs about 3 lb (no published areal weight)"
+  },
+  {
+    "id": "siding-lap-engineered",
+    "name": "Engineered wood lap siding",
+    "description": "Engineered wood lap siding (LP SmartSide type), primed, 8in boards at about 7in exposure.",
+    "category": "envelope",
+    "arealMass_kg_m2": 7.32,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#d9d4c7",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.siding-lap-engineered",
+    "source": "LP SmartSide architect brochure, 38 Series Cedar Texture Lap, 8in: 1.5 psf"
+  },
+  {
+    "id": "siding-board-batten",
+    "name": "Board-and-batten siding",
+    "description": "Engineered wood 4x8 vertical siding panels with battens over the joints.",
+    "category": "envelope",
+    "arealMass_kg_m2": 7.32,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#e3ded2",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.siding-board-batten",
+    "source": "Approximate: taken as LP SmartSide 38 Series lap (1.5 psf; LP architect brochure); panels use the same 3/8in substrate"
+  },
+  {
+    "id": "siding-lap-fiber-cement",
+    "name": "Fiber cement lap siding",
+    "description": "Fiber cement lap siding (HardiePlank type), 8 1/4in boards at 7in exposure. Non-combustible and rot-proof, but heavy.",
+    "category": "envelope",
+    "arealMass_kg_m2": 11.28,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#cfcbc0",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.siding-lap-fiber-cement",
+    "source": "James Hardie HardiePlank spec sheet SS2001: 2.31 lb per sq ft"
+  },
+  {
+    "id": "trim-pvc",
+    "name": "PVC trim board",
+    "description": "Cellular PVC trim (AZEK type) in 1x4, 1x6 and 1x8: corners, window and door casing. Won't rot.",
+    "category": "envelope",
+    "density_kg_m3": 549,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#f7f7f3",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.trim-pvc",
+    "source": "AZEK trim CSI specification (2023): density 0.55 g/cm³ (ASTM D792), ≈34.3 pcf"
+  },
+  {
+    "id": "trim-primed-pine",
+    "name": "Primed pine trim board",
+    "description": "Primed finger-jointed pine in 1x4, 1x6 and 1x8: painted exterior trim.",
+    "category": "envelope",
+    "density_kg_m3": 449,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#f1efe7",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.trim-primed-pine",
+    "source": "USDA Wood Handbook FPL-GTR-282 (2021) Table 5-3a: ponderosa pine SG 0.40 at 12% moisture, ≈28 pcf"
+  },
+  {
+    "id": "soffit-vinyl-vented",
+    "name": "Vented vinyl soffit",
+    "description": "Vented vinyl soffit panels under the eaves, 12in wide.",
+    "category": "envelope",
+    "arealMass_kg_m2": 1.86,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#f5f5f0",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.soffit-vinyl-vented",
+    "source": "ProSpan vinyl soffit data sheet: 75.73 lb per 2-square carton, ≈0.38 psf"
+  },
+  {
+    "id": "fascia-primed-pine",
+    "name": "Primed pine fascia board",
+    "description": "Primed pine fascia in 1x6 or 1x8 along the rafter tails.",
+    "category": "envelope",
+    "density_kg_m3": 449,
+    "textureSet": "siding-painted-wood",
+    "swatch": {
+      "color": "#f1efe7",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-deck"
+    ],
+    "priceKey": "envelope.fascia-primed-pine",
+    "source": "USDA Wood Handbook FPL-GTR-282 (2021) Table 5-3a: ponderosa pine SG 0.40 at 12% moisture, ≈28 pcf"
+  }
+]

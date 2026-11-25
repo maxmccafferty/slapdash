@@ -1,0 +1,264 @@
+{
+  "sets": [
+    {
+      "id": "wood-pine",
+      "name": "Wood 048 (light softwood grain)",
+      "source": "ambientcg",
+      "assetId": "Wood048",
+      "url": "https://ambientcg.com/view?id=Wood048",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 800,
+        "v": 800
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "wood-cedar",
+      "name": "Wood 052 (orange-red softwood grain)",
+      "source": "ambientcg",
+      "assetId": "Wood052",
+      "url": "https://ambientcg.com/view?id=Wood052",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 800,
+        "v": 800
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "plywood",
+      "name": "Plywood",
+      "source": "polyhaven",
+      "assetId": "plywood",
+      "url": "https://polyhaven.com/a/plywood",
+      "author": "Rob Tuytel",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 500,
+        "v": 500
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "osb",
+      "name": "Oriented Strand Board",
+      "source": "polyhaven",
+      "assetId": "oriented_strand_board",
+      "url": "https://polyhaven.com/a/oriented_strand_board",
+      "author": "Dimitrios Savva",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2510,
+        "v": 2510
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "concrete",
+      "name": "Concrete 034 (smooth grey)",
+      "source": "ambientcg",
+      "assetId": "Concrete034",
+      "url": "https://ambientcg.com/view?id=Concrete034",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1100,
+        "v": 550
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "cmu",
+      "name": "Concrete Block Wall",
+      "source": "polyhaven",
+      "assetId": "concrete_block_wall",
+      "url": "https://polyhaven.com/a/concrete_block_wall",
+      "author": "Charlotte Baglioni",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "gravel",
+      "name": "Gravel 022",
+      "source": "ambientcg",
+      "assetId": "Gravel022",
+      "url": "https://ambientcg.com/view?id=Gravel022",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1500,
+        "v": 1500
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "metal-galvanized",
+      "name": "Metal 032 (brushed grey metal)",
+      "source": "ambientcg",
+      "assetId": "Metal032",
+      "url": "https://ambientcg.com/view?id=Metal032",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1000,
+        "v": 1000
+      },
+      "tileSizeNote": "Estimate: the asset page gives no size; 1 m suits a fine brushed finish.",
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "metalness"
+      ]
+    },
+    {
+      "id": "metal-corrugated",
+      "name": "Corrugated Iron 03",
+      "source": "polyhaven",
+      "assetId": "corrugated_iron_03",
+      "url": "https://polyhaven.com/a/corrugated_iron_03",
+      "author": "Charlotte Baglioni",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "metal-standing-seam",
+      "name": "Box Profile Metal Sheet",
+      "source": "polyhaven",
+      "assetId": "box_profile_metal_sheet",
+      "url": "https://polyhaven.com/a/box_profile_metal_sheet",
+      "author": "Amal Kumar",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "tileSizeNote": "Box-profile sheet stands in for standing seam: both read as evenly spaced raised ribs.",
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao",
+        "metalness"
+      ]
+    },
+    {
+      "id": "shingles-asphalt",
+      "name": "Roofing Tiles 003 (dark tabbed shingles)",
+      "source": "ambientcg",
+      "assetId": "RoofingTiles003",
+      "url": "https://ambientcg.com/view?id=RoofingTiles003",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2290,
+        "v": 2290
+      },
+      "tileSizeNote": "Estimate: the asset page gives no size; the tile shows about 16 courses, \u00d7 the standard 5 5/8in (143 mm) shingle exposure \u2248 2.29 m.",
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "siding-painted-wood",
+      "name": "White Planks Clean",
+      "source": "polyhaven",
+      "assetId": "white_planks_clean",
+      "url": "https://polyhaven.com/a/white_planks_clean",
+      "author": "Rob Tuytel",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1800,
+        "v": 1800
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    },
+    {
+      "id": "house-wrap",
+      "name": "Fabric 048 (white polyester)",
+      "source": "ambientcg",
+      "assetId": "Fabric048",
+      "url": "https://ambientcg.com/view?id=Fabric048",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 400,
+        "v": 400
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness",
+        "ao"
+      ]
+    }
+  ]
+}

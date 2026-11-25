@@ -1,0 +1,1159 @@
+{
+  "schemaVersion": 1,
+  "currency": "USD",
+  "researchedOn": "2026-11-25",
+  "region": "US national big-box retail online prices (Home Depot, Lowe's, Menards), with other retailers or manufacturer prices where noted",
+  "note": "Planning estimates, not quotes. Low–high ranges cover retailers, regions and common sizes; prices researched once on the date shown.",
+  "entries": [
+    {
+      "key": "lumber.spf-no2",
+      "variant": "1x4",
+      "description": "SPF/whitewood common board 1x4, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.61,
+      "high_usd": 1.19,
+      "source": "Home Depot online, 1x4x8 Premium KD whitewood common board (914681) $8.98 product page, $8.38-$9.53 category pages, one stale $4.88 listing; ÷8ft. Search-snippet prices (HD/Lowe's block direct fetch); 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "1x6",
+      "description": "SPF/whitewood common board 1x6, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.94,
+      "high_usd": 1.71,
+      "source": "Home Depot online, 1x6x8 premium whitewood common board 914770 $7.48/$7.68, alt SKU 1X6-8FT $13.28/$13.64; ÷8ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "1x8",
+      "description": "SPF/whitewood common board 1x8, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.59,
+      "high_usd": 2.44,
+      "source": "Home Depot online, 1x8x8 premium whitewood common board 914835 / 1X8-8FT $12.73, $17.65, $19.51; ÷8ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "2x4",
+      "description": "SPF No.2 2x4, 8-12ft boards, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.41,
+      "high_usd": 0.76,
+      "source": "Home Depot 2x4x8 #2 std SPF 232385 $3.96, #2 premium 441317 $4.35, prime stud $3.26; Menards 2x4x8 construction/framing $4.25 / premium $4.48, 2x4x12 $9.12; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "2x6",
+      "description": "SPF No.2 2x6, 8-12ft boards, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.84,
+      "high_usd": 1.34,
+      "source": "Home Depot 2x6x8 #2 premium SPF 96032 $6.75-$10.73, 2x6x12 #2 premium SPF 058445 $10.78-$15.13; Menards 2x6x8 $9.52, 2x6x12 $14.75; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "2x8",
+      "description": "SPF No.2 2x8, 12ft boards, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.16,
+      "high_usd": 1.49,
+      "source": "Home Depot 2x8x12 SPF standard 22642 $13.90, #2 premium 161926 $17.93; ÷12ft (only 12ft SPF prices found); 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "2x10",
+      "description": "SPF No.2 & Btr 2x10, 12-16ft boards, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.07,
+      "high_usd": 2.46,
+      "source": "Menards 2x10x12 #2&Btr (SPF) $25.99, 2x10x16 $33.12; Lowe's 2x10x14 #2&Btr SPF $34.43; ÷length. (HD 2x10x12 #2 SPF 161993 $11.82 excluded: listing unavailable/stale); 2026-11-25"
+    },
+    {
+      "key": "lumber.spf-no2",
+      "variant": "2x12",
+      "description": "SPF/Hem-fir No.2 & Btr 2x12, 12-16ft boards, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.38,
+      "high_usd": 3.14,
+      "source": "Lowe's 2x12x12 #2 BTR SPF $16.84; Home Depot 2x12x12 #2 Hem-Fir $16.50 (unavailable); Menards 2x12x16 #2&Btr construction framing $50.22; ÷length. Wide spread - low confidence; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "2x4",
+      "description": "Douglas fir-larch No.2 2x4, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.48,
+      "high_usd": 0.62,
+      "source": "Home Depot 2x4x8 #2 premium fir 441317 $4.35, another fir listing $4.95 (OOS); Lowe's 2x4x8 #2 fir KD $3.85; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "2x6",
+      "description": "Douglas fir-larch No.2 2x6, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.03,
+      "high_usd": 1.22,
+      "source": "Home Depot 2x6x8 #2 premium fir $8.22/$8.92; Lowe's 2x6x8 #2 fir KD $9.18, #2 prime DF KD $9.73, #2 BTR DF green $8.98; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "2x8",
+      "description": "Douglas fir-larch No.2 2x8, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.94,
+      "high_usd": 2.42,
+      "source": "Home Depot 2x8x8 #2 premium fir $7.53-$10.92; 2x8x12 #2 premium fir $16.12 and $28.98; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "2x10",
+      "description": "Douglas fir-larch No.2 2x10, 10-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.6,
+      "high_usd": 3.0,
+      "source": "Home Depot 2x10x10 fir $19.92-$21.22, 2x10x12 fir $19.26/$25.17, 2x10x16 fir $25.68-$48.00; Lowe's 2x10x12 #2 fir $25.17; Menards 2x10x12 DF #2&Btr $27.99, 2x10x16 $35.99; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "2x12",
+      "description": "Douglas fir-larch No.2 2x12, 12-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.62,
+      "high_usd": 3.44,
+      "source": "Home Depot 2x12x12 #2 premium fir $19.44-$32.28, 2x12x16 fir $30.00-$50.28; Lowe's 2x12x12 #2 prime DF $21.82; Menards 2x12x16 DF #2&Btr $54.99; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "4x4",
+      "description": "Douglas fir No.2 4x4 S4S, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.53,
+      "high_usd": 1.65,
+      "source": "Lowe's 4x4x8 Douglas fir S4S #2/#2&Btr green $12.24-$13.22; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "4x6",
+      "description": "Douglas fir No.2 & Btr 4x6 S4S, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.21,
+      "high_usd": 2.43,
+      "source": "Lowe's 4x6x8 #2&Btr DF green $17.66/$19.43; Home Depot 4x6x8 DF S4S $19.43; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.df-l-no2",
+      "variant": "6x6",
+      "description": "Douglas fir No.2 6x6 timber",
+      "unpriced": "no US retail price found; HD lists 6x6x10 rough/S4S DF timbers without visible price, typically lumberyard/quote item",
+      "source": "Searched Home Depot, Lowe's, Menards listings for 6x6 Douglas fir; 2026-11-25"
+    },
+    {
+      "key": "lumber.syp-no2",
+      "variant": "2x4",
+      "description": "Southern yellow pine No.2 2x4 KD, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.37,
+      "high_usd": 0.47,
+      "source": "Lowe's Top Choice 2x4x8 #2 SYP KD $2.98 and $3.78; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.syp-no2",
+      "variant": "2x6",
+      "description": "Southern yellow pine No.2 2x6 KD, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.67,
+      "high_usd": 0.78,
+      "source": "Lowe's 2x6x8 #2 SYP KD $5.36 and $6.22; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.syp-no2",
+      "variant": "2x8",
+      "description": "Southern yellow pine No.2 2x8, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.08,
+      "high_usd": 1.29,
+      "source": "Home Depot 2x8x8 #2 premium SYP $8.63-$9.82, 2x8x12 #2 SYP $13.42-$15.52; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.syp-no2",
+      "variant": "2x10",
+      "description": "Southern yellow pine No.2 2x10, 10-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.35,
+      "high_usd": 1.76,
+      "source": "Home Depot 2x10x10 #2 premium SYP $13.55-$16.32, 2x10x12 $16.87/$19.98, 2x10x16 $27.38-$28.12; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.syp-no2",
+      "variant": "2x12",
+      "description": "Southern yellow pine No.2 2x12, 12-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.62,
+      "high_usd": 2.07,
+      "source": "Home Depot 2x12x12 #2 SYP 749869 $20.42, 2x12x16 #2 SYP $25.92-$31.44; Lowe's 2x12x16 #2 prime SYP $32.62/$33.12; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x4",
+      "description": "Pressure-treated No.2 2x4 (above-ground where stocked), 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.56,
+      "high_usd": 0.62,
+      "source": "Lowe's Severe Weather 2x4x8 #2 SYP above-ground $4.50-$4.80; Home Depot WeatherShield 2x4x8 #2 (ground contact) $4.98; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x6",
+      "description": "Pressure-treated No.2 2x6, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.19,
+      "high_usd": 1.22,
+      "source": "Lowe's Severe Weather 2x6x12 above-ground $14.38; Home Depot WeatherShield 2x6x8 GC $9.48, 2x6x12 GC $14.68; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x8",
+      "description": "Pressure-treated No.2 2x8, 12ft, per linear foot (retail joist sizes are mostly stocked as ground-contact)",
+      "unit": "linear-ft",
+      "low_usd": 1.56,
+      "high_usd": 1.67,
+      "source": "No above-ground 2x8 retail price found; Lowe's 2x8x12 #2 GC $18.68, Home Depot 2x8x12 #2 prime GC $19.68/$19.98, Menards 2x8x12 CCA critical structural $19.39; ÷12; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x10",
+      "description": "Pressure-treated No.2 2x10, 12ft, per linear foot (GC stock used)",
+      "unit": "linear-ft",
+      "low_usd": 2.2,
+      "high_usd": 2.31,
+      "source": "No above-ground 2x10 price found; Home Depot 2x10x12 #2 prime GC 288723 $26.38, 2534954 $26.58; Lowe's 2x10x12 #2 GC $27.78; ÷12; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x12",
+      "description": "Pressure-treated No.2 2x12, 12ft, per linear foot (GC stock used)",
+      "unit": "linear-ft",
+      "low_usd": 2.61,
+      "high_usd": 2.77,
+      "source": "No above-ground 2x12 price found; Home Depot 2x12x12 #2 prime GC $31.28; Lowe's 2x12x12 #2 GC $33.18; ÷12; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "4x4",
+      "description": "Pressure-treated 4x4 post, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.24,
+      "high_usd": 1.41,
+      "source": "Home Depot 4x4x8 PT post 194354 $10.48-$11.28; Lowe's 4x4x8 PT from $9.88; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "4x6",
+      "description": "Pressure-treated #2 4x6 timber, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 3.0,
+      "high_usd": 3.33,
+      "source": "Menards AC2 4x6x8 #2 GC $23.99, 4x6x12 #2 critical structural $39.99; ÷length (Menards only); 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-spf-no2",
+      "variant": "6x6",
+      "description": "Pressure-treated #2 6x6 timber, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 4.41,
+      "high_usd": 5.62,
+      "source": "Home Depot 6x6x8 #2 GC SYP 260691 $35.28-$38.78; Lowe's 6x6x8 GC $36.38; Menards AC2 6x6x8 #2 critical structural $44.99; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "2x4",
+      "description": "PT southern pine No.2 ground contact 2x4, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.62,
+      "high_usd": 1.13,
+      "source": "Home Depot WeatherShield 2x4x8 #2 prime GC SYP $4.98; Menards AC2 2x4x12 #2 prime GC $13.56; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "2x6",
+      "description": "PT southern pine No.2 ground contact 2x6, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.19,
+      "high_usd": 1.53,
+      "source": "Home Depot WeatherShield 2x6x8 GC $9.48, 2x6x12 GC $14.68; Menards AC2 2x6x8 #2 prime GC $12.24; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "2x8",
+      "description": "PT southern pine No.2 ground contact 2x8, 6-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.56,
+      "high_usd": 2.38,
+      "source": "Lowe's 2x8x12 #2 prime SYP GC $18.68/$18.78; Home Depot 2x8x12 #2 prime GC $19.68/$19.98; Menards AC2 2x8x6 GC $14.29; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "2x10",
+      "description": "PT southern pine No.2 ground contact 2x10, 12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.2,
+      "high_usd": 2.82,
+      "source": "Home Depot 2x10x12 #2 prime GC SYP 2534954 $26.58/$27.68, 288723 $26.38; Lowe's $27.78; Menards AC2 2x10x12 #2 prime GC $33.83; ÷12; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "2x12",
+      "description": "PT southern pine No.2 ground contact 2x12, 12-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.61,
+      "high_usd": 3.58,
+      "source": "Home Depot 2x12x12 #2 prime GC $31.28; Lowe's 2x12x12 GC $33.18; Menards AC2 2x12x12 GC $42.95, 2x12x16 $56.34; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "4x4",
+      "description": "PT southern pine 4x4 ground contact post, 8-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.31,
+      "high_usd": 2.05,
+      "source": "Home Depot 4x4x8 PT post 194354 $10.48-$11.28; Menards AC2 4x4x12 #2 critical structural $24.58; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "6x6",
+      "description": "PT southern pine No.2 ground contact 6x6 timber, 8-10ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 4.41,
+      "high_usd": 4.85,
+      "source": "Home Depot 6x6x8 #2 GC SYP 260691 $35.28-$38.78, 6x6x10 GC $45.16; Lowe's 6x6x8 GC $36.38; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "1x4",
+      "description": "Western red cedar 1x4 board (#3&Btr / S1S2E), 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.22,
+      "high_usd": 2.23,
+      "source": "Menards 1x4x8 red cedar board $9.79; Home Depot 1x4x8 S1S2E cedar 6-pack $106.95 ($17.83/bd); ÷8. (HD appearance-grade KD 1x4x8 $30.50-$30.74 excluded as premium grade); 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "1x6",
+      "description": "Western red cedar 1x6 board (select tight knot S1S2E), 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.4,
+      "high_usd": 2.5,
+      "source": "Home Depot 1x6x8 select tight knot S1S2E KD cedar $19.24-$19.98; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "1x8",
+      "description": "Western red cedar 1x8 board, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.69,
+      "high_usd": 3.37,
+      "source": "Lowe's RELIABILT 1x8x8 S1S2E cedar $21.54; Menards 1x8x8 red cedar $25.89; Home Depot 1x8x8 STK $26.98; ÷8 (HD appearance-grade $69.21 excluded); 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "2x4",
+      "description": "Western red cedar 2x4 S4S/rough, 12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.75,
+      "high_usd": 1.88,
+      "source": "Menards 2x4x12 red cedar S4S $20.99, rough sawn $22.59; ÷12 (Menards only); 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "2x6",
+      "description": "Western red cedar 2x6 S4S/rough, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 3.62,
+      "high_usd": 3.69,
+      "source": "Menards 2x6x8 red cedar S4S $28.99, rough sawn $29.49; ÷8 (Menards only); 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "4x4",
+      "description": "Western red cedar 4x4 rough, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 4.31,
+      "high_usd": 5.37,
+      "source": "Home Depot 4x4x8 rough green WRC 635251 $34.48, rough WRC fence post $42.98; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "6x6",
+      "description": "Western red cedar 6x6 timber rough/S4S, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 16.12,
+      "high_usd": 22.5,
+      "source": "Home Depot 6x6x8 rough green WRC timber $129.00; Menards 6x6x8 rough sawn red cedar $149.99, S4S $179.99; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.redwood-construction",
+      "variant": "1x4",
+      "description": "Construction heart/common redwood 1x4",
+      "unpriced": "no retail price found (regional West Coast item)",
+      "source": "Searched Home Depot, Lowe's, Menards; HD lists redwood CH S1S2E boards without visible price; 2026-11-25"
+    },
+    {
+      "key": "lumber.redwood-construction",
+      "variant": "1x6",
+      "description": "Construction heart/common redwood 1x6",
+      "unpriced": "no retail price found; Home Depot 1x6x8 construction heart S4S redwood (661548) listed without visible price",
+      "source": "Searched Home Depot, Lowe's, Menards; 2026-11-25"
+    },
+    {
+      "key": "lumber.redwood-construction",
+      "variant": "2x4",
+      "description": "Construction common/heart redwood 2x4, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.33,
+      "high_usd": 3.12,
+      "source": "Home Depot 2x4x8 construction common redwood $10.68; Friedman's (CA) 2x4x8 construction heart S4S $18.08; Menards 2x4x8 ConHeart $24.99; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.redwood-construction",
+      "variant": "2x6",
+      "description": "Construction common/heart redwood 2x6, 8-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.81,
+      "high_usd": 4.75,
+      "source": "Friedman's (CA) 2x6x8 CH S4S $27.68; Menards ConHeart 2x6x8 $37.99, 2x6x12 $46.05, 2x6x16 $75.99, construction common 2x6x16 $44.89; ÷length; 2026-11-25"
+    },
+    {
+      "key": "lumber.redwood-construction",
+      "variant": "4x4",
+      "description": "Construction heart redwood 4x4 S4S, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 6.29,
+      "high_usd": 6.29,
+      "source": "Supply On Time (online) 4x4x8 construction heart S4S $50.32; ÷8. Single observation; HD/Lowe's 4x4 redwood listings showed no price - low confidence; 2026-11-25"
+    },
+    {
+      "key": "ew.lvl-2-0e",
+      "variant": "lvl-1-75x9-25",
+      "description": "LVL 1-3/4 x 9-1/4, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 5.8,
+      "high_usd": 5.8,
+      "source": "Menards 1-3/4x9-1/4x14' LVL 1.9E $81.19; ÷14. Single observation (HD onCENTER/Trus Joist 9-1/4 listings showed no price) - low confidence; 2026-11-25"
+    },
+    {
+      "key": "ew.lvl-2-0e",
+      "variant": "lvl-1-75x11-25",
+      "description": "LVL 1-3/4 x 11-1/4",
+      "unpriced": "no confirmed price; Lowe's onCENTER 1.75x11.25x14 LVL listed without price (a Lowe's '14-ft LVL beam' at $100.33 had unconfirmed size)",
+      "source": "Searched Home Depot, Lowe's, Menards; 2026-11-25"
+    },
+    {
+      "key": "ew.lvl-2-0e",
+      "variant": "lvl-1-75x11-875",
+      "description": "LVL 1-3/4 x 11-7/8, 16-22ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 6.81,
+      "high_usd": 7.0,
+      "source": "Home Depot LP LVL 1-3/4x11-7/8: 16' $109, 20' $139, 22' $154; ÷length; 2026-11-25"
+    },
+    {
+      "key": "ew.lvl-2-0e",
+      "variant": "lvl-1-75x14",
+      "description": "LVL 1-3/4 x 14, 17-24ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 8.0,
+      "high_usd": 8.7,
+      "source": "Home Depot LPLVL14 20' $174; Menards 1-3/4x14 LVL 1.9E 17' $144.48, 22' $175.98, 24' $203.98; ÷length; 2026-11-25"
+    },
+    {
+      "key": "ew.glulam-24f-v4",
+      "variant": "glulam-3-125x9",
+      "description": "Glulam 24F-V4 3-1/8 x 9",
+      "unpriced": "no US retail listing with price; special-order/lumberyard item",
+      "source": "Searched Home Depot, Lowe's, Menards, Amerhart (Rosboro X-Beam listed, no price). Only priced glulam found: Lowe's onCENTER 3000F 5.5x9.5x24 $578.40; 2026-11-25"
+    },
+    {
+      "key": "ew.glulam-24f-v4",
+      "variant": "glulam-3-5x11-875",
+      "description": "Glulam 24F-V4 3-1/2 x 11-7/8",
+      "unpriced": "no US retail listing with price; HD lists 3-1/2x11-1/4 glulam without visible price",
+      "source": "Searched Home Depot, Lowe's, Menards; 2026-11-25"
+    },
+    {
+      "key": "ew.glulam-24f-v4",
+      "variant": "glulam-5-125x12",
+      "description": "Glulam 24F-V4 5-1/8 x 12",
+      "unpriced": "special order; no retail listing found",
+      "source": "Searched Home Depot, Lowe's, Menards; 2026-11-25"
+    },
+    {
+      "key": "ew.i-joist",
+      "variant": "ij-9-5",
+      "description": "I-joist 9-1/2in, 16-34ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.79,
+      "high_usd": 3.53,
+      "source": "Menards 2-1/2x9-1/2 I-joist 40 series 16' $46.38, 32' $89.38-$92.76, 34' $98.56; T.W. Perry 9-1/2x16 PJI40 $56.53; ÷length; 2026-11-25"
+    },
+    {
+      "key": "ew.i-joist",
+      "variant": "ij-11-875",
+      "description": "I-joist 11-7/8in, 12-30ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.76,
+      "high_usd": 3.1,
+      "source": "Menards 2-1/2x11-7/8 I-joist 40 series 12' $37.19, 18' $55.79, 20' $61.98, 24' $66.20, 30' $92.98; ÷length (HD TJI/LPI listings showed no price); 2026-11-25"
+    },
+    {
+      "key": "ew.i-joist",
+      "variant": "ij-14",
+      "description": "I-joist 14in",
+      "unpriced": "no current retail price; HD LPI 20/32 series 14in listings showed no price; only a 2020 Weyerhaeuser dealer list (TJI 360 14in $3.47-$3.50/lf), too old to use",
+      "source": "Searched Home Depot, Lowe's, Menards, Weyerhaeuser price lists; 2026-11-25"
+    },
+    {
+      "key": "sheet.plywood-cdx",
+      "variant": "1/2in",
+      "description": "CDX plywood 15/32 (1/2in nominal) 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 25.32,
+      "high_usd": 32.43,
+      "source": "Home Depot Fir 15/32 4x8 CDX 4-ply 915378 $25.32-$32.43; Lowe's 15/32 DF CDX $28.75; 2026-11-25"
+    },
+    {
+      "key": "sheet.plywood-cdx",
+      "variant": "5/8in",
+      "description": "CDX/rated sheathing plywood 19/32 (5/8in nominal) 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 32.96,
+      "high_usd": 38.88,
+      "source": "Home Depot 19/32 sheathing plywood 407735 $33.96/$38.88, Plytanium 19/32 $35.32; Lowe's Plytanium 19/32 rated sheathing $32.96 (no plain '5/8 CDX'-labeled listing found); 2026-11-25"
+    },
+    {
+      "key": "sheet.plywood-cdx",
+      "variant": "23/32in",
+      "description": "CDX plywood 23/32 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 39.0,
+      "high_usd": 39.94,
+      "source": "Lowe's 23/32 Douglas fir CDX sheathing $39.00/$39.94 (Lowe's only); 2026-11-25"
+    },
+    {
+      "key": "sheet.osb-7-16",
+      "description": "OSB 7/16 sheathing 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 10.4,
+      "high_usd": 16.48,
+      "source": "Home Depot OSB 7/16 386081 $11.68-$15.98; Menards 7/16x4x8 OSB $13.48; Lowe's 7/16 OSB $10.40 (646214) and $16.48 (721627); 2026-11-25"
+    },
+    {
+      "key": "sheet.osb-23-32",
+      "description": "OSB 23/32 T&G subfloor 4x8 sheet (generic to AdvanTech)",
+      "unit": "sheet",
+      "low_usd": 24.98,
+      "high_usd": 57.98,
+      "source": "Generic 23/32 T&G OSB subfloor $24.98 (Lowe's, Home Depot); Huber AdvanTech 23/32 T&G HD $49.98, Lowe's $52.76-$57.98; 2026-11-25"
+    },
+    {
+      "key": "concrete.concrete-3000",
+      "description": "Ready-mix concrete 3000 psi, per cubic yard (material, before delivery/short-load fees)",
+      "unit": "cu-yd",
+      "low_usd": 100.0,
+      "high_usd": 170.0,
+      "source": "No retailer sells ready-mix; national cost guides: costinsighthub 2026 $125-$170 (avg $145), Bob Vila $100-$115, NRMCA-based avg $179.89 delivered. Bagged equivalent: Quikrete 80lb concrete mix HD $5.78-$6.98, Sakrete 80lb $6.47 => 45 bags = $260-$314/cu yd. Low confidence (regional); 2026-11-25"
+    },
+    {
+      "key": "concrete.concrete-4000",
+      "description": "Ready-mix concrete 4000 psi, per cubic yard (material)",
+      "unit": "cu-yd",
+      "low_usd": 110.0,
+      "high_usd": 185.0,
+      "source": "Cost guides: latestcost $110-$180 (avg $135), delivered $165-$185. Bagged high-strength equivalent: Sakrete 80lb high-strength HD $6.24 / Lowe's $6.98, Quikrete 5000 HD $6.22 (unavail), Lowe's ProFinish 5000 $9.58-$10.28 => 45 bags = $280-$463/cu yd. Low confidence (regional); 2026-11-25"
+    },
+    {
+      "key": "masonry.cmu-standard",
+      "variant": "cmu-8x8x16",
+      "description": "Standard gray CMU 8x8x16, each",
+      "unit": "each",
+      "low_usd": 1.51,
+      "high_usd": 3.68,
+      "source": "Home Depot 8x8x16 concrete block $1.51-$2.78 (std $1.88); Menards $1.98; Lowe's $3.68; 2026-11-25"
+    },
+    {
+      "key": "masonry.cmu-standard",
+      "variant": "cmu-6x8x16",
+      "description": "Standard CMU 6x8x16, each",
+      "unit": "each",
+      "low_usd": 2.38,
+      "high_usd": 3.29,
+      "source": "Home Depot 6x8x16 gray $2.38, Basalite $2.48, pink $3.23; Menards regular $2.39, solid $3.29; Lowe's cored $2.78; 2026-11-25"
+    },
+    {
+      "key": "steel.rebar-gr60",
+      "variant": "rebar-3",
+      "description": "#3 (3/8in) rebar, 10-20ft sticks, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.29,
+      "high_usd": 0.76,
+      "source": "Home Depot #3x10 $5.98, #3x20 $5.78-$8.98; Lowe's #3x10 $7.58; ÷length; 2026-11-25"
+    },
+    {
+      "key": "steel.rebar-gr60",
+      "variant": "rebar-4",
+      "description": "#4 (1/2in) rebar, 20ft sticks, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.58,
+      "high_usd": 0.9,
+      "source": "Home Depot #4x20 $14-$17.97; Lowe's #4x20 $11.58-$15.00; ÷20; 2026-11-25"
+    },
+    {
+      "key": "steel.rebar-gr60",
+      "variant": "rebar-5",
+      "description": "#5 (5/8in) rebar, 20ft sticks, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.84,
+      "high_usd": 1.33,
+      "source": "Home Depot #5x20 $16.81-$26.64; Lowe's #5x20 $20.78-$23.48; ÷20; 2026-11-25"
+    },
+    {
+      "key": "other.sonotube-form",
+      "variant": "8in",
+      "description": "8in diameter cardboard concrete form tube, 4ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.17,
+      "high_usd": 3.75,
+      "source": "Home Depot Quik-Tube 8x48 $10.88; Lowe's 8x48 $10.48-$13.68 (one old $8.68); Menards Sonotube 8inx4ft $14.99; ÷4; 2026-11-25"
+    },
+    {
+      "key": "other.sonotube-form",
+      "variant": "10in",
+      "description": "10in diameter concrete form tube, 4ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.5,
+      "high_usd": 3.92,
+      "source": "Lowe's Quikrete 10x48 $9.98 (old listing); Home Depot Sakrete 10in x 4ft $15.68; ÷4; 2026-11-25"
+    },
+    {
+      "key": "other.sonotube-form",
+      "variant": "12in",
+      "description": "12in diameter concrete form tube, 4-12ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 3.47,
+      "high_usd": 6.75,
+      "source": "Home Depot Quik-Tube 12x48 692203 $13.88-$23.98 (current $15.23); Lowe's $15.28/$19.98; McCoy's Sonotube 12inx12ft $80.99; ÷length; 2026-11-25"
+    },
+    {
+      "key": "other.gravel-base",
+      "description": "3/4in crushed stone base, per cubic yard (low = bulk quarry, high = 0.5 cu ft bags)",
+      "unit": "cu-yd",
+      "low_usd": 28.0,
+      "high_usd": 376.38,
+      "source": "Bulk: cost guides (latestcost) $28-$65/cu yd material, hellogravel quotes $30/$62/cu yd; Bagged: Home Depot Vigoro all-purpose gravel 0.5 cu ft $6.97 x54 bags = $376/cu yd. (HD Yard Elements 25 cu ft bulk bag $650-$949 excluded). Delivery extra; 2026-11-25"
+    },
+    {
+      "key": "fastener.nail-8d-common",
+      "description": "8d (2-1/2in) hot-dip galvanized common nail, each",
+      "unit": "each",
+      "low_usd": 0.056,
+      "high_usd": 0.056,
+      "source": "Home Depot Everbilt 8d HDG common 5lb 478ct $26.85; PRO-FIT 8d HDG common 5lb 465ct $26.12; 2026-11-25"
+    },
+    {
+      "key": "fastener.nail-10d-common",
+      "description": "10d (3in) hot-dip galvanized common nail, each",
+      "unit": "each",
+      "low_usd": 0.08,
+      "high_usd": 0.131,
+      "source": "Home Depot Everbilt 10d HDG 5lb 295ct $26.86, PRO-FIT 315ct $25.20; Walmart Simpson 10d HDG 5lb 250ct $32.87; 2026-11-25"
+    },
+    {
+      "key": "fastener.nail-16d-common",
+      "description": "16d (3-1/2in) hot-dip galvanized common nail, each",
+      "unit": "each",
+      "low_usd": 0.112,
+      "high_usd": 0.121,
+      "source": "Home Depot Everbilt 16d HDG common 5lb 222ct $26.85; PRO-FIT 16d HDG 5lb 225ct $25.22 (Zoro Grip-Rite 5lb $17.15-$18.19 excluded: count unconfirmed); 2026-11-25"
+    },
+    {
+      "key": "fastener.nail-roofing",
+      "description": "1-1/4in electro-galvanized roofing nail, each",
+      "unit": "each",
+      "low_usd": 0.017,
+      "high_usd": 0.018,
+      "source": "Home Depot Everbilt 1-1/4 EG roofing 5lb 1010ct $17.90; Tractor Supply Grip-Rite 1-1/4 EG 5lb ~1090ct $18.99; 2026-11-25"
+    },
+    {
+      "key": "fastener.screw-structural",
+      "description": "Structural wood screw (GRK RSS 5/16x3-1/8 to Simpson SDWS 0.22x6), each",
+      "unit": "each",
+      "low_usd": 0.548,
+      "high_usd": 1.22,
+      "source": "Home Depot GRK RSS 5/16x3-1/8 100pk $54.83, single $1.22; Simpson SDWS 0.22x6 50pk HD $48.48, FMW Fasteners $42.41, Walmart $58.34; 2026-11-25"
+    },
+    {
+      "key": "fastener.screw-deck",
+      "description": "#9 x 3in exterior deck screw, each",
+      "unit": "each",
+      "low_usd": 0.082,
+      "high_usd": 0.107,
+      "source": "Home Depot Deckmate #9x3 5lb 365pc $29.97, 309pc $29.97, red Torx 309pc $32.98; 2026-11-25"
+    },
+    {
+      "key": "fastener.screw-metal-roofing",
+      "description": "#10 x 1-1/2 hex washer-head metal roofing screw with EPDM washer, each",
+      "unit": "each",
+      "low_usd": 0.08,
+      "high_usd": 0.116,
+      "source": "Ace PowerPro #10x1-1/2 250ct $19.99; ST Fastening Kwikseal Woodbinder #10x1-1/2 250pk $22.99-$28.99 (Lowe's Power Pro 250ct listed without price); 2026-11-25"
+    },
+    {
+      "key": "fastener.bolt-1-2",
+      "description": "1/2 x 8in galvanized carriage bolt + HDG nut + 2 flat washers, each set",
+      "unit": "each",
+      "low_usd": 4.62,
+      "high_usd": 6.4,
+      "source": "Bolt: Home Depot Everbilt 1/2x8 galv carriage bolt 25pk $80.57 ($3.22) to single $4.98, Lowe's Hillman $3.44; nut: HD Everbilt 1/2 HDG hex nut 50pk $24.75-$25.98 ($0.50-$0.52); washers: HD 1/2 galv flat washer 50pk $22.45 ($0.45 x2); 2026-11-25"
+    },
+    {
+      "key": "fastener.lag-3-8",
+      "description": "3/8 x 4in hot-dip galvanized hex lag screw, each",
+      "unit": "each",
+      "low_usd": 0.752,
+      "high_usd": 2.031,
+      "source": "Home Depot Prime-Line A307 HDG 3/8x4 50pk $37.60 ($0.75), 25pk $21.36; Everbilt 3/8x4 galv 25pk $33.90-$50.78; Lowe's Hillman HDG single $1.78; 2026-11-25"
+    },
+    {
+      "key": "fastener.anchor-bolt-1-2",
+      "description": "1/2 x 10in galvanized anchor bolt with nut & washer, each",
+      "unit": "each",
+      "low_usd": 1.248,
+      "high_usd": 3.8,
+      "source": "Home Depot Acorn 1/2x10 galv anchor bolt w/ nuts & washers 50pk $62.39 ($1.25); Grip-Rite w/ nuts+sq washers 50pk $76.95 ($1.54); Grip-Rite HG 50pk $104; single HG bolt w/ washer $3.28 + HDG nut $0.52; 2026-11-25"
+    },
+    {
+      "key": "fastener.wedge-anchor-1-2",
+      "description": "1/2 x 4-1/4 to 5-1/2in wedge anchor, each",
+      "unit": "each",
+      "low_usd": 1.079,
+      "high_usd": 3.98,
+      "source": "Lowe's Simpson STB2 1/2x4-1/4 25pk $26.98, single $2.98; Home Depot STB2 single $3.98, Red Head 25pk $27.98, Cobra 25pk $28.95; 1/2x5-1/2 Cobra 25pk $34, Red Head HDG 10pk $29.98; 2026-11-25"
+    },
+    {
+      "key": "fastener.joist-hanger",
+      "variant": "2x6",
+      "description": "Joist hanger for 2x6 (Simpson LUS26Z), each",
+      "unit": "each",
+      "low_usd": 1.93,
+      "high_usd": 1.98,
+      "source": "Home Depot Simpson LUS26Z $1.93/$1.98; Walmart 20-pack $39.68 ($1.98); 2026-11-25"
+    },
+    {
+      "key": "fastener.joist-hanger",
+      "variant": "2x8",
+      "description": "Joist hanger for 2x8 (Simpson LUS28Z), each",
+      "unit": "each",
+      "low_usd": 1.83,
+      "high_usd": 2.59,
+      "source": "ToolUp LUS28Z $1.83; FastenersPlus $1.91; Zoro $2.59 (HD price not found); 2026-11-25"
+    },
+    {
+      "key": "fastener.joist-hanger",
+      "variant": "2x10",
+      "description": "Joist hanger for 2x10 (Simpson LUS210Z), each",
+      "unit": "each",
+      "low_usd": 2.22,
+      "high_usd": 2.22,
+      "source": "ToolUp LUS210Z $2.22 (single observation; HD/Lowe's price not found) - low confidence; 2026-11-25"
+    },
+    {
+      "key": "fastener.hurricane-tie",
+      "description": "Hurricane tie (Simpson H2.5A / H2.5AZ), each",
+      "unit": "each",
+      "low_usd": 0.58,
+      "high_usd": 0.98,
+      "source": "Home Depot Simpson H2.5A galv $0.58, H2.5AZ ZMAX $0.98; Walmart H2.5A 50pk $33.46 ($0.67); 2026-11-25"
+    },
+    {
+      "key": "fastener.post-base",
+      "variant": "4x4",
+      "description": "Adjustable post base 4x4 (Simpson ABU44Z), each",
+      "unit": "each",
+      "low_usd": 26.17,
+      "high_usd": 36.03,
+      "source": "Hancock Lumber ABU44Z $26.17; FastenersPlus $28.38; Zoro $28.49; Walmart $36.03 (HD price not found); 2026-11-25"
+    },
+    {
+      "key": "fastener.post-base",
+      "variant": "6x6",
+      "description": "Adjustable post base 6x6 (Simpson ABU66Z), each",
+      "unit": "each",
+      "low_usd": 51.58,
+      "high_usd": 70.5,
+      "source": "Walmart ABU66Z $51.58; eBay $60.50; Fastener & Builders Mart $70.50 (HD price not found) - low confidence; 2026-11-25"
+    },
+    {
+      "key": "roofing.shingle-asphalt-architectural",
+      "description": "Architectural asphalt shingles, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.29,
+      "high_usd": 1.46,
+      "source": "Home Depot GAF Timberline HDZ $44.97/bundle; Lowe's HDZ $43-$47/bundle (33.33 sf); Lowe's Owens Corning Duration $44.48-$48/bundle (32.8 sf); 2026-11-25"
+    },
+    {
+      "key": "roofing.metal-corrugated",
+      "description": "29ga galvanized corrugated/5V roof panel, per sq ft of coverage",
+      "unit": "sq-ft",
+      "low_usd": 1.87,
+      "high_usd": 2.09,
+      "source": "Home Depot Gibraltar 29ga corrugated galv 8ft CR8G-U $29.98 (21.5in cov = 14.33 sf), 12ft CR12G-U $42.98 (21.5 sf); Fabral 26inx8ft 29ga 5V crimp $29.98 (24in cov = 16 sf). No galvalume corrugated retail listing found; 2026-11-25"
+    },
+    {
+      "key": "roofing.metal-standing-seam",
+      "description": "24-26ga standing-seam/snap-lock steel panel, material only, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.5,
+      "high_usd": 7.5,
+      "source": "No big-box listing; manufacturer/cost-guide material-only prices: Western States Metal Roofing 24ga galvalume $2.50-$3.50, PVDF $3.00-$4.00, specialty $4-$5; HomeGuide 24ga $3.50-$7.50/sf. Low confidence; 2026-11-25"
+    },
+    {
+      "key": "roofing.underlayment-synthetic",
+      "description": "Synthetic roofing underlayment, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.07,
+      "high_usd": 0.35,
+      "source": "Home Depot 1000 sf rolls: Pro Synthetic $70.80, Everbilt 4x250 $74.98, GAF FeltBuster $98.98-$119, OC ProArmor $139, GAF Tiger Paw $195.60, GAF Deck-Armor $306.64-$349; 2026-11-25"
+    },
+    {
+      "key": "roofing.drip-edge-aluminum",
+      "description": "Aluminum drip edge, 10ft piece, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.77,
+      "high_usd": 1.2,
+      "source": "Home Depot Amerimax white aluminum drip edge 10ft C3.5 $7.68, F4.5 $8.48, C5.5 $10.78, F5.5S $11.98; Lowe's F4.5 $7.78-$8.48, C4.5 $8.88, F5M $11.98; 2026-11-25"
+    },
+    {
+      "key": "roofing.gutter-k5-aluminum",
+      "description": "5in K-style aluminum gutter, 10ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.7,
+      "high_usd": 1.8,
+      "source": "Home Depot Amerimax 5inx10ft white aluminum K-style $17.98, black $16.98 (a 30-degree variant listed $35.98-$67.98 excluded); 2026-11-25"
+    },
+    {
+      "key": "roofing.downspout-2x3-aluminum",
+      "description": "2x3 aluminum downspout, 10ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.8,
+      "high_usd": 3.5,
+      "source": "Home Depot Amerimax 2x3x10 white/brown $17.98-$19.98, heavy-duty white $24.68; Menards Spectra Metals 2x3x10 white $34.99; 2026-11-25"
+    },
+    {
+      "key": "envelope.house-wrap",
+      "description": "House wrap, 9ft rolls, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.09,
+      "high_usd": 0.17,
+      "source": "Tyvek HomeWrap 9x150 Home Depot/Lowe's $224, HD $235; Owens Corning PinkWrap 9x150 $118-$198; Lowe's OC 9x100 $115; 2026-11-25"
+    },
+    {
+      "key": "envelope.flashing-aluminum",
+      "description": "Aluminum flashing (10in roll and 5x7 step flashing), per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.85,
+      "high_usd": 1.44,
+      "source": "Roll 10inx50ft: Home Depot/Lowe's Amerimax $45.98-$50.98, Lowe's Gibraltar $68.78 (÷50); Step flashing 5x7 100pk: HD Gibraltar $35.47-$39.11, Menards $59.99 (1 piece per 5in course = 2.4/ft); 2026-11-25"
+    },
+    {
+      "key": "envelope.flashing-tape",
+      "description": "4in flashing tape, 75ft roll, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 0.47,
+      "high_usd": 1.23,
+      "source": "Lowe's RELIABILT 4inx75ft butyl $34.98; Home Depot Grace Vycor Plus 4x75 $36.42, Vycor Pro $54.21; Lowe's Tyvek 4x75 $64.94; HD DuPont 4x75 4-pack $354.45-$369; 2026-11-25"
+    },
+    {
+      "key": "envelope.siding-lap-engineered",
+      "description": "LP SmartSide 8in lap siding, per sq ft exposed (7in exposure)",
+      "unit": "sq-ft",
+      "low_usd": 1.5,
+      "high_usd": 1.84,
+      "source": "Home Depot SmartSide 38 series 3/8x8x16 cedar texture lap $13.98-$15.48, Menards $17.18 (16ft @7in exposure = 9.33 sf); HD 8x12 $11.75 (7 sf); 2026-11-25"
+    },
+    {
+      "key": "envelope.siding-board-batten",
+      "description": "LP SmartSide 4x8 grooved panel plus 1x4 SmartSide batten allowance, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.69,
+      "high_usd": 4.22,
+      "source": "Panel: Menards SmartSide 4x8 8in OC panel 3/8 $54.98, 7/16 $69.99, 5/8 $73.99 (÷32 = $1.72-$2.31); battens: SmartSide 440 1x4x16 trim HD $20.68-$24.77, Menards $30.58 ($1.29-$1.91/lf) at 0.75 lf/sf (16in o.c.) to 1.0 lf/sf (12in o.c.) adds $0.97-$1.91/sf. (Alt: T1-11 19/32 Plytanium $44.78-$46.78 = $1.40-$1.46/sf); 2026-11-25"
+    },
+    {
+      "key": "envelope.siding-lap-fiber-cement",
+      "description": "James Hardie HardiePlank 8.25in x 12ft lap, per sq ft exposed (7 sf/plank)",
+      "unit": "sq-ft",
+      "low_usd": 2.14,
+      "high_usd": 3.07,
+      "source": "Home Depot HZ5 primed 8.25x144 $14.98 (captured in an undated page copy), Super Arbor HZ10 primed $15.28, Builders Warehouse HZ5 primed $21.50 (special order); ÷7 sf. Low confidence - HD/Lowe's live prices not visible; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-pvc",
+      "variant": "1x4",
+      "description": "PVC trim board 1x4 (AZEK/Veranda), 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 3.23,
+      "high_usd": 3.42,
+      "source": "Home Depot AZEK Traditional 1x4x8 $25.88; Lowe's AZEK 1x4x8 $27.40; HD Veranda 1x3.5x8 4-pack $106.28; ÷8; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-pvc",
+      "variant": "1x6",
+      "description": "PVC trim board 1x6, 8-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.5,
+      "high_usd": 4.75,
+      "source": "Lowe's Royal 1x6x8 PVC trim $19.98/$22.48; Lowe's AZEK 1x6x16 $76.00; ÷length; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-pvc",
+      "variant": "1x8",
+      "description": "PVC trim board 1x8 (AZEK), 12-18ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 4.65,
+      "high_usd": 5.98,
+      "source": "Lowe's AZEK 1x8x12 $71.82; Home Depot AZEK Frontier 1x8x18 $83.68; ÷length; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-primed-pine",
+      "variant": "1x4",
+      "description": "Primed finger-joint pine 1x4, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.1,
+      "high_usd": 1.32,
+      "source": "Home Depot PrimeLinx 1x4x8 FJ primed $8.78/$10.58; ÷8; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-primed-pine",
+      "variant": "1x6",
+      "description": "Primed finger-joint pine 1x6, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.92,
+      "high_usd": 2.05,
+      "source": "Home Depot 1x6x8 radiata FJ primed $15.32-$16.37; Menards 1x6x8 primed pine $16.37; ÷8; 2026-11-25"
+    },
+    {
+      "key": "envelope.trim-primed-pine",
+      "variant": "1x8",
+      "description": "Primed finger-joint pine 1x8, 8-16ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.49,
+      "high_usd": 2.62,
+      "source": "Home Depot PrimeLinx 1x8x8 $20.98, 1x8x16 FJ primed $39.80-$41.00; Lowe's RELIABILT 1x8x16 $41.92; ÷length; 2026-11-25"
+    },
+    {
+      "key": "envelope.soffit-vinyl-vented",
+      "description": "Vented vinyl soffit 12in x 12ft panel, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.44,
+      "high_usd": 2.45,
+      "source": "Menards 12inx12ft vented vinyl soffit: Value $17.29, Universal $19.39-$19.59, ABTCO $23.98, black $29.39; ÷12 sf; 2026-11-25"
+    },
+    {
+      "key": "envelope.fascia-primed-pine",
+      "variant": "1x6",
+      "description": "Primed finger-joint pine fascia 1x6, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.92,
+      "high_usd": 2.05,
+      "source": "Same boards as primed trim: Home Depot 1x6x8 FJ primed $15.32-$16.37; Menards $16.37; ÷8; 2026-11-25"
+    },
+    {
+      "key": "envelope.fascia-primed-pine",
+      "variant": "1x8",
+      "description": "Primed finger-joint pine fascia 1x8, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.49,
+      "high_usd": 2.62,
+      "source": "Home Depot 1x8x8 $20.98, 1x8x16 $39.80-$41.00; Lowe's 1x8x16 $41.92; ÷length; 2026-11-25"
+    },
+    {
+      "key": "insulation.batt-fiberglass-r13",
+      "description": "R-13 kraft-faced fiberglass batt 3-1/2 x 15in, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.61,
+      "high_usd": 0.85,
+      "source": "Menards EcoBatt R-13 106.56 sf $64.97 ($0.61); Home Depot CertainTeed $77.97/125.94 sf ($0.62), OC M90 $0.71, JM K1241 / OC BF10 $90.45/106.56 sf ($0.85); 2026-11-25"
+    },
+    {
+      "key": "insulation.batt-fiberglass-r19",
+      "description": "R-19 kraft-faced fiberglass batt, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.69,
+      "high_usd": 1.28,
+      "source": "Home Depot Knauf R-19 15x94 12-bag pallet $806.68 ($0.69/sf HD-stated), Knauf 23x94 $98.82 ($0.73), OC pallet ($0.80), JM 15x93 $99 ($1.14), OC 15.25x93 $99.41/77.5 sf ($1.28); 2026-11-25"
+    },
+    {
+      "key": "insulation.batt-fiberglass-r30",
+      "description": "R-30 kraft-faced fiberglass batt, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.1,
+      "high_usd": 1.47,
+      "source": "Home Depot Knauf R-30 24x48 pallet $777.30 ($1.10/sf), OC pallet $839 ($1.19), Knauf 16x48 $99 ($1.43), Knauf/JM/CertainTeed 24x48 bag $129 ($1.47) (HD-stated per-sf); 2026-11-25"
+    },
+    {
+      "key": "insulation.mineral-wool-r15",
+      "description": "Rockwool ComfortBatt R-15 3-1/2in, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.38,
+      "high_usd": 1.47,
+      "source": "Home Depot Rockwool ComfortBatt R-15 59.7 sf bag $82.38-$87.98; 2026-11-25"
+    },
+    {
+      "key": "insulation.mineral-wool-r23",
+      "description": "Rockwool ComfortBatt R-23 5-1/2in, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.24,
+      "high_usd": 2.45,
+      "source": "Home Depot Rockwool ComfortBatt R-23 39.8 sf bag $89.15-$94.97; 12-bag pallet 478 sf $1,116.95-$1,169; 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-xps",
+      "variant": "1in",
+      "description": "XPS foam board 1in (R-5) 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.69,
+      "high_usd": 1.05,
+      "source": "Home Depot Foamular NGX F-150 1in $33.45, Foamular 1in $21.98-$30.65; Lowe's NGX F-150 $31.14; Menards $29.98; ÷32 (stale HD $35 listing excluded); 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-xps",
+      "variant": "2in",
+      "description": "XPS foam board 2in (R-10) 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.77,
+      "high_usd": 1.96,
+      "source": "Home Depot Foamular 2in $56.78-$61.75, NGX F-250 2in $62.78; Lowe's Kingspan 2in R-10 $60.98; ÷32; 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-polyiso",
+      "variant": "1in",
+      "description": "Foil-faced polyiso 1in (R-6) 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.75,
+      "high_usd": 1.25,
+      "source": "Home Depot Rmax Thermasheath-3 1in $24.55; Lowe's JM AP Foil 1in $23.98-$39.98, Rmax $29.48; ÷32 (a conflicting $49.48 Lowe's listing excluded); 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-polyiso",
+      "variant": "2in",
+      "description": "Foil-faced polyiso 2in (R-13) 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.03,
+      "high_usd": 1.75,
+      "source": "Menards JM AP Foil 2in $32.95/$55.78; Lowe's JM AP Foil 2in $55.98; Home Depot Rmax R-Matte Plus-3 2in $43.65-$55.78; ÷32; 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-eps",
+      "variant": "1in",
+      "description": "EPS foam board 1in 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.52,
+      "high_usd": 0.64,
+      "source": "Lowe's 1inx4x8 polystyrene board $16.48 (EPS type not confirmed); Home Depot Cellofoam 1in R-3.86 4x8 3-pack $53.05-$60.98; ÷32; 2026-11-25"
+    },
+    {
+      "key": "insulation.rigid-eps",
+      "variant": "2in",
+      "description": "EPS foam board 2in (R-7.7/R-8) 4x8, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.89,
+      "high_usd": 1.25,
+      "source": "Home Depot Henry 2in R-7.7 EPS $28.52-$40.00; Lowe's Insulfoam R-7.7 $39.97; Menards Insulfoam R-8 2in $32.48; ÷32; 2026-11-25"
+    },
+    {
+      "key": "opening.opening-unit",
+      "description": "Generic opening unit",
+      "unpriced": "pick a specific window or door",
+      "source": "n/a; 2026-11-25"
+    },
+    {
+      "key": "opening.window-single-hung",
+      "description": "Vinyl single-hung window, double-pane (low-E on most), ~36x48 to 36x60, each",
+      "unit": "each",
+      "low_usd": 170.0,
+      "high_usd": 737.0,
+      "source": "Home Depot 36x48: JELD-WEN V-2500 SH $170-$280, Tafco VSHI3648GB $227, ARK 62-series $228-$236, JW V-4500 $465.80-$720.80, JW V-2500 bronze low-E $737; 36x60: JW V-2500 low-E $270.17, Tafco $247.38; 2026-11-25"
+    },
+    {
+      "key": "opening.window-double-hung",
+      "description": "Vinyl double-hung window, low-E argon, 36x48 rough opening, each",
+      "unit": "each",
+      "low_usd": 295.0,
+      "high_usd": 355.09,
+      "source": "Lowe's JELD-WEN V-2500 35.5x47.5 DH low-E $295 (sale; list $369) and $355.09 (older page); Home Depot American Craftsman 35.75x48 DH low-E $347; 2026-11-25"
+    },
+    {
+      "key": "opening.window-casement",
+      "description": "Vinyl casement window, ~24x36, each",
+      "unit": "each",
+      "low_usd": 290.0,
+      "high_usd": 960.5,
+      "source": "Home Depot 24x36: Tafco VCAL2436OSG $290 (low-E not confirmed), JELD-WEN V-4500 low-E $728 and $960.50 (black, grids); 2026-11-25"
+    },
+    {
+      "key": "opening.window-sliding",
+      "description": "Vinyl sliding window, ~48x36 (36x48), each",
+      "unit": "each",
+      "low_usd": 228.0,
+      "high_usd": 1080.35,
+      "source": "Home Depot 48x36: generic VUSI4836B $228, Milgard V150 XO low-E $248, JELD-WEN V-2500 bronze low-E $652.80, V-4500 bronze low-E $1,080.35; 2026-11-25"
+    },
+    {
+      "key": "opening.window-awning",
+      "description": "Vinyl awning window, 36x24, each",
+      "unit": "each",
+      "low_usd": 576.3,
+      "high_usd": 838.0,
+      "source": "Home Depot JELD-WEN V-4500 36x24 awning $576.30, $638-$708, $838 (colors/grids); 2026-11-25"
+    },
+    {
+      "key": "opening.window-fixed",
+      "description": "Vinyl fixed/picture window, 36x48, each",
+      "unit": "each",
+      "low_usd": 431.8,
+      "high_usd": 868.0,
+      "source": "Home Depot JELD-WEN V-2500 36x48 picture $431.80 (grids), low-E 366 $868; V-4500 black $708; 2026-11-25"
+    },
+    {
+      "key": "opening.door-entry",
+      "description": "Prehung fiberglass exterior door 36x80, each",
+      "unit": "each",
+      "low_usd": 546.0,
+      "high_usd": 1443.3,
+      "source": "Home Depot 36x80 fiberglass prehung: Masonite $546-$758, MMI $898.53-$1,180.80, JELD-WEN $1,086.64-$1,443.30; 2026-11-25"
+    },
+    {
+      "key": "opening.door-french",
+      "description": "Prehung 60x80 double French patio door (fiberglass), each",
+      "unit": "each",
+      "low_usd": 1553.75,
+      "high_usd": 2264.0,
+      "source": "Home Depot 60x80: Masonite fiberglass 15-lite vinyl frame $1,553.75, MP Doors $1,656.68-$1,926, JELD-WEN low-E $1,915.78-$2,264, Steves & Sons $2,126.40; 2026-11-25"
+    },
+    {
+      "key": "opening.door-sliding-glass",
+      "description": "Vinyl sliding patio door 72x80, each",
+      "unit": "each",
+      "low_usd": 638.0,
+      "high_usd": 2667.26,
+      "source": "Home Depot 72x80 vinyl: American Craftsman 50 series $638, JELD-WEN V-4500 $1,450-$2,439.83, Premium WX $2,667.26; 2026-11-25"
+    },
+    {
+      "key": "opening.glass-tempered",
+      "description": "1/4in tempered glass cut to size, per sq ft (material only)",
+      "unit": "sq-ft",
+      "low_usd": 9.0,
+      "high_usd": 30.0,
+      "source": "No big-box listing; cost guides: $9-$18/sf material (latestcost), $12-$18, $15-$30/sf glass-shop pricing (avg ~$22); lowest guide figure $5.50 excluded as outlier. Low confidence; 2026-11-25"
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+[
+  {
+    "id": "nail-8d-common",
+    "name": "8d common nail",
+    "description": "8d common nail, 0.131 x 2 1/2in, hot-dip galvanized: sheathing and light framing.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.nail-8d-common"
+  },
+  {
+    "id": "nail-10d-common",
+    "name": "10d common nail",
+    "description": "10d common nail, 0.148 x 3in, hot-dip galvanized: toe-nailing and built-up members.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.nail-10d-common"
+  },
+  {
+    "id": "nail-16d-common",
+    "name": "16d common nail",
+    "description": "16d common nail, 0.162 x 3 1/2in, hot-dip galvanized: framing.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.nail-16d-common"
+  },
+  {
+    "id": "nail-roofing",
+    "name": "Roofing nail",
+    "description": "1 1/4in galvanized roofing nail with a 3/8in head: shingles, underlayment, nailing fins.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.nail-roofing"
+  },
+  {
+    "id": "screw-structural",
+    "name": "Structural wood screw",
+    "description": "Structural wood screw (about 0.22in x 6in, e.g. Simpson SDWS or GRK RSS): ledgers, built-up beams and rigid foam over sheathing.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#555a5e",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.screw-structural"
+  },
+  {
+    "id": "screw-deck",
+    "name": "Exterior deck screw",
+    "description": "Coated exterior wood screw, #9 x 3in: decking, trim and siding.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#7a6b5a",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.screw-deck"
+  },
+  {
+    "id": "screw-metal-roofing",
+    "name": "Metal roofing screw",
+    "description": "#10 x 1 1/2in hex-washer-head screw with an EPDM washer: metal roof panels to purlins or sheathing.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.screw-metal-roofing"
+  },
+  {
+    "id": "bolt-1-2",
+    "name": "1/2in through bolt",
+    "description": "1/2in hot-dip galvanized bolt with nut and two washers, through wood members.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.bolt-1-2"
+  },
+  {
+    "id": "lag-3-8",
+    "name": "3/8in lag screw",
+    "description": "3/8 x 4in hot-dip galvanized lag screw with washer.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.lag-3-8"
+  },
+  {
+    "id": "anchor-bolt-1-2",
+    "name": "1/2in anchor bolt",
+    "description": "1/2 x 10in J-bolt cast into concrete, with nut and washer: sill plates to slabs and footings.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.anchor-bolt-1-2"
+  },
+  {
+    "id": "wedge-anchor-1-2",
+    "name": "1/2in wedge anchor",
+    "description": "1/2in wedge anchor set in a drilled hole in cured concrete.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.wedge-anchor-1-2"
+  },
+  {
+    "id": "joist-hanger",
+    "name": "Joist hanger",
+    "description": "Galvanized face-mount joist hanger (Simpson LUS-type), sized to the joist: 2x6, 2x8 or 2x10.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.joist-hanger"
+  },
+  {
+    "id": "hurricane-tie",
+    "name": "Hurricane tie",
+    "description": "Galvanized rafter-to-plate tie (Simpson H2.5A-type) against uplift.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.hurricane-tie"
+  },
+  {
+    "id": "post-base",
+    "name": "Post base",
+    "description": "Galvanized adjustable post base (Simpson ABU-type) for 4x4 or 6x6 posts on concrete, with a standoff.",
+    "category": "fastener",
+    "swatch": {
+      "color": "#9a9da1",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.post-base"
+  }
+]

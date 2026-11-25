@@ -1,0 +1,190 @@
+[
+  {
+    "id": "opening-unit",
+    "name": "Window or door unit (generic)",
+    "description": "A placeholder window or door unit that fills a framed opening until a specific product is picked. Builders add one to every opening. Listed first on purpose.",
+    "category": "opening",
+    "swatch": {
+      "color": "#e9edf0",
+      "roughness": 0.4,
+      "opacity": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-16d",
+      "nailed-roofing"
+    ],
+    "priceKey": "opening.opening-unit"
+  },
+  {
+    "id": "window-single-hung",
+    "name": "Single-hung window",
+    "description": "Vinyl single-hung window, double-pane low-E, nailing fin. Bottom sash slides up.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-single-hung"
+  },
+  {
+    "id": "window-double-hung",
+    "name": "Double-hung window",
+    "description": "Vinyl double-hung window, double-pane low-E, nailing fin. Both sashes slide and tilt in for cleaning.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-double-hung"
+  },
+  {
+    "id": "window-casement",
+    "name": "Casement window",
+    "description": "Vinyl casement window, double-pane low-E, nailing fin. Hinged at the side, cranks out.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-casement"
+  },
+  {
+    "id": "window-sliding",
+    "name": "Sliding window",
+    "description": "Vinyl horizontal sliding window, double-pane low-E, nailing fin.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-sliding"
+  },
+  {
+    "id": "window-awning",
+    "name": "Awning window",
+    "description": "Vinyl awning window, double-pane low-E, nailing fin. Hinged at the top, opens out.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-awning"
+  },
+  {
+    "id": "window-fixed",
+    "name": "Fixed (picture) window",
+    "description": "Vinyl fixed picture window, double-pane low-E, nailing fin. Does not open.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-fixed"
+  },
+  {
+    "id": "door-entry",
+    "name": "Entry door (prehung)",
+    "description": "Prehung fiberglass exterior door, 36 x 80in, in its frame. Glass panels in doors must be safety glazing.",
+    "category": "opening",
+    "swatch": {
+      "color": "#7a4b2a",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-16d",
+      "screwed-structural"
+    ],
+    "flags": [],
+    "priceKey": "opening.door-entry"
+  },
+  {
+    "id": "door-french",
+    "name": "French patio door (prehung)",
+    "description": "Prehung double French patio door, about 60 x 80in, tempered glass.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-16d",
+      "screwed-structural"
+    ],
+    "flags": [
+      "safety-glazing"
+    ],
+    "priceKey": "opening.door-french"
+  },
+  {
+    "id": "door-sliding-glass",
+    "name": "Sliding glass door",
+    "description": "Vinyl sliding patio door, 72 x 80in, tempered double-pane low-E glass.",
+    "category": "opening",
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-16d",
+      "screwed-structural"
+    ],
+    "flags": [
+      "safety-glazing"
+    ],
+    "priceKey": "opening.door-sliding-glass"
+  },
+  {
+    "id": "glass-tempered",
+    "name": "Tempered safety glass",
+    "description": "Tempered glass panel: required near pools, in doors and next to them, and in other hazardous locations.",
+    "category": "opening",
+    "swatch": {
+      "color": "#cfe3ea",
+      "roughness": 0.05,
+      "opacity": 0.3
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "safety-glazing"
+    ],
+    "priceKey": "opening.glass-tempered"
+  }
+]
