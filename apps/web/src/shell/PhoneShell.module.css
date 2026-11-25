@@ -1,0 +1,60 @@
+.shell {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.main {
+  position: absolute;
+  inset: 0;
+}
+
+.model {
+  position: absolute;
+  inset: 0;
+  transition: transform var(--motion-sheet-duration) var(--motion-sheet-easing);
+}
+
+/* The model slides up so it stays visible above the chat sheet. */
+.chat-open .model {
+  transform: translateY(-25%);
+}
+
+.header {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--space-4) + env(safe-area-inset-top));
+  left: calc(var(--space-4) + env(safe-area-inset-left));
+}
+
+.tools {
+  position: absolute;
+  top: calc(var(--space-4) + env(safe-area-inset-top));
+  right: calc(var(--space-4) + env(safe-area-inset-right));
+}
+
+.views {
+  position: absolute;
+  left: calc(var(--space-4) + env(safe-area-inset-left));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.chat-key {
+  position: absolute;
+  right: calc(var(--space-4) + env(safe-area-inset-right));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.chat-key > button {
+  border-radius: var(--radius-field);
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+}
+
+.sheet-chat {
+  flex: 1;
+}

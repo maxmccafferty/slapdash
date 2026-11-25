@@ -1,0 +1,23 @@
+.unit {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: var(--color-unit);
+  border-radius: var(--radius-unit);
+}
+
+.row {
+  flex-direction: row;
+}
+
+.column {
+  flex-direction: column;
+}
+
+.radius-panel {
+  border-radius: var(--radius-panel);
+}
+
+.radius-sheet {
+  border-radius: var(--radius-sheet);
+}

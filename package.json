@@ -6,6 +6,7 @@
     "node": ">=22.18"
   },
   "scripts": {
+    "dev": "pnpm --filter @slapdash/web dev",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "smoke": "pnpm --filter @slapdash/core smoke"

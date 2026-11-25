@@ -1,0 +1,32 @@
+.talk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--size-touch);
+  height: var(--size-talk);
+  padding: 0 var(--space-3);
+  background: var(--color-signal);
+  border: 0;
+  border-radius: var(--radius-field);
+  color: var(--color-ink);
+  font-size: var(--type-key-size);
+  line-height: var(--type-key-line);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.icon-only {
+  padding: 0;
+}
+
+/* Held: ink on signal-pressed is only 3.68:1, so the held key's label and icon switch to
+   paper (4.73:1). Text on the resting orange stays ink (4.86:1). */
+.held {
+  background: var(--color-signal-pressed);
+  color: var(--color-paper);
+}

@@ -1,0 +1,60 @@
+.key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-width: var(--size-touch);
+  min-height: var(--size-touch);
+  padding: 0 var(--space-3);
+  background: var(--color-paper);
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-key);
+  color: var(--color-ink-soft);
+  font-size: var(--type-key-size);
+  line-height: var(--type-key-line);
+  font-weight: var(--type-key-weight);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.icon-only {
+  padding: 0;
+  color: var(--color-ink);
+}
+
+.latched {
+  box-shadow: var(--shadow-pressed);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* The orange dot on a latched key. */
+.latched::after {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  width: calc(var(--space-1) * 1.5);
+  height: calc(var(--space-1) * 1.5);
+  border-radius: var(--radius-full);
+  background: var(--color-signal);
+}
+
+.dark {
+  background: var(--color-key-dark);
+  border-color: var(--color-key-dark);
+  color: var(--color-paper);
+}
+
+/* The orange chat key on the phone: text and icon on orange are ink. */
+.signal {
+  background: var(--color-signal);
+  border-color: var(--color-signal);
+  color: var(--color-ink);
+}
+
+.key:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}

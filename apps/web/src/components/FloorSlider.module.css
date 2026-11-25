@@ -1,0 +1,82 @@
+.unit {
+  display: inline-flex;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-2);
+}
+
+.title {
+  padding: 0 var(--space-1);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-muted);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: var(--size-touch) auto;
+  grid-template-rows: repeat(3, var(--size-touch));
+}
+
+.slider {
+  position: relative;
+  grid-column: 1;
+  grid-row: 1 / -1;
+  border-radius: var(--radius-key);
+  cursor: pointer;
+  touch-action: none;
+}
+
+/* The vertical rail the knob runs on. */
+.slider::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--size-touch) / 2);
+  bottom: calc(var(--size-touch) / 2);
+  left: calc(50% - var(--space-1) / 4);
+  width: calc(var(--space-1) / 2);
+  border-radius: var(--radius-full);
+  background: var(--color-track);
+}
+
+.knob {
+  position: absolute;
+  top: calc(var(--size-touch) / 2 - var(--space-2));
+  left: calc(50% - var(--space-2));
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-signal);
+  box-shadow: var(--shadow-raised);
+  transform: translateY(calc(var(--size-touch) * var(--stop, 0)));
+  transition: transform var(--motion-knob-duration) var(--motion-knob-easing);
+}
+
+.stop {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--size-touch);
+  padding: var(--space-3) var(--space-1);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-key);
+  color: var(--color-ink-soft);
+  font-size: var(--type-key-size);
+  line-height: var(--type-key-line);
+  text-align: left;
+  cursor: pointer;
+}
+
+.current {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.height {
+  color: var(--color-muted);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}

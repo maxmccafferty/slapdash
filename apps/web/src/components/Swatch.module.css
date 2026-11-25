@@ -1,0 +1,8 @@
+.swatch {
+  display: inline-block;
+  flex: none;
+  width: var(--size-swatch);
+  height: var(--size-swatch);
+  border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 1px var(--color-key-line);
+}
