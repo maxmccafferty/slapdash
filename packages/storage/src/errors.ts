@@ -1,3 +1,7 @@
+/** A remote backend is down, paused or unreachable. Work stays on the device and syncs later. */
+export const CLOUD_UNAVAILABLE_MESSAGE =
+  "Slapdash's cloud storage isn't answering. If it's on Supabase's free tier it may be paused after a quiet week; your work is saved on this device and will sync when it's back.";
+
 export type StorageErrorCode = 'invalid' | 'not_found' | 'unavailable' | 'too_large';
 
 /** A storage failure with a plain-language message that can be shown to the user as is. */

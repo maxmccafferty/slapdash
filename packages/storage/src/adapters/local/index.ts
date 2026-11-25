@@ -4,6 +4,7 @@
 import { StorageError } from '../../errors.ts';
 import { newId as defaultNewId } from '../../ids.ts';
 import { summarize, validateRecord } from '../../record.ts';
+import { normalizePending, type Pending, type SyncJournal } from '../../sync/journal.ts';
 import type {
   Auth,
   AuthResult,
@@ -217,10 +218,59 @@ export class LocalDeviceState implements DeviceState {
       else await this.#db.device.put({ key: LAST_PROJECT_KEY, value: id });
     });
   }
+
+  /** A per-device flag, e.g. "projects from before sign-in were adopted". */
+  getFlag(key: string): Promise<boolean> {
+    return guard(async () => (await this.#db.device.get(`flag:${key}`))?.value === true);
+  }
+
+  setFlag(key: string, value: boolean): Promise<void> {
+    return guard(async () => {
+      if (value) await this.#db.device.put({ key: `flag:${key}`, value: true });
+      else await this.#db.device.delete(`flag:${key}`);
+    });
+  }
+}
+
+const SYNC_PENDING_KEY = 'syncPending';
+
+/**
+ * The synced store's push queue, kept in this database's `device` table (no schema change),
+ * so changes made offline survive a reload.
+ */
+export class LocalSyncJournal implements SyncJournal {
+  readonly #db: SlapdashDB;
+
+  constructor(db: SlapdashDB) {
+    this.#db = db;
+  }
+
+  read(): Promise<Pending> {
+    return guard(async () => normalizePending((await this.#db.device.get(SYNC_PENDING_KEY))?.value));
+  }
+
+  write(pending: Pending): Promise<void> {
+    return guard(async () => {
+      await this.#db.device.put({ key: SYNC_PENDING_KEY, value: structuredClone(pending) });
+    });
+  }
+}
+
+/**
+ * Whether the database with this name holds any projects (the anonymous `slapdash` one,
+ * before adopting it into a signed-in account). Opens and closes it; no `databases()` call.
+ */
+export async function hasProjects(opts: LocalBackendOptions = {}): Promise<boolean> {
+  const backend = createLocalBackend(opts);
+  try {
+    return (await guard(() => backend.db.projects.count())) > 0;
+  } finally {
+    backend.close();
+  }
 }
 
 /** The local backend: projects, files and device state in one IndexedDB database. */
-export function createLocalBackend(opts: LocalBackendOptions = {}): StorageBackend & { db: SlapdashDB } {
+export function createLocalBackend(opts: LocalBackendOptions = {}): StorageBackend & { db: SlapdashDB; device: LocalDeviceState } {
   const deps: IndexedDBDeps = {};
   if (opts.indexedDB) deps.indexedDB = opts.indexedDB;
   if (opts.IDBKeyRange) deps.IDBKeyRange = opts.IDBKeyRange;

@@ -89,7 +89,10 @@ export interface User {
   email?: string;
 }
 
-export type SignInCredentials = { kind: 'password'; email: string; password: string } | { kind: 'passkey' };
+export type SignInCredentials =
+  | { kind: 'password'; email: string; password: string }
+  /** `conditional`: offer the passkey from the email field's autofill instead of a picker (WebAuthn Conditional UI). */
+  | { kind: 'passkey'; conditional?: boolean };
 
 export type AuthResult = { ok: true; user: User } | { ok: false; error: string };
 
@@ -101,6 +104,20 @@ export interface Auth {
   signOut(): Promise<void>;
   /** Called when the signed-in user changes. Returns an unsubscribe function. */
   onChange(fn: (user: User | null) => void): () => void;
+  /**
+   * The signed-in user's bearer token for the Claude server, or null when signed out.
+   * Only adapters with sign-in have one (the local adapter leaves it out).
+   */
+  accessToken?(): Promise<string | null>;
+  /** Passkeys, for adapters that support them. Registering needs a signed-in user. */
+  passkeys?: Passkeys;
+}
+
+export interface Passkeys {
+  /** Whether this browser can use passkeys at all (WebAuthn is present). */
+  supported(): boolean;
+  /** Register a passkey for the signed-in user on this device. */
+  register(): Promise<AuthResult>;
 }
 
 /** Per-device state. Kept out of ProjectStore because it stays local even with a remote backend. */
