@@ -21,6 +21,7 @@ describe('readConfig', () => {
       allowedOrigins: [],
       usageFile: '.data/usage.json',
       upstash: undefined,
+      defaultLocation: undefined,
     });
   });
 
@@ -38,6 +39,7 @@ describe('readConfig', () => {
       SLAPDASH_USAGE_FILE: '/tmp/u.json',
       KV_REST_API_URL: 'https://kv.example/',
       KV_REST_API_TOKEN: 'tok',
+      SLAPDASH_DEFAULT_LOCATION: ' Bend, OR ',
     });
     expect(c).toMatchObject({
       apiKey: KEY,
@@ -51,6 +53,7 @@ describe('readConfig', () => {
       allowedOrigins: ['https://a.example', 'https://b.example'],
       usageFile: '/tmp/u.json',
       upstash: { url: 'https://kv.example', token: 'tok' },
+      defaultLocation: 'Bend, OR',
     });
   });
 

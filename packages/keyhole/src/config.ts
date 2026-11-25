@@ -23,6 +23,11 @@ export interface KeyholeConfig {
   readonly allowedOrigins: readonly string[];
   readonly usageFile: string;
   readonly upstash: { readonly url: string; readonly token: string } | undefined;
+  /**
+   * `SLAPDASH_DEFAULT_LOCATION`, e.g. "Bend, OR": the app's default location for design
+   * loads, served on `GET /api/claude` so it never goes into the browser bundle.
+   */
+  readonly defaultLocation: string | undefined;
 }
 
 export type Env = Readonly<Record<string, string | undefined>>;
@@ -88,6 +93,7 @@ export function readConfig(env: Env): KeyholeConfig {
       .map((o) => o.trim().replace(/\/+$/, ''))
       .filter(Boolean),
     usageFile: str(env, 'SLAPDASH_USAGE_FILE') ?? '.data/usage.json',
+    defaultLocation: str(env, 'SLAPDASH_DEFAULT_LOCATION'),
     upstash: upstashUrl && upstashToken ? { url: upstashUrl.replace(/\/+$/, ''), token: upstashToken } : undefined,
   });
 }
