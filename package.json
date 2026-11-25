@@ -1,14 +1,20 @@
 {
   "name": "slapdash",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@12.23.0",
   "engines": {
     "node": ">=22.18"
   },
   "scripts": {
     "dev": "pnpm --filter @slapdash/web dev",
+    "build:api": "node scripts/build-api.ts",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "smoke": "pnpm --filter @slapdash/core smoke"
+    "smoke": "pnpm --filter @slapdash/core smoke",
+    "check:secrets": "pnpm --filter @slapdash/web check:secrets"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
   }
 }

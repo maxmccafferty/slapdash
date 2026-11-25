@@ -1,3 +1,8 @@
 packages:
   - "packages/*"
   - "apps/*"
+minimumReleaseAgeExclude:
+  - "@anthropic-ai/sdk@1.14.0"
+allowBuilds:
+  # esbuild runs from its optional platform package; its postinstall check is not needed.
+  esbuild: false
