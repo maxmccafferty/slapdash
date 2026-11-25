@@ -452,17 +452,66 @@ when the usage store fails. `parseKeyholeEvents()` in `@slapdash/agent` reads th
 
 ### Evals
 
-`pnpm eval` runs the agent loop headless in Node against the real Claude API, through an
-in-process keyhole (`evals/src/harness.ts`), so it needs no browser and no server. It reads
-`ANTHROPIC_API_KEY` from the repo-root `.env` (or the environment), counts towards the same
-monthly budget as `pnpm dev`, and costs real money, so run it before a release or after
-changing the system prompt or tools, not in CI. `evals` has no `test` script on purpose:
-`pnpm test` never calls the API.
+`pnpm eval` runs scripted scenarios through the real agent loop, headless in Node, against the
+real Claude API, and checks the model that comes out. It goes through an in-process keyhole
+(`evals/src/harness.ts`), so it needs no browser and no server. It reads `ANTHROPIC_API_KEY`
+from the repo-root `.env` (or the environment) and costs real money, so run it before a
+release or after changing the system prompt or tools, not per commit and not in CI. `evals`
+has no `test` script on purpose: `pnpm test` never calls the API.
 
-Each case prints the cost of each turn and fails with plain reasons. `pool-house` asks for a
-16×20 pool house on a slab with 9ft walls, expects a plan and no change, then says "Build it"
-and expects one undo step with a slab, four walls with 103 1/2in studs, a 16×20 footprint and
-no clashes. Add a case in `evals/src/cases/` and list it in `evals/src/run.ts`.
+```sh
+pnpm eval                                   # every scenario
+pnpm eval --list                            # names and descriptions; no API call, no key needed
+pnpm eval --only fence,undo                 # some scenarios
+pnpm eval --only fence --repeat 3 --verbose # flaky model or wrong check? see the pass rate and tool log
+pnpm eval --max-usd 1                       # spend guard for this run (default $3, or EVAL_MAX_USD)
+pnpm --filter @slapdash/evals self-check    # offline: no key, no network, no spend
+```
+
+The in-process keyhole turns Supabase sign-in off (there is no browser to sign in from) and
+raises the rate limits (set `EVAL_KEEP_RATE_LIMITS=1` to keep them). Model, effort and budget
+are left alone, and spend is written to the same `.data/usage.json` as `pnpm dev`, so **eval
+spend counts towards the month's budget**. Before running, the budget is printed; a capped
+budget stops the run. Once this run's spend reaches `--max-usd`, or the keyhole reports the
+budget capped, the remaining scenarios are reported as `SKIP` (the exit code is still 1).
+
+| Scenario | What it proves |
+|---|---|
+| `pool-house` | Plan first, change nothing; "Build it" makes one undo step: 16×20 slab, four 9ft walls (103 1/2in studs). |
+| `pool-house-sliding-door` | The ADR-0002 §D10 prompt: plus one sliding door on the south wall, ≥ 72in, with a header over it. |
+| `fence` | 40ft privacy fence: posts ≤ 8ft apart, 6ft tall, ≥ 2 rails per bay, boards. |
+| `shed-roof` | 3 in 12 shed roof sloping north on seeded shed walls; rafters joined to the plates. |
+| `gable-roof` | 6 in 12 gable on seeded pool-house walls; ridge east-west, rafters in pairs. |
+| `refuse-impossible-span` | A 20ft opening: refused in plain language (header/beam), alternatives offered, nothing changed. |
+| `undo` | A window with no plan, then "undo that" restores the parts exactly and leaves it redoable. |
+| `small-change-no-plan` | A 38in door 4ft from the north corner of the west wall: no plan, one undo step, header. |
+| `plan-revision` | Plan a 12×16 floor, "Change something" to 10×14 (new plan, still no change), build 10×14 on piers. |
+| `just-do-it` | "Don't ask me first" turns plans off (`set_preferences`) and builds a 10×12 shed shell in one step. |
+| `clash-avoidance` | A tree on the fence line: Claude routes around it or offers options; nothing runs through the tree. |
+| `question-no-change` | A question is answered (9ft) with no mutating tool and no change: the typical cheap turn. |
+
+Every scenario that builds also checks the result is sound: every joint passes the same checks
+`connect` applies (`checkJoint` from core), every framing part is in at least one joint, and
+nothing clashes. Edit scenarios start from models built by bus commands (`evals/src/seeds.ts`),
+which costs no tokens. The self-check runs every check against correct builder output and
+known-bad models, and runs the runner, usage tap, spend guard and report with a scripted
+client, so a `FAIL` in `pnpm eval` points at the model rather than the check. Run it after
+changing a check, a seed or a builder.
+
+Each turn prints its tools, tokens (input, output, cache read) and cost; each scenario prints
+`PASS`/`FAIL`/`ERROR`/`SKIP` with plain reasons, and the tool log on failure. The summary has a
+table, totals and a **cap check**: the average cost of a typical turn (small edits and
+questions: `undo`, `small-change-no-plan`, `question-no-change`) and of a full build
+(`pool-house`, `fence`, `just-do-it`), and how many of each the monthly cap
+(`SLAPDASH_MONTHLY_BUDGET_USD`) buys. Every run writes `evals/results/<timestamp>.json`
+(gitignored) with each turn's tokens, cost, tool calls and pass/fail, plus the model, effort,
+git sha and the budget before and after, so releases can be compared.
+
+If a scenario fails, rerun it with `--only <name> --repeat 3 --verbose`. Fix the check if the
+model's behaviour was acceptable; if it wasn't, file a follow-up for the prompt or tools rather
+than bending the scenario. To add a scenario, write it in `evals/src/cases/` with
+`defineScenario`, add it to `evals/src/cases/index.ts`, and add its correct build to
+`evals/src/self-check.ts`.
 
 ### Keeping the key out of the browser
 
