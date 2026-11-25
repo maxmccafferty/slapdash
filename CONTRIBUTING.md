@@ -13,6 +13,7 @@ pnpm --filter @slapdash/core test        # core only (vitest, node environment)
 pnpm --filter @slapdash/core typecheck   # core src without DOM or Node types, then tests/scripts
 pnpm --filter @slapdash/catalog test     # the tier-1 catalog, prices and textures
 pnpm smoke                               # node packages/core/scripts/smoke.ts
+pnpm dev                                 # the web app (apps/web, Vite)
 ```
 
 Architecture decisions live in `docs/adr/`. `packages/core` is pure TypeScript with no DOM,
@@ -306,3 +307,17 @@ are `{ x, z }` from the ground origin (+x east, +z south). Every builder takes a
 - **Build phase:** `site`. Assembly `X<n>` (kind `structure`).
 - **Refuses:** non-positive sizes; a canopy smaller than the trunk; a clash with built parts
   (overlapping other site context is allowed).
+
+## App shell and design tokens
+
+The web app lives in `apps/web` (see its README). Its colours, type, spacing, radii, shadows,
+sizes and motion come only from `docs/design/tokens.json`:
+
+1. Edit `docs/design/tokens.json`, then run `pnpm --filter @slapdash/web tokens` to regenerate
+   `apps/web/src/styles/tokens.css` and `tokens.ts`. Commit both; never edit them by hand.
+2. In component CSS use only `var(--…)`. `apps/web/test/no-raw-values.test.ts` fails on hex,
+   `rgb()`, named colours, raw font sizes, raw durations and `px` values other than 1px hairlines.
+3. Keep text at 14px or more and every control at least 44 × 44 (`--size-touch`).
+4. Run `pnpm --filter @slapdash/web test`, and `pnpm --filter @slapdash/web e2e` for layout,
+   focus, axe and reduced-motion checks (install Chromium once with
+   `pnpm --filter @slapdash/web exec playwright install chromium`).
