@@ -1,0 +1,81 @@
+[
+  {
+    "id": "tile-ceramic",
+    "name": "Ceramic tile",
+    "description": "Glazed ceramic floor or wall tile (e.g. 12x12), set in thinset mortar over cement board or a slab and grouted. Use a floor-rated tile on floors.",
+    "category": "finish",
+    "arealMass_kg_m2": 14.35,
+    "textureSet": "tile-ceramic",
+    "swatch": {
+      "color": "#e6e1d6",
+      "roughness": 0.35
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "finish.tile-ceramic",
+    "source": "Daltile Memoir carton spec (build.com): 48.5 lb per 16.49 sq ft carton, about 2.94 psf (x 4.88243). Tile only; thinset and grout add about 1-2 psf."
+  },
+  {
+    "id": "tile-porcelain",
+    "name": "Porcelain tile",
+    "description": "Porcelain floor and wall tile (e.g. 12x24), denser and less absorbent than ceramic, so it suits wet areas and outdoor patios in freeze-thaw climates when rated for it. Set in thinset and grouted.",
+    "category": "finish",
+    "arealMass_kg_m2": 18.55,
+    "textureSet": "tile-ceramic",
+    "swatch": {
+      "color": "#cfcac2",
+      "roughness": 0.4
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "finish.tile-porcelain",
+    "source": "12x24 porcelain box weights per 15.5 sq ft: TileBar Bronx White 51.9 lb (3.35 psf), Tile Shop Courtyard Sterling 58.7 lb (3.79 psf), Lowe's FLOORS 2000 Emperador 66 lb (4.26 psf); 3.8 psf used (x 4.88243)."
+  },
+  {
+    "id": "tile-natural-stone",
+    "name": "Travertine tile",
+    "description": "Natural travertine tile (12x12, 3/8in to 1/2in thick), honed or tumbled, set in thinset and grouted. Needs sealing; acidic cleaners etch it.",
+    "category": "finish",
+    "arealMass_kg_m2": 27.34,
+    "textureSet": "tile-stone",
+    "swatch": {
+      "color": "#d8c7a8",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "finish.tile-natural-stone",
+    "source": "BuildDirect natural stone thickness guide: 3/8in stone tile about 5.5 psf, 1/2in about 6 psf; Marble Systems lists 3/8in tumbled travertine at 5.69 psf; 5.6 psf used (x 4.88243)."
+  },
+  {
+    "id": "thinset-mortar",
+    "name": "Thinset mortar (50 lb bag)",
+    "description": "Polymer-modified thinset mortar for setting tile, sold in 50 lb bags. A bag sets about 60-65 sq ft with a 1/4 x 3/8in notched trowel; large tiles need more.",
+    "category": "sealant",
+    "density_kg_m3": 900,
+    "swatch": {
+      "color": "#9c9c98",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "sealant.thinset-mortar",
+    "source": "Estimate: 50 lb (22.7 kg) bag over a roughly 24x16x4in bag (0.025 m3). Coverage from the Custom Building Products VersaBond listing at Home Depot."
+  },
+  {
+    "id": "grout-sanded",
+    "name": "Sanded grout (25 lb bag)",
+    "description": "Sanded cement grout for tile joints 1/8in and wider, sold in 25 lb bags. Seal it after it cures.",
+    "category": "sealant",
+    "density_kg_m3": 980,
+    "swatch": {
+      "color": "#8f8b84",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "sealant.grout-sanded",
+    "source": "Estimate: 25 lb (11.3 kg) bag over a roughly 16x11x4in bag (0.0116 m3)."
+  }
+]

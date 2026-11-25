@@ -88,6 +88,9 @@
     "acceptsJoints": [
       "screwed-structural"
     ],
+    "flags": [
+      "thermal-barrier"
+    ],
     "priceKey": "insulation.rigid-xps",
     "source": "ASTM C578-23 Type IV XPS (e.g. Foamular 250), via Owens Corning technical bulletin: R-5.0 per inch, density ≥ 1.45 pcf"
   },
@@ -105,6 +108,9 @@
     "acceptsJoints": [
       "screwed-structural"
     ],
+    "flags": [
+      "thermal-barrier"
+    ],
     "priceKey": "insulation.rigid-polyiso",
     "source": "Johns Manville AP Foil-Faced data sheet (ASTM C1289 Type I Class 1): R-6.0 at 1in, aged; density 2.0 pcf nominal (Rmax Durasheath data sheet)"
   },
@@ -121,6 +127,9 @@
     },
     "acceptsJoints": [
       "screwed-structural"
+    ],
+    "flags": [
+      "thermal-barrier"
     ],
     "priceKey": "insulation.rigid-eps",
     "source": "ASTM C578 Type II EPS, via Owens Corning technical bulletin and the EPS Industry Alliance table: R-4.0 per inch, density ≥ 1.35 pcf"

@@ -17,7 +17,21 @@ const LINEAR = new Set([
   'trim-pvc',
   'trim-primed-pine',
   'fascia-primed-pine',
+  // Tiers 2 and 3.
+  'ridge-vent',
+  'coping-precast-concrete',
+  'coping-travertine',
+  'cable-rail-infill',
+  'composite-decking',
+  'fence-post-aluminum',
+  'drain-pipe-perforated-4in',
 ]);
+
+/** Pieces in categories that are otherwise priced by area or length. */
+const EACH = new Set(['cmu-standard', 'retaining-wall-block', 'pool-equipment-pad', 'shade-sail-hdpe', 'thinset-mortar', 'grout-sanded']);
+
+/** Things sold by the foot in categories that are otherwise counted as pieces. */
+const PLUMBING_ELECTRICAL_LINEAR = /^(pipe-|conduit-|wire-|cable-)/;
 
 /** The unit each material is priced in (plan step 6), so a materials list can multiply. */
 function expectedUnit(m: Material): PriceUnit {
@@ -31,6 +45,7 @@ function expectedUnit(m: Material): PriceUnit {
       return 'sq-ft';
   }
   if (LINEAR.has(m.id)) return 'linear-ft';
+  if (EACH.has(m.id)) return 'each';
   switch (m.category) {
     case 'lumber':
     case 'engineered-wood':
@@ -39,13 +54,24 @@ function expectedUnit(m: Material): PriceUnit {
       return 'sheet';
     case 'concrete':
       return 'cu-yd';
-    case 'masonry':
+    case 'steel':
+      return 'linear-ft';
     case 'fastener':
     case 'opening':
+    case 'mechanical':
+    case 'sealant':
       return 'each';
+    case 'plumbing':
+    case 'electrical':
+      return PLUMBING_ELECTRICAL_LINEAR.test(m.id) ? 'linear-ft' : 'each';
+    case 'masonry':
     case 'roofing':
     case 'envelope':
     case 'insulation':
+    case 'finish':
+    case 'fencing':
+    case 'decking':
+    case 'other':
       return 'sq-ft';
     default:
       throw new Error(`no expected unit for ${m.id} (${m.category})`);
@@ -53,7 +79,7 @@ function expectedUnit(m: Material): PriceUnit {
 }
 
 describe('price table', () => {
-  it('validates against the tier-1 catalog', () => {
+  it('validates against the catalog', () => {
     const r = validatePriceTable(PRICE_TABLE, C);
     expect(r.ok ? [] : r.errors).toEqual([]);
   });
@@ -107,11 +133,26 @@ describe('price table', () => {
     for (const s of ['2x4', '2x6', '4x4']) expect(pt.has(s), s).toBe(true);
   });
 
+  it('pipe and conduit prices are per pipe section; steel and chain-link per its own sections', () => {
+    for (const m of C.materials.filter((x) => PLUMBING_ELECTRICAL_LINEAR.test(x.id) && (x.category === 'plumbing' || x.category === 'electrical'))) {
+      for (const e of entries(m.priceKey!)) {
+        if (e.variant === undefined) continue;
+        expect(e.variant, `${e.key}`).toMatch(/^pipe-/);
+        expect(sections.get(e.variant)!.materialCategories).toContain(m.category);
+      }
+    }
+    expect(entries('plumbing.pipe-pvc-dwv').map((e) => e.variant)).toEqual(expect.arrayContaining(['pipe-2', 'pipe-3', 'pipe-4']));
+    for (const m of C.materials.filter((x) => x.category === 'steel')) {
+      for (const e of entries(m.priceKey!)) if (e.variant !== undefined) expect(sections.get(e.variant)!.materialCategories, `${e.key} ${e.variant}`).toContain('steel');
+    }
+  });
+
   it('sheet-good variants are thicknesses', () => {
     for (const m of C.materials.filter((x) => x.category === 'sheet')) {
       for (const e of entries(m.priceKey!)) if (e.variant !== undefined) expect(e.variant).toMatch(/^\d+(\/\d+)?in$/);
     }
     expect(entries('sheet.plywood-cdx').map((e) => e.variant)).toEqual(['1/2in', '5/8in', '23/32in']);
+    expect(entries('sheet.drywall-gypsum').map((e) => e.variant)).toEqual(['1/2in', '5/8in']);
   });
 
   it('hardware sized by what it holds has those variants', () => {

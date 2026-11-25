@@ -1,0 +1,165 @@
+[
+  {
+    "id": "spray-foam-closed-cell",
+    "name": "Closed-cell spray foam",
+    "description": "Two-component closed-cell polyurethane spray foam, about R-7 per inch, 2 pcf; also an air and vapor retarder. Must be covered by a thermal barrier such as 1/2in drywall inside a building.",
+    "category": "insulation",
+    "density_kg_m3": 32,
+    "rValuePerMm": 0.04853,
+    "swatch": {
+      "color": "#e9d9a6",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "thermal-barrier"
+    ],
+    "priceKey": "insulation.spray-foam-closed-cell",
+    "source": "Huntsman Heatlok HFO EZ data sheet (23.00144 V6): density 2.0-2.3 pcf (ASTM D1622), aged R 7.0 at 1in; ICC-ES ESR-4073 nominal 2.0 pcf"
+  },
+  {
+    "id": "spray-foam-open-cell",
+    "name": "Open-cell spray foam",
+    "description": "Low-density open-cell spray foam, about R-3.8 per inch, 0.5 pcf, usually installed by a contractor 3-1/2in or more deep. Air-seals but is vapor-open; needs a thermal barrier inside a building.",
+    "category": "insulation",
+    "density_kg_m3": 8,
+    "rValuePerMm": 0.02642,
+    "swatch": {
+      "color": "#f1e6c4",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "thermal-barrier"
+    ],
+    "priceKey": "insulation.spray-foam-open-cell",
+    "source": "Huntsman Sealection 500 data sheet (20.00085): density 0.50 pcf (ASTM D1622), R 3.81 at 1in"
+  },
+  {
+    "id": "vapor-barrier-6mil",
+    "name": "Polyethylene vapor barrier, 6 mil",
+    "description": "6 mil polyethylene sheeting: vapor retarder under slabs, over crawlspace soil, or on the warm side of walls in cold climates.",
+    "category": "envelope",
+    "arealMass_kg_m2": 0.14,
+    "swatch": {
+      "color": "#eef2f3",
+      "roughness": 0.3,
+      "opacity": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "envelope.vapor-barrier-6mil",
+    "source": "Estimate: 0.1524mm (6 mil) x low-density polyethylene about 920 kg/m³ = 0.14 kg/m² (about 29 lb per 1,000 sq ft); no roll weight found"
+  },
+  {
+    "id": "mini-split-ductless",
+    "name": "Ductless mini-split, 12,000 BTU",
+    "description": "Single-zone ductless mini-split heat pump, 12,000 BTU: wall-mounted indoor unit, outdoor condenser and line set. For the materials list only, not simulated; usually installed by a licensed HVAC tech (refrigerant handling).",
+    "category": "mechanical",
+    "density_kg_m3": 216,
+    "swatch": {
+      "color": "#f2f2f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "flags": [
+      "licensed-trade"
+    ],
+    "priceKey": "mechanical.mini-split-ductless",
+    "source": "Pioneer WYS012AMFI20RL: indoor unit 20 lb net, 31.57 x 7.44 x 11.69in; outdoor unit 62.2 lb net, 30.3 x 11.8 x 21.8in (retailer spec). Effective density: 82.2 lb over the two boxes combined (6.10 cu ft)"
+  },
+  {
+    "id": "exhaust-fan-bath",
+    "name": "Bathroom exhaust fan, 80 CFM",
+    "description": "Ceiling-mounted bathroom exhaust fan, about 80 CFM, ducted to the outside (not into the attic). For the materials list only, not simulated.",
+    "category": "mechanical",
+    "density_kg_m3": 364,
+    "swatch": {
+      "color": "#f4f4f2",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "mechanical.exhaust-fan-bath",
+    "source": "Broan-NuTone AE80B housing 9-1/4 x 10 x 5-3/4in (broan-nutone.com). Estimate: about 7 lb (spec-sheet weight not retrieved) over that housing"
+  },
+  {
+    "id": "gable-vent",
+    "name": "Gable vent",
+    "description": "Louvered gable-end attic vent (vinyl or aluminum, about 12 x 18in) with insect screen. For the materials list only, not simulated.",
+    "category": "mechanical",
+    "density_kg_m3": 128,
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "mechanical.gable-vent",
+    "source": "Estimate: about 2 lb over a 12 x 18 x 2in box (no maker weight found)"
+  },
+  {
+    "id": "caulk-silicone",
+    "name": "Silicone sealant (10 oz tube)",
+    "description": "100% silicone sealant, 10.1 oz cartridge: tubs, showers, windows and other non-paintable joints.",
+    "category": "sealant",
+    "density_kg_m3": 609,
+    "swatch": {
+      "color": "#f4f4f4",
+      "roughness": 0.3
+    },
+    "acceptsJoints": [],
+    "priceKey": "sealant.caulk-silicone",
+    "source": "Estimate: 10.1 fl oz (299 mL) x specific gravity about 1.04 plus about 40g cartridge = about 0.77 lb, over a 2 x 2 x 8.75in cartridge box (no maker weight retrieved)"
+  },
+  {
+    "id": "caulk-polyurethane",
+    "name": "Polyurethane sealant (10 oz tube)",
+    "description": "Polyurethane construction sealant, 10.1 oz cartridge (Sikaflex-1a class): exterior joints, concrete and masonry; paintable.",
+    "category": "sealant",
+    "density_kg_m3": 696,
+    "swatch": {
+      "color": "#9a9a96",
+      "roughness": 0.4
+    },
+    "acceptsJoints": [],
+    "priceKey": "sealant.caulk-polyurethane",
+    "source": "Estimate: 10.1 fl oz (299 mL) x specific gravity about 1.2 plus about 40g cartridge = about 0.88 lb, over a 2 x 2 x 8.75in cartridge box (no maker weight retrieved)"
+  },
+  {
+    "id": "adhesive-construction",
+    "name": "Construction adhesive (10 oz tube)",
+    "description": "Polyurethane construction adhesive, 10 oz cartridge (PL Premium class), for subfloors, sill plates and landscape block. Not counted as structural in the solver.",
+    "category": "sealant",
+    "density_kg_m3": 791,
+    "swatch": {
+      "color": "#c9b48a",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "sealant.adhesive-construction",
+    "source": "Estimate: 10 fl oz (296 mL) x specific gravity about 1.45 plus about 40g cartridge = about 1.0 lb, over a 2 x 2 x 8.75in cartridge box (no maker weight retrieved)"
+  },
+  {
+    "id": "waterproofing-membrane-liquid",
+    "name": "Liquid waterproofing membrane",
+    "description": "Roll-on liquid waterproofing membrane (Custom RedGard class) over cement board in showers and wet areas; two coats to the maker's thickness, about 55 sq ft per gallon.",
+    "category": "sealant",
+    "arealMass_kg_m2": 0.59,
+    "swatch": {
+      "color": "#d9566a",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "wet-area-rated"
+    ],
+    "priceKey": "sealant.waterproofing-membrane-liquid",
+    "source": "Custom Building Products RedGard product page: 55 sq ft per gallon as a waterproofing membrane (40 as an A118.10 pan liner). Estimate: about 10.5 lb/gal wet at 60% solids = about 0.12 psf cured (TDS-104 not retrieved)"
+  }
+]

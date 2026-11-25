@@ -1,0 +1,395 @@
+[
+  {
+    "id": "pipe-pvc-dwv",
+    "name": "PVC DWV pipe (Schedule 40)",
+    "description": "White Schedule 40 PVC drain, waste and vent pipe (solid or cellular core) in 10ft lengths, solvent-welded; sold 1-1/2in to 4in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 1400,
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc"
+    ],
+    "priceKey": "plumbing.pipe-pvc-dwv",
+    "source": "PVC specific gravity 1.40 ± 0.02 (ASTM D792), physical properties of PVC/CPVC pipe (pvcpipesupplies.com data sheet). Weighed as solid pipe material."
+  },
+  {
+    "id": "pipe-pvc-sch40",
+    "name": "PVC Schedule 40 pressure pipe",
+    "description": "White Schedule 40 PVC pressure pipe, solvent-welded, for cold water lines, irrigation and pool plumbing (not for hot water); 1/2in to 2in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 1400,
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc"
+    ],
+    "priceKey": "plumbing.pipe-pvc-sch40",
+    "source": "PVC specific gravity 1.40 ± 0.02 (ASTM D792), physical properties of PVC/CPVC pipe (pvcpipesupplies.com data sheet)."
+  },
+  {
+    "id": "pipe-cpvc",
+    "name": "CPVC pipe (CTS)",
+    "description": "Cream CPVC copper-tube-size pipe for hot and cold water supply, solvent-welded; 1/2in and 3/4in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 1550,
+    "swatch": {
+      "color": "#e8dcb8",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-cpvc"
+    ],
+    "priceKey": "plumbing.pipe-cpvc",
+    "source": "Estimate: CPVC specific gravity about 1.55 (typical compound value; not transcribed from a data sheet in this pass)."
+  },
+  {
+    "id": "pipe-pex",
+    "name": "PEX tubing",
+    "description": "Flexible PEX water supply tubing sold in coils, joined with crimp-ring (or expansion) fittings; 1/2in to 1in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 940,
+    "swatch": {
+      "color": "#e4ecf2",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "crimped-pex"
+    ],
+    "priceKey": "plumbing.pipe-pex",
+    "source": "Estimate: crosslinked polyethylene specific gravity about 0.94 (typical HDPE base resin; not transcribed from a data sheet in this pass)."
+  },
+  {
+    "id": "pipe-copper-type-l",
+    "name": "Copper pipe (Type L)",
+    "description": "Rigid Type L copper water pipe in 10ft lengths, soldered (sweated) joints; 1/2in to 1in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 8940,
+    "swatch": {
+      "color": "#b87333",
+      "roughness": 0.35,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [
+      "sweated-copper"
+    ],
+    "priceKey": "plumbing.pipe-copper-type-l",
+    "source": "Estimate: density of copper (C12200) about 8.94 g/cm3, handbook value (not transcribed from the CDA Copper Tube Handbook in this pass)."
+  },
+  {
+    "id": "pipe-abs-dwv",
+    "name": "ABS DWV pipe",
+    "description": "Black ABS drain, waste and vent pipe (usually cellular core), solvent-welded with ABS cement; 1-1/2in to 4in. Common in the West; check it is allowed locally. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 1050,
+    "swatch": {
+      "color": "#222222",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-abs"
+    ],
+    "priceKey": "plumbing.pipe-abs-dwv",
+    "source": "Estimate: ABS specific gravity about 1.04-1.06 (typical resin value; not transcribed from a data sheet in this pass)."
+  },
+  {
+    "id": "pipe-cast-iron-no-hub",
+    "name": "Cast iron soil pipe (no-hub)",
+    "description": "Service-weight no-hub cast iron soil pipe in 10ft lengths, joined with shielded no-hub couplings; quieter than plastic for drains. 2in to 4in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 7200,
+    "swatch": {
+      "color": "#3a3a3a",
+      "roughness": 0.35,
+      "metalness": 0.4
+    },
+    "acceptsJoints": [
+      "clamped-no-hub"
+    ],
+    "priceKey": "plumbing.pipe-cast-iron-no-hub",
+    "source": "Estimate: gray cast iron density about 7.2 g/cm3, handbook value (not transcribed from the CISPI handbook in this pass)."
+  },
+  {
+    "id": "pipe-galvanized",
+    "name": "Galvanized steel pipe",
+    "description": "Threaded galvanized steel pipe; now mostly for repairs, gas-free outdoor runs and supports rather than new water lines, which corrode inside. 1/2in to 1in. Plumbing is for the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 7850,
+    "swatch": {
+      "color": "#a7aaa8",
+      "roughness": 0.35,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "threaded-galvanized"
+    ],
+    "priceKey": "plumbing.pipe-galvanized",
+    "source": "Estimate: carbon steel density 7.85 g/cm3, handbook value."
+  },
+  {
+    "id": "fitting-pvc",
+    "name": "PVC fitting",
+    "description": "A typical Schedule 40 PVC solvent-weld fitting, priced as a 3/4in 90-degree elbow; counted once per glued PVC joint. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 730,
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-pvc",
+    "source": "Estimate: about 32 g for a 3/4in Sch 40 elbow over a 1.6x1.6x1.05in box (44 cm3)."
+  },
+  {
+    "id": "fitting-cpvc",
+    "name": "CPVC fitting",
+    "description": "A typical CPVC CTS solvent-weld fitting, priced as a 3/4in 90-degree elbow. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 625,
+    "swatch": {
+      "color": "#e8dcb8",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-cpvc",
+    "source": "Estimate: about 20 g for a 3/4in CTS elbow over a 1.4x1.4x1.0in box (32 cm3)."
+  },
+  {
+    "id": "fitting-abs",
+    "name": "ABS fitting",
+    "description": "A typical ABS DWV solvent-weld fitting, priced as a 2in hub coupling. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 215,
+    "swatch": {
+      "color": "#222222",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-abs",
+    "source": "Estimate: about 77 g for a 2in hub coupling over a 2.7x2.7x3in box (359 cm3)."
+  },
+  {
+    "id": "fitting-pex-crimp",
+    "name": "PEX crimp fitting",
+    "description": "A brass PEX insert fitting plus its copper crimp ring, priced as a 1/2in 90-degree elbow and one ring. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 1550,
+    "swatch": {
+      "color": "#c9a74a",
+      "roughness": 0.5,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-pex-crimp",
+    "source": "Estimate: about 40 g for a 1/2in brass elbow and ring over a 1.5x1.5x0.7in box (26 cm3)."
+  },
+  {
+    "id": "fitting-copper-sweat",
+    "name": "Copper sweat fitting",
+    "description": "A wrought copper solder-joint fitting, priced as a 3/4in 90-degree elbow. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 1130,
+    "swatch": {
+      "color": "#b87333",
+      "roughness": 0.5,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-copper-sweat",
+    "source": "Estimate: about 45 g for a 3/4in cup x cup elbow over a 1.6x1.6x0.95in box (40 cm3)."
+  },
+  {
+    "id": "fitting-galvanized",
+    "name": "Galvanized fitting",
+    "description": "A galvanized malleable iron threaded fitting, priced as a 3/4in 90-degree elbow. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 2670,
+    "swatch": {
+      "color": "#a7aaa8",
+      "roughness": 0.5,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.fitting-galvanized",
+    "source": "Estimate: about 180 g for a 3/4in elbow over a 1.75x1.75x1.35in box (68 cm3)."
+  },
+  {
+    "id": "coupling-no-hub",
+    "name": "No-hub coupling",
+    "description": "A shielded no-hub coupling (neoprene sleeve with stainless band and clamps) that joins cast iron soil pipe, priced as a 3in coupling. For the materials list only, not simulated.",
+    "category": "fastener",
+    "density_kg_m3": 430,
+    "swatch": {
+      "color": "#9a9c9e",
+      "roughness": 0.5,
+      "metalness": 0.6
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.coupling-no-hub",
+    "source": "Estimate: about 500 g for a 3in shielded coupling over a 4.2x4.2x4in box (1157 cm3)."
+  },
+  {
+    "id": "valve-ball",
+    "name": "Ball valve (3/4in brass)",
+    "description": "A quarter-turn brass ball valve to shut off a water line, sweat, push-fit, PEX or threaded ends. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 1080,
+    "swatch": {
+      "color": "#c9a74a",
+      "roughness": 0.5,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "sweated-copper",
+      "crimped-pex",
+      "threaded-galvanized"
+    ],
+    "priceKey": "plumbing.valve-ball",
+    "source": "Estimate: about 0.75 lb for a 3/4in brass ball valve over a 3.5x2.5x2.2in box."
+  },
+  {
+    "id": "hose-bib",
+    "name": "Frost-free hose bib (sillcock)",
+    "description": "A frost-free sillcock: the valve seat sits inside the heated wall so the outdoor faucet does not freeze. Pick a stem length that reaches past the insulation. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 470,
+    "swatch": {
+      "color": "#c9a74a",
+      "roughness": 0.5,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "sweated-copper",
+      "crimped-pex",
+      "threaded-galvanized"
+    ],
+    "priceKey": "plumbing.hose-bib",
+    "source": "Estimate: Woodford 17PX-14 listed at 1.78 lb (Walmart) over a 14x3x2.5in box."
+  },
+  {
+    "id": "p-trap",
+    "name": "P-trap (1-1/2in)",
+    "description": "A 1-1/2in P-trap under a sink or tub drain; its water seal keeps sewer gas out. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 200,
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc",
+      "glued-abs"
+    ],
+    "priceKey": "plumbing.p-trap",
+    "source": "Estimate: about 0.4 lb over a 7x4x2in box."
+  },
+  {
+    "id": "air-admittance-valve",
+    "name": "Air admittance valve",
+    "description": "A one-way vent valve (e.g. Oatey Sure-Vent) that lets a fixture drain breathe where a roof vent is hard to run. Not allowed everywhere; check the local code. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 215,
+    "swatch": {
+      "color": "#d8d8d4",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc",
+      "glued-abs"
+    ],
+    "priceKey": "plumbing.air-admittance-valve",
+    "source": "Estimate: about 0.35 lb over a 3x3x5in box."
+  },
+  {
+    "id": "vent-pipe-flashing",
+    "name": "Vent pipe roof flashing (boot)",
+    "description": "A roof flashing boot that seals around a plumbing vent pipe where it passes through the roof, for 1-1/2in to 3in pipe. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 19,
+    "swatch": {
+      "color": "#3f3f3f",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "plumbing.vent-pipe-flashing",
+    "source": "Estimate: about 0.5 lb thermoplastic boot over a 12x12x5in box."
+  },
+  {
+    "id": "toilet",
+    "name": "Toilet (two-piece)",
+    "description": "A standard two-piece floor-mount toilet with a 12in rough-in, set on a wax ring over a 3in closet flange. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 156,
+    "swatch": {
+      "color": "#f7f7f5",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc",
+      "glued-abs"
+    ],
+    "priceKey": "plumbing.toilet",
+    "source": "Estimate: American Standard Cadet 215TA105 85.4 lb (Ferguson listing) over a 30x18x28in envelope."
+  },
+  {
+    "id": "vanity-sink",
+    "name": "Vanity with sink and faucet",
+    "description": "A 24-30in bathroom vanity cabinet with a sink top, plus a centerset faucet. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 187,
+    "swatch": {
+      "color": "#e9e5dc",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc",
+      "glued-abs"
+    ],
+    "priceKey": "plumbing.vanity-sink",
+    "source": "Estimate: Glacier Bay Huckleberry 30in vanity with top, 130.7 lb assembled (Home Depot Canada) over its 30x19x34in size."
+  },
+  {
+    "id": "outdoor-shower",
+    "name": "Outdoor shower (wall-mount kit)",
+    "description": "A wall-mount outdoor shower kit (head, arm and valve) on an exterior wall, as at a pool house; drain it or use a frost-proof valve where it freezes. For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 7,
+    "swatch": {
+      "color": "#c0c2c4",
+      "roughness": 0.5,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "sweated-copper",
+      "crimped-pex"
+    ],
+    "priceKey": "plumbing.outdoor-shower",
+    "source": "Estimate: Signature Hardware 401595 outdoor shower 6.2 lb (spec sheet) over an 84x24x12in envelope (head arm out from the wall)."
+  },
+  {
+    "id": "water-heater-tank",
+    "name": "Water heater (40 gal tank)",
+    "description": "A 40 gallon electric or gas tank water heater. Usually installed by a licensed plumber with a permit (gas venting, T&P relief valve, expansion tank). For the materials list only, not simulated.",
+    "category": "plumbing",
+    "density_kg_m3": 142,
+    "swatch": {
+      "color": "#eeeeec",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "sweated-copper",
+      "crimped-pex"
+    ],
+    "flags": [
+      "licensed-trade"
+    ],
+    "priceKey": "plumbing.water-heater-tank",
+    "source": "Estimate: Rheem XE40M06ST45U1 spec sheet (2020): 106 lb shipping weight, tank 20-1/4in diameter x 50-1/2in to the connections; over a 20.25x20.25x50.5in box."
+  }
+]

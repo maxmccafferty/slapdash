@@ -1,0 +1,97 @@
+[
+  {
+    "id": "brick-clay-modular",
+    "name": "Clay brick (modular)",
+    "description": "Modular clay face brick (3-5/8 x 2-1/4 x 7-5/8in), laid in mortar as a 4in veneer or wall; about 6.75 bricks per sq ft of wall face (often rounded to 7). Priced per sq ft of wall face, brick only; mortar, ties and labour are extra.",
+    "category": "masonry",
+    "strength": {
+      "compressive_MPa": 6.9
+    },
+    "density_kg_m3": 2070,
+    "textureSet": "brick",
+    "swatch": {
+      "color": "#9c4a32",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "masonry.brick-clay-modular",
+    "source": "ASTM C216 Grade SW: 3000 psi minimum average unit strength. TMS 602 unit strength method (BIA Technical Note 3A, 2024, Table 5): a 2100 psi clay unit in Type N mortar gives f'm = 1000 psi (6.9 MPa), used here conservatively. Weight: 4in clay brick wythe 39 psf (ASCE 7-05 Table C3-1, via secondary source) over 3-5/8in = about 2,070 kg/m3. Bricks per sq ft: BIA Technical Note 10 Table 4, 675 per 100 sq ft."
+  },
+  {
+    "id": "stone-veneer-manufactured",
+    "name": "Manufactured stone veneer",
+    "description": "Cast concrete stone veneer (e.g. ledgestone) adhered in mortar over lath and a water-resistive barrier on sheathing or straight onto masonry. Priced per sq ft of flats; corners cost more.",
+    "category": "masonry",
+    "arealMass_kg_m2": 73.24,
+    "textureSet": "stone-veneer",
+    "swatch": {
+      "color": "#8f8578",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "masonry.stone-veneer-manufactured",
+    "source": "ASTM C1670-15 section 8.3.2: unit weight shall not exceed 15 psf; 15 psf used as an upper bound (x 4.88243). No manufacturer psf figure found."
+  },
+  {
+    "id": "flagstone",
+    "name": "Flagstone",
+    "description": "Natural flagstone (e.g. Pennsylvania bluestone) about 1-1/2in thick, laid as a patio or path on a compacted gravel and sand base, or set in mortar on a slab.",
+    "category": "masonry",
+    "arealMass_kg_m2": 102.5,
+    "textureSet": "flagstone",
+    "swatch": {
+      "color": "#7d8288",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "masonry.flagstone",
+    "source": "RT patio guide: 1-1/2in flagstone about 21 psf (x 4.88243), consistent with suppliers' 75-125 sq ft per ton."
+  },
+  {
+    "id": "paver-concrete",
+    "name": "Concrete pavers",
+    "description": "Interlocking concrete pavers (e.g. 4x8in Holland, 60mm thick) laid on compacted gravel and bedding sand with polymeric sand in the joints, for patios and pool decks.",
+    "category": "masonry",
+    "strength": {
+      "compressive_MPa": 55.2
+    },
+    "arealMass_kg_m2": 136.2,
+    "textureSet": "pavers",
+    "swatch": {
+      "color": "#a08a78",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "masonry.paver-concrete",
+    "source": "ASTM C936/C936M-21: average compressive strength 8000 psi (55.2 MPa), no unit below 7200 psi. Weight: Pavestone Holland 60mm (7.87 x 3.94in) 6 lb each (Home Depot listing), about 4.64 per sq ft = 27.9 psf (x 4.88243)."
+  },
+  {
+    "id": "retaining-wall-block",
+    "name": "Retaining wall block",
+    "description": "Dry-stacked segmental concrete retaining wall block with a lip or pins that sets each course back. A gravity wall: keep it under the maker's height limit (often 3-4 ft) without engineering, with a gravel base and drainage behind.",
+    "category": "masonry",
+    "density_kg_m3": 2100,
+    "textureSet": "cmu",
+    "swatch": {
+      "color": "#a39d92",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "masonry.retaining-wall-block",
+    "source": "Estimate: solid dry-cast concrete about 2,100 kg/m3 (no unit weight found for Pavestone RockWall). Height limits: Rockwood Stonehedge 4 ft and Unilock 3.5-4 ft without engineering; Oldcastle Castle block recommends 2 ft max (Do it Best listing)."
+  }
+]

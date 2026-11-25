@@ -186,5 +186,94 @@
       "safety-glazing"
     ],
     "priceKey": "opening.glass-tempered"
+  },
+  {
+    "id": "window-bay",
+    "name": "Bay window",
+    "description": "Vinyl bay window, about 72 x 48in: a fixed centre lite flanked by two angled operating windows, projecting from the wall. Ordinary double-pane glass, not safety glazing. Planning estimate.",
+    "category": "opening",
+    "density_kg_m3": 78,
+    "swatch": {
+      "color": "#f4f4f0",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "not-safety-glazing"
+    ],
+    "priceKey": "opening.window-bay",
+    "source": "Estimate: about 175 lb (roughly 20 sq ft of double-pane glass at about 3.3 psf plus vinyl frame, head and seat boards; no maker shipping weight found) over a 72 x 48 x 18in box"
+  },
+  {
+    "id": "door-bifold",
+    "name": "Bifold closet door",
+    "description": "Interior bifold door, 36 x 80in, hollow-core hardboard or MDF panels with track and pivot hardware. Interior use only.",
+    "category": "opening",
+    "density_kg_m3": 154,
+    "swatch": {
+      "color": "#f2f0ea",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-16d",
+      "screwed-structural"
+    ],
+    "priceKey": "opening.door-bifold",
+    "source": "Estimate: about 22 lb for a hollow-core 36 x 80 bifold (Home Depot lists 24 lb for an unfinished pine plantation louver bifold, 48 lb for a finished pine louver; no hollow-core weight found) over a 36 x 80 x 1-3/8in slab"
+  },
+  {
+    "id": "door-barn",
+    "name": "Barn door with sliding track kit",
+    "description": "Interior sliding barn door slab, about 36 x 84in, with a 6-6.6ft top-mounted track, rollers and floor guide. Hangs from a header or backer board that must carry the door weight.",
+    "category": "opening",
+    "density_kg_m3": 458,
+    "swatch": {
+      "color": "#8a6a4a",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "opening.door-barn",
+    "source": "Listed door-plus-hardware weights for 36 x 84 kits: VEVOR spruce kit 71.2 lb (Newegg), Dextrus H-frame 74.52 lb (Walmart), ANZZI British Brace 78 lb (Ferguson); 75 lb over a 36 x 84 x 1-1/2in slab"
+  },
+  {
+    "id": "door-garage-rollup",
+    "name": "Garage door, 9 x 7ft insulated steel sectional",
+    "description": "Insulated steel sectional (overhead) garage door, 9 x 7ft, 2in thick, door sections and track only. The opener and spring setup are extra; springs are usually set by an installer.",
+    "category": "opening",
+    "density_kg_m3": 236,
+    "swatch": {
+      "color": "#ecebe6",
+      "roughness": 0.5,
+      "metalness": 0.3
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "opening.door-garage-rollup",
+    "source": "Estimate scaled from Clopay Modern Steel 16 x 7 R18.4 insulated, 276 lb assembled (Home Depot Canada spec): 2.46 psf x 63 sq ft = about 155 lb, over a 108 x 84 x 2in door"
+  },
+  {
+    "id": "skylight",
+    "name": "Skylight, fixed deck-mount",
+    "description": "Fixed deck-mounted skylight (VELUX FS C06 class, about 21-1/2 x 46-1/4in), tempered outer pane and laminated inner pane. Flashing kit sold separately; for roof pitches of 14 to 85 degrees.",
+    "category": "opening",
+    "density_kg_m3": 246,
+    "swatch": {
+      "color": "#cfe3ea",
+      "roughness": 0.1,
+      "opacity": 0.4
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "flags": [
+      "safety-glazing"
+    ],
+    "priceKey": "opening.skylight",
+    "source": "VELUX FS C06: 21-1/2 x 46-1/4 x 4-1/2in outside frame, package weight 39.70 lb (Home Hardware listing), pitch 14-85 degrees; 39.7 lb over that box"
   }
 ]

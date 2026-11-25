@@ -38,11 +38,20 @@ describe('stock lengths', () => {
     }
   });
 
-  it('the builder default sections and every header section have stock', () => {
-    const ids = new Set<string>([
-      ...Object.values(BUILDER_DEFAULTS.sections),
-      ...Object.values(HEADER_TABLE).flatMap((rows) => rows.map((r) => r.sectionId)),
-    ]);
+  it('the builder default wood sections and every header section have stock (steel and aluminum are cut to length)', () => {
+    const ids = new Set<string>(
+      [...Object.values(BUILDER_DEFAULTS.sections), ...Object.values(HEADER_TABLE).flatMap((rows) => rows.map((r) => r.sectionId))].filter((id) =>
+        sections.get(id)!.materialCategories.includes('lumber'),
+      ),
+    );
     for (const id of ids) expect(lengths(id).length, id).toBeGreaterThan(0);
+  });
+
+  it('pipe, steel and fence sections are cut to length; deck boards and steel studs come in lengths', () => {
+    for (const s of CATALOG.sections.filter((x) => x.id.startsWith('pipe-') || x.id.startsWith('chainlink-') || x.id.startsWith('hss-') || x.id.startsWith('w'))) {
+      expect(s.stock, s.id).toBeUndefined();
+    }
+    expect(lengths('5-4x6').length).toBeGreaterThan(0);
+    expect(lengths('steel-stud-3-5-8').length).toBeGreaterThan(0);
   });
 });

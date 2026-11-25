@@ -1,0 +1,82 @@
+[
+  {
+    "id": "flooring-hardwood-oak",
+    "name": "Solid oak hardwood flooring (3/4in)",
+    "description": "Solid 3/4in red oak strip or plank flooring, nailed to a plywood or OSB subfloor. Not for bathrooms or on-grade slabs; it swells and cups when wet.",
+    "category": "finish",
+    "arealMass_kg_m2": 13.43,
+    "textureSet": "wood-floor",
+    "swatch": {
+      "color": "#b9875a",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "nailed-8d"
+    ],
+    "flags": [
+      "not-for-wet-areas"
+    ],
+    "priceKey": "finish.flooring-hardwood-oak",
+    "source": "Carton weights: Bruce American Originals red oak 3/4 x 3-1/4in, 60 lb per 22 sq ft (Home Depot product page, 2.7 psf); Bruce strip 2-1/4in, 56 lb per 20 sq ft (nfm.com, 2.8 psf); 2.75 psf used (x 4.88243)."
+  },
+  {
+    "id": "flooring-lvp",
+    "name": "Luxury vinyl plank (LVP)",
+    "description": "Rigid-core click-lock luxury vinyl plank, floating over a flat subfloor or slab. Waterproof surface, so it suits pool houses and bathrooms.",
+    "category": "finish",
+    "arealMass_kg_m2": 7.32,
+    "textureSet": "wood-floor",
+    "swatch": {
+      "color": "#a88a6a",
+      "roughness": 0.55
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.flooring-lvp",
+    "source": "Carton weights: LifeProof Pinecrest Place Oak 27.56 lb per 20.1 sq ft (1.37 psf, Home Depot Q&A); LifeProof Heirloom Pine 33.51 lb per 20.06 sq ft (1.67 psf, Home Depot Canada); SMARTCORE Ultra Woodford Oak 26.86 lb per 15.76 sq ft (1.70 psf, Lowe's); 1.5 psf used (x 4.88243)."
+  },
+  {
+    "id": "concrete-sealer",
+    "name": "Concrete sealer",
+    "description": "Clear acrylic or silane-siloxane sealer rolled or sprayed onto a concrete slab or patio, priced per sq ft of one coat. Reapply every few years.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.05,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#a9a9a4",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.concrete-sealer",
+    "source": "Estimate: a thin film with no published weight. Coverage from the Foundation Armor AR350 data sheet (up to 175 sq ft/gal per coat on porous concrete) and Quikrete Acrylic Concrete Cure & Seal (200 sq ft/gal as a curing compound)."
+  },
+  {
+    "id": "concrete-polished",
+    "name": "Polished concrete (grind and seal)",
+    "description": "A slab ground, densified and polished in place by a contractor, priced as the contractor's installed cost per sq ft (not a material you buy). The slab itself is a separate concrete part.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.05,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#b4b2ac",
+      "roughness": 0.25
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.concrete-polished",
+    "source": "Estimate: polishing removes a little concrete and adds a densifier and guard coat; weight is negligible, 0.05 kg/m2 used so the part has some mass."
+  },
+  {
+    "id": "epoxy-floor-coating",
+    "name": "Epoxy floor coating",
+    "description": "Two-part epoxy floor coating kit rolled onto a cleaned, etched slab, as in a garage or pool equipment room; priced per sq ft of one coat. A kit covers about 200-250 sq ft of bare concrete.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.2,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#8d9196",
+      "roughness": 0.3
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.epoxy-floor-coating",
+    "source": "Estimate: about 2 gal of water-based epoxy (Rust-Oleum EpoxyShield) over 250 sq ft, assuming about 1.3 kg/L and half of it solids, about 0.2 kg/m2. Coverage from Rust-Oleum support (200-250 sq ft per kit on bare concrete)."
+  }
+]

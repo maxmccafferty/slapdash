@@ -259,6 +259,198 @@
         "roughness",
         "ao"
       ]
+    },
+    {
+      "id": "brick",
+      "name": "Bricks 086 (red-orange running bond)",
+      "source": "ambientcg",
+      "assetId": "Bricks086",
+      "url": "https://ambientcg.com/view?id=Bricks086",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2600,
+        "v": 1300
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "stone-veneer",
+      "name": "Rustic Stone Wall 02",
+      "source": "polyhaven",
+      "assetId": "rustic_stone_wall_02",
+      "url": "https://polyhaven.com/a/rustic_stone_wall_02",
+      "author": "Amal Kumar",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1500,
+        "v": 1500
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "flagstone",
+      "name": "Stone Pathway",
+      "source": "polyhaven",
+      "assetId": "stone_pathway",
+      "url": "https://polyhaven.com/a/stone_pathway",
+      "author": "Amal Kumar",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "pavers",
+      "name": "Paving Stones 099 (grey interlocking pavers)",
+      "source": "ambientcg",
+      "assetId": "PavingStones099",
+      "url": "https://ambientcg.com/view?id=PavingStones099",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "tile-ceramic",
+      "name": "Tiles 107 (white square ceramic)",
+      "source": "ambientcg",
+      "assetId": "Tiles107",
+      "url": "https://ambientcg.com/view?id=Tiles107",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1000,
+        "v": 1000
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "tile-stone",
+      "name": "Tiles 143 (beige limestone tile)",
+      "source": "ambientcg",
+      "assetId": "Tiles143",
+      "url": "https://ambientcg.com/view?id=Tiles143",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2000,
+        "v": 2000
+      },
+      "tileSizeNote": "Limestone tile stands in for travertine: both read as pale, pitted natural stone.",
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "wood-floor",
+      "name": "Wood Floor 051 (light oak planks)",
+      "source": "ambientcg",
+      "assetId": "WoodFloor051",
+      "url": "https://ambientcg.com/view?id=WoodFloor051",
+      "author": "Lennart Demes (ambientCG)",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1800,
+        "v": 1800
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "plaster",
+      "name": "Plastered Wall 04",
+      "source": "polyhaven",
+      "assetId": "plastered_wall_04",
+      "url": "https://polyhaven.com/a/plastered_wall_04",
+      "author": "Rob Tuytel",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 3200,
+        "v": 3200
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "roof-tile-clay",
+      "name": "Clay Roof Tiles 02",
+      "source": "polyhaven",
+      "assetId": "clay_roof_tiles_02",
+      "url": "https://polyhaven.com/a/clay_roof_tiles_02",
+      "author": "Amal Kumar",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 2500,
+        "v": 2500
+      },
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
+    },
+    {
+      "id": "decking-composite",
+      "name": "Wood Floor Deck",
+      "source": "polyhaven",
+      "assetId": "wood_floor_deck",
+      "url": "https://polyhaven.com/a/wood_floor_deck",
+      "author": "Dimitrios Savva",
+      "license": "CC0-1.0",
+      "fetchedOn": "2026-11-25",
+      "tileSize_mm": {
+        "u": 1800,
+        "v": 1800
+      },
+      "tileSizeNote": "Wood deck boards stand in for composite: both read as long boards with even gaps.",
+      "maps": [
+        "color",
+        "normal",
+        "roughness"
+      ]
     }
   ]
 }

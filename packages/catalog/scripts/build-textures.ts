@@ -19,7 +19,7 @@ import { zTextureManifest, type TextureMap, type TextureSet } from '../src/textu
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', 'textures');
 const MAX_FILE_BYTES = 1.5 * 1024 * 1024;
-const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 35 * 1024 * 1024;
 const KTX = process.env.KTX ?? 'ktx';
 
 /** `ktx create` options per map: sRGB colour as BasisLZ, normals as UASTC + zstd, the rest as linear single-channel BasisLZ. */
@@ -168,7 +168,7 @@ async function main(): Promise<void> {
   writeFileSync(join(ROOT, 'ATTRIBUTION.md'), attribution(manifest.sets));
   const total = folderBytes(ROOT);
   console.log(`textures/: ${(total / 1024 / 1024).toFixed(1)} MB`);
-  if (total > MAX_TOTAL_BYTES) fail('textures/ is over the 25 MB budget.');
+  if (total > MAX_TOTAL_BYTES) fail('textures/ is over the 35 MB budget.');
   if (tooBig) fail('Some files are over the per-file budget.');
 }
 

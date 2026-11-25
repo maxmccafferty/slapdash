@@ -24,13 +24,78 @@ const ESTIMATED_JOINTS = [
   // Roofing fasteners: withdrawal is published (NDS 12.2C, manufacturer pull-out) but lateral values aren't.
   'nailed-roofing',
   'screwed-roofing',
+  // Tiers 2 and 3: pipe fittings and gate hardware carry no structural rating; they are
+  // listed so the materials list counts fittings and hardware.
+  'glued-pvc',
+  'glued-cpvc',
+  'glued-abs',
+  'crimped-pex',
+  'sweated-copper',
+  'threaded-galvanized',
+  'clamped-no-hub',
+  'welded-steel',
+  'gate-hinge',
+  'gate-hinge-self-closing',
+  'gate-latch',
+  'gate-latch-magnetic',
+  'glass-spigot',
+  'shade-sail-mount',
 ];
 
 /** Materials drawn with their swatch only: no CC0 texture is honest enough. */
-const SWATCH_ONLY_CATEGORIES = ['fastener', 'insulation', 'opening', 'site'];
-const SWATCH_ONLY_IDS = ['underlayment-synthetic', 'flashing-tape', 'sonotube-form'];
+const SWATCH_ONLY_CATEGORIES = ['fastener', 'insulation', 'opening', 'site', 'plumbing', 'electrical', 'mechanical', 'sealant', 'fencing'];
+const SWATCH_ONLY_IDS = [
+  'underlayment-synthetic',
+  'flashing-tape',
+  'sonotube-form',
+  // Clear, thin or wire-like products a texture can't show honestly.
+  'polycarbonate-corrugated',
+  'membrane-epdm',
+  'membrane-tpo',
+  'ridge-vent',
+  'vapor-barrier-6mil',
+  'cable-rail-infill',
+  'glass-railing-panel',
+  'shade-sail-hdpe',
+  'landscape-fabric',
+  'drain-pipe-perforated-4in',
+];
 
-describe('tier-1 catalog', () => {
+/**
+ * Tier-1 materials that predate the mass rule: hardware (counted from joints, rarely a
+ * part), window and door units, and the sonotube form. Every other material that can be
+ * a part has a density or an areal mass, so the solver doesn't warn about it.
+ */
+const NO_MASS_TIER1 = new Set([
+  'nail-8d-common',
+  'nail-10d-common',
+  'nail-16d-common',
+  'nail-roofing',
+  'screw-structural',
+  'screw-deck',
+  'screw-metal-roofing',
+  'bolt-1-2',
+  'lag-3-8',
+  'anchor-bolt-1-2',
+  'wedge-anchor-1-2',
+  'joist-hanger',
+  'hurricane-tie',
+  'post-base',
+  'opening-unit',
+  'window-single-hung',
+  'window-double-hung',
+  'window-casement',
+  'window-sliding',
+  'window-awning',
+  'window-fixed',
+  'door-entry',
+  'door-french',
+  'door-sliding-glass',
+  'glass-tempered',
+  'sonotube-form',
+]);
+
+describe('catalog (tiers 1–3)', () => {
   it('validates against the core schema', () => {
     const r = validateCatalog(C);
     expect(r.ok ? [] : r.errors).toEqual([]);
@@ -52,6 +117,24 @@ describe('tier-1 catalog', () => {
         m.rValuePerMm !== undefined ||
         m.arealMass_kg_m2 !== undefined;
       if (hasNumbers) expect(m.source, m.id).toBeTruthy();
+    }
+  });
+
+  it('every material that can be a built part carries a density or an areal mass', () => {
+    const missing = C.materials
+      .filter((m) => m.category !== 'site' && !NO_MASS_TIER1.has(m.id))
+      .filter((m) => m.density_kg_m3 === undefined && m.arealMass_kg_m2 === undefined)
+      .map((m) => m.id);
+    expect(missing).toEqual([]);
+  });
+
+  it('steel carries yield strength and modulus, and no beam values (the solver does not check steel yet)', () => {
+    const steel = C.materials.filter((m) => m.category === 'steel');
+    expect(steel.length).toBeGreaterThanOrEqual(5);
+    for (const m of steel) {
+      expect(m.strength?.yield_MPa, m.id).toBeGreaterThan(0);
+      expect(m.structural, m.id).toBeUndefined();
+      expect(m.density_kg_m3, m.id).toBeCloseTo(7850, -2);
     }
   });
 
@@ -151,6 +234,24 @@ describe('tier-1 catalog', () => {
     expect(material('glass-tempered').flags).toContain('safety-glazing');
     expect(material('window-single-hung').flags).toContain('not-safety-glazing');
     expect(material('pt-syp-no2-gc').flags).toContain('ground-contact');
+    expect(material('glass-pool-fence-panel').flags).toEqual(expect.arrayContaining(['safety-glazing', 'pool-barrier']));
+    expect(material('chain-link-fabric-2in').flags).toContain('not-pool-barrier');
+    expect(material('chain-link-fabric-mini-mesh').flags).toContain('pool-barrier');
+    expect(material('gate-hinge-self-closing').flags).toContain('pool-gate-hardware');
+    expect(material('gate-latch-magnetic').flags).toContain('pool-gate-hardware');
+    expect(material('receptacle-gfci-20a').flags).toContain('gfci');
+    expect(material('receptacle-15a').flags).toContain('receptacle-needs-gfci');
+    expect(material('subpanel-100a').flags).toContain('licensed-trade');
+    expect(material('drywall-gypsum').flags).toContain('not-for-wet-areas');
+    expect(material('cement-board').flags).toContain('wet-area-rated');
+    expect(material('rigid-xps').flags).toContain('thermal-barrier');
+    expect(material('tile-roof-clay').flags).toContain('heavy-roofing');
+    expect(material('skylight').flags).toContain('safety-glazing');
+  });
+
+  it('every known flag is used by some material', () => {
+    const used = new Set(C.materials.flatMap((m) => m.flags ?? []));
+    expect(Object.keys(KNOWN_FLAGS).filter((f) => !used.has(f))).toEqual([]);
   });
 
   it('texture sets exist, and only the swatch-only materials go without one', () => {
