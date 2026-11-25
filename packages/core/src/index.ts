@@ -11,6 +11,11 @@ export { partBox, boxCorners, boxesOverlap, aabbOf, rotationAxes, type OrientedB
 export { placeMember, placeOriented, boxInFrame, toWorld, toFrame, type PlanFrame, type FrameBox } from './geometry/frame.ts';
 export { findClashes, findAllClashes, describeClashes, CLASH_TOLERANCE_MM, type Clash, type ClashCandidate } from './model/clash.ts';
 export { BUILDER_DEFAULTS } from './builders/defaults.ts';
+export { codeNotes, type CodeNote } from './code/index.ts';
+export { FENCE_STYLES, poolParts, poolSideOf, type BuildFenceInput, type FenceGateInput, type FenceStyle } from './builders/layout/fence.ts';
+export { STRUCTURE_KINDS, type StructureKind } from './builders/layout/structure.ts';
+export type { BuildPergolaInput } from './builders/layout/pergola.ts';
+export type { BuildDeckInput } from './builders/layout/deck.ts';
 export {
   HEADER_TABLE,
   KING_STUD_TABLE,
