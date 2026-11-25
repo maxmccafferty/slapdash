@@ -127,6 +127,41 @@ one `researchedOn` date and a `source` note per entry. The real tier-1 data live
 `@slapdash/catalog` (`packages/catalog`). `SAMPLE_CATALOG` is placeholder test data used by
 core's tests and the smoke script, not design values.
 
+A project can carry the person's own prices in `project.prices` (keyed `materialId` or
+`materialId|size`), set with `set_price` and removed with `clear_price`. They replace the
+table's range for that project only; undo restores the whole map through the internal
+`set_prices`.
+
+## Materials and cut list
+
+`takeoff(project, catalog, priceTable)` (`src/materials/`) gives the materials list, the cut
+list and the totals from one computation, so the Materials tab, the Cut list tab and the PDF
+always agree.
+
+- **Steps.** Rows are grouped by build step, from each part's assembly: Slab (a `pour_slab`
+  foundation) or Foundation, Floor, Walls (walls and their openings), Roof, Fence,
+  Structures. Site context is left out. Steps are ordered by the earliest build phase of
+  their parts, then in that fixed order. Hardware comes from the joints (`hardwareId`, per
+  fastener or per joint) and goes with the **later** of its two parts' steps, so a
+  hurricane tie is bought with the roof. `buildStepGroups` is exported for the Build steps
+  screen.
+- **Counting.** Sectioned lumber, engineered wood and steel with `stock` lengths are bought
+  as boards; without stock, by the linear foot. Sheet goods are one 4×8 sheet per piece,
+  sized by thickness to 1/32in ("23/32in"). Concrete is rounded up to the next 1/4 yd³.
+  Everything else is measured in the unit it is priced in.
+- **Cut list.** `cutStock` (`optimizer.ts`) packs each (step, material, section)'s pieces
+  into its stock lengths: a piece longer than the longest stock is spliced into equal
+  segments; a piece within `TRIM_MM` (1 1/4in) of a stock length gets that board whole
+  (103 1/2in studs on 104 5/8in precuts); the rest go first-fit decreasing (longest first,
+  ties by id) onto the longest stock with a `KERF_MM` (1/8in) kerf between cuts, and each
+  board is then cut down to the shortest stock that holds it. Offcuts aren't shared across
+  steps, so each step's board counts add up to the cut list.
+- **Prices.** Boards are priced at their full length per linear foot; a key with no sizes
+  ignores the row's size. The person's own price wins (low = high); a per-board price
+  becomes per foot for other lengths, and a per-ft² sheet price is 32 ft² a sheet. A row
+  with no price keeps the reason (the table's `unpriced` note, a missing size). Money is
+  summed in cents and rounded to dollars only for display.
+
 ## Adding a command
 
 See [CONTRIBUTING.md § How to add a command](../../CONTRIBUTING.md#how-to-add-a-command).

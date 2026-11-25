@@ -56,3 +56,4 @@ export {
   type RecordedCommand,
 } from './bus/history.ts';
 export type { SavedVersion, VersionListItem } from './bus/versions.ts';
+export * from './materials/index.ts';
