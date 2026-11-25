@@ -57,6 +57,8 @@ export interface ChatControllerDeps {
   newTurnId?: () => string;
   /** Hold-to-talk and spoken replies; without it Talk is hidden. */
   voice?: VoiceProvider;
+  /** The Claude server said the sign-in is gone (401 `sign_in_required`, hosted copy). */
+  onSignedOut?: () => void;
 }
 
 export interface SendOptions {
@@ -126,6 +128,8 @@ function topEntryId(bus: CommandBus): number | null {
   return live.at(-1)?.id ?? null;
 }
 
+export const SIGNED_OUT_NOTE = "You've been signed out. Sign in again to talk to Claude.";
+
 /** The user line for the automatic stress turn, shown as a compact chip. */
 export const STRESS_TRIGGER_TEXT = 'Stress view on';
 
@@ -145,6 +149,7 @@ function errorNote(error: unknown): string {
     if (f.error === 'rate_limited') return `Too many messages. Try again in ${f.retryAfterSeconds} seconds.`;
     if (f.error === 'network') return "Couldn't reach Claude. Check your connection and try again.";
     if (f.error === 'too_large') return 'This conversation is too long to send. Open the project again to start a new chat.';
+    if (f.error === 'sign_in_required') return SIGNED_OUT_NOTE;
     return "Claude couldn't answer. Try again.";
   }
   if (error instanceof KeyholeStreamFailure) {
@@ -416,6 +421,11 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
       }
       if (f.error === 'not_configured') {
         set({ connection: 'not_configured' });
+        return;
+      }
+      if (f.error === 'sign_in_required') {
+        set((st) => ({ items: addNote(st.items, SIGNED_OUT_NOTE) }));
+        deps.onSignedOut?.();
         return;
       }
     }

@@ -13,9 +13,14 @@ function isStatus(value: unknown): value is KeyholeStatus {
  * keyhole can't be reached or doesn't answer with a status (a static preview, say): the chat
  * then treats Claude as ready and lets a send surface the real error.
  */
-export async function fetchKeyholeStatus(fetchImpl: StatusFetch, url = '/api/claude'): Promise<KeyholeStatus | null> {
+export async function fetchKeyholeStatus(
+  fetchImpl: StatusFetch,
+  url = '/api/claude',
+  headers?: () => Promise<Record<string, string>> | Record<string, string>,
+): Promise<KeyholeStatus | null> {
   try {
-    const res = await fetchImpl(url, { method: 'GET', headers: { Accept: 'application/json' } });
+    const extra = headers ? await headers() : {};
+    const res = await fetchImpl(url, { method: 'GET', headers: { ...extra, Accept: 'application/json' } });
     if (!res.ok) return null;
     const body = await res.json();
     return isStatus(body) ? body : null;

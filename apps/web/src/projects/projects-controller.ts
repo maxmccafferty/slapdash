@@ -13,12 +13,17 @@ import type { Catalog, CatalogIndex, CommandBus, SiteDefaults } from '@slapdash/
 import {
   describeError,
   ProjectSession,
+  type Auth,
   type ChatLog,
   type DeviceState,
   type ProjectStore,
   type SaveStatus,
   type SessionDeps,
+  type SyncControl,
+  type SyncStatus,
+  type User,
 } from '@slapdash/storage';
+import { conflictNote, offlineNote, SYNCED_NOTE } from '../sync/sync-status.ts';
 import { attach, buildSample } from '../model/bootstrap.ts';
 import { partCount } from '../model/floor-stops.ts';
 import { isSnapshotReady, renderSnapshot } from '../renderer/snapshot/registry.ts';
@@ -52,6 +57,19 @@ export interface ProjectsControllerDeps {
   revokeUrl?: (url: string) => void;
   /** Where `pagehide` and `visibilitychange` are listened for. Default `window` if there is one. */
   target?: Pick<Window, 'addEventListener' | 'removeEventListener'> & { document?: Pick<Document, 'visibilityState'> };
+  /**
+   * Cloud sync (hosted copy). When set, coming back online or to the foreground pushes
+   * pending changes, refreshes the list and reopens the open project if another device
+   * changed it; going offline and coming back are noted in the chat once each.
+   */
+  sync?: SyncControl;
+  /** The signed-in user and their auth, for the Projects footer's Sign out. */
+  user?: User;
+  auth?: Auth;
+  /** True while something (a Claude turn) is using the open project's bus: no reopening then. */
+  isBusy?: () => boolean;
+  /** After sign-out. Default `location.reload()`, which shows the sign-in card. */
+  reload?: () => void;
 }
 
 export interface ProjectsController {
@@ -77,8 +95,18 @@ export interface ProjectsController {
   chatLogFor(bus: CommandBus): ChatLogLike | null;
   /** Save the chat of the open project (after each Claude turn). */
   onChatChanged(log: ChatLogLike): void;
+  /**
+   * Back online or in the foreground (hosted copy): push, refresh the list, and reopen the
+   * open project if the store has a newer copy and nothing here is unsaved.
+   */
+  resync(): Promise<void>;
+  /** Save, wait briefly for sync, sign out on this device and reload to the sign-in card. */
+  signOut(): Promise<void>;
   dispose(): Promise<void>;
 }
+
+/** How long sign-out waits for pending changes to reach the cloud. They stay queued on the device either way. */
+export const SIGN_OUT_SYNC_WAIT_MS = 3000;
 
 const set = (partial: Partial<ProjectsState>) => useProjectsStore.setState(partial);
 
@@ -226,13 +254,83 @@ export function createProjectsController(deps: ProjectsControllerDeps): Projects
     return openById(result.id);
   }
 
+  /**
+   * Reopen the open project from the store when the store's copy is newer (or `force`), as
+   * long as nothing here is unsaved and no Claude turn is using the bus.
+   */
+  async function reloadIfNewer(force = false): Promise<void> {
+    const session = current;
+    if (!session || !session.isPersisted || session.isDirty || deps.isBusy?.()) return;
+    let stored;
+    try {
+      stored = await deps.store.load(session.id);
+    } catch {
+      return;
+    }
+    if (!stored || current !== session || session.isDirty) return;
+    if (!force && stored.meta.updatedAt <= session.meta.updatedAt) return;
+    try {
+      const next = await ProjectSession.openById(session.id, sessionDeps);
+      if (current === session && !session.isDirty) await switchTo(next);
+    } catch {
+      // The open project stays as it is.
+    }
+  }
+
+  let resyncing: Promise<void> | null = null;
+  function resync(): Promise<void> {
+    if (!deps.sync) return Promise.resolve();
+    // focus, visibilitychange and online often fire together: one run at a time.
+    resyncing ??= (async () => {
+      try {
+        deps.sync?.retry();
+        await refreshList();
+        await serial(() => reloadIfNewer());
+      } finally {
+        resyncing = null;
+      }
+    })();
+    return resyncing;
+  }
+
   const onPageHide = () => void current?.flush();
   const onVisibility = () => {
     if (target?.document?.visibilityState === 'hidden') void current?.flush();
+    else if (target?.document?.visibilityState === 'visible') void resync();
   };
+  const onForeground = () => void resync();
   const target = deps.target ?? (typeof window === 'undefined' ? undefined : window);
   target?.addEventListener('pagehide', onPageHide);
   target?.addEventListener('visibilitychange', onVisibility);
+  if (deps.sync) {
+    target?.addEventListener('focus', onForeground);
+    target?.addEventListener('online', onForeground);
+  }
+
+  // Sync notes: one when the cloud goes away, one when everything has gone through again.
+  let offlineNoted = false;
+  const onSync = (status: SyncStatus) => {
+    set({ sync: status });
+    if (status.kind === 'offline' && !offlineNoted) {
+      offlineNoted = true;
+      deps.notify?.(offlineNote(status));
+    } else if (status.kind === 'synced' && offlineNoted) {
+      offlineNoted = false;
+      deps.notify?.(SYNCED_NOTE);
+    }
+  };
+  const offSync = deps.sync?.onStatus(onSync) ?? (() => {});
+  const offConflict =
+    deps.sync?.onConflict((conflict) => {
+      const name = useProjectsStore.getState().projects.find((p) => p.id === conflict.id)?.name ?? current?.meta.name ?? 'This project';
+      deps.notify?.(conflictNote(conflict, name));
+      void refreshList();
+      if (current?.id === conflict.id) void serial(() => reloadIfNewer(true));
+    }) ?? (() => {});
+  set({
+    sync: deps.sync ? deps.sync.status : null,
+    user: deps.user ? { displayName: deps.user.displayName, ...(deps.user.email ? { email: deps.user.email } : {}) } : null,
+  });
 
   return {
     get current() {
@@ -325,9 +423,24 @@ export function createProjectsController(deps: ProjectsControllerDeps): Projects
       }
     },
 
+    resync,
+
+    async signOut() {
+      await current?.flush();
+      if (deps.sync) {
+        await Promise.race([deps.sync.idle(), new Promise((resolve) => setTimeout(resolve, SIGN_OUT_SYNC_WAIT_MS))]);
+      }
+      await deps.auth?.signOut();
+      (deps.reload ?? (() => window.location.reload()))();
+    },
+
     async dispose() {
       target?.removeEventListener('pagehide', onPageHide);
       target?.removeEventListener('visibilitychange', onVisibility);
+      target?.removeEventListener('focus', onForeground);
+      target?.removeEventListener('online', onForeground);
+      offSync();
+      offConflict();
       offStatus();
       await current?.close();
       for (const url of Object.values(useProjectsStore.getState().thumbnails)) revokeUrl(url);

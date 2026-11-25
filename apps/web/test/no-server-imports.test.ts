@@ -31,6 +31,10 @@ function valueImports(text: string): string[] {
 }
 
 const SERVER_ONLY = /^(@slapdash\/keyhole|@anthropic-ai\/sdk)(\/|$)/;
+/** supabase-js only through the storage adapter (`@slapdash/storage/supabase`), loaded lazily. */
+const SUPABASE_SDK = /^@supabase\//;
+/** The Supabase secret keys are for the add-user script and tests only, never the app. */
+const SECRET_KEY_NAMES = /SUPABASE_SECRET_KEY|SUPABASE_SERVICE_ROLE_KEY|service_role/;
 
 describe('no server code in the browser app', () => {
   it('finds the sources', () => {
@@ -47,11 +51,18 @@ describe('no server code in the browser app', () => {
     expect(valueImports(sample).filter((s) => SERVER_ONLY.test(s))).toEqual(['@slapdash/keyhole', '@anthropic-ai/sdk', '@slapdash/keyhole/node']);
   });
 
+  it('the Supabase adapter is only ever loaded lazily', () => {
+    const eager = sources.filter((path) => /^\s*import\s+(?!type\b)[^'";]*?from\s*['"]@slapdash\/storage\/supabase['"]/m.test(readFileSync(path, 'utf8')));
+    expect(eager.map((p) => relative(SRC, p))).toEqual([]);
+  });
+
   for (const path of sources) {
     const name = relative(SRC, path);
     it(name, () => {
       const text = readFileSync(path, 'utf8');
       expect(valueImports(text).filter((s) => SERVER_ONLY.test(s))).toEqual([]);
+      expect(valueImports(text).filter((s) => SUPABASE_SDK.test(s))).toEqual([]);
+      expect(text).not.toMatch(SECRET_KEY_NAMES);
       expect(text).not.toMatch(/ANTHROPIC_API_KEY/);
       expect(text).not.toMatch(/\bprocess\.env\b/);
     });

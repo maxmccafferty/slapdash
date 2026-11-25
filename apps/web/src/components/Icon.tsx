@@ -9,6 +9,7 @@ import {
   Folder,
   FolderOpen,
   Image,
+  KeyRound,
   Layers,
   List,
   ListOrdered,
@@ -47,6 +48,7 @@ const ICONS = {
   upload: Upload,
   back: ChevronLeft,
   next: ChevronRight,
+  passkey: KeyRound,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

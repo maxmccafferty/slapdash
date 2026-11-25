@@ -1,3 +1,5 @@
+import { createLocalBackend } from '@slapdash/storage/local';
+import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { describe, expect, it } from 'vitest';
 import { displayText, emptyClaudeItem, paragraphs, type ChatItem, type ClaudeItem } from '../../src/agent/chat-types.ts';
 import { fetchKeyholeStatus } from '../../src/agent/keyhole-status.ts';
@@ -68,6 +70,20 @@ describe('keyhole status', () => {
     expect(await fetchKeyholeStatus(async () => ({ ok: true, json: async () => Promise.reject(new SyntaxError('html')) }))).toBeNull();
     expect(await fetchKeyholeStatus(async () => Promise.reject(new TypeError('offline')))).toBeNull();
   });
+
+  it('sends the sign-in header when there is one', async () => {
+    const seen: Record<string, string>[] = [];
+    const status = { configured: true, model: 'm', budget: BUDGET };
+    await fetchKeyholeStatus(
+      async (_url, init) => {
+        seen.push(init!.headers);
+        return { ok: true, json: async () => status };
+      },
+      undefined,
+      async () => ({ Authorization: 'Bearer t' }),
+    );
+    expect(seen).toEqual([{ Authorization: 'Bearer t', Accept: 'application/json' }]);
+  });
 });
 
 describe('photo store', () => {
@@ -79,5 +95,18 @@ describe('photo store', () => {
     store.remove(p.fileId);
     expect(await store.loadFile(p.fileId)).toBeNull();
     expect(revoked).toEqual(['blob:1']);
+  });
+
+  it("stores photos with the open project, and reads them back from there after a reload", async () => {
+    const backend = createLocalBackend({ indexedDB: new IDBFactory(), IDBKeyRange });
+    const files = () => ({ store: backend.store.files, projectId: 'p1' });
+    const store = createPhotoStore({ createUrl: () => 'blob:1', revokeUrl: () => {}, files });
+    const p = await store.put({ blob: new Blob([new Uint8Array([1, 2, 3])]), mimeType: 'image/jpeg' });
+    expect(await backend.store.files.list('p1')).toMatchObject([{ id: p.fileId, mimeType: 'image/jpeg', size: 3 }]);
+
+    const afterReload = createPhotoStore({ createUrl: () => 'blob:2', revokeUrl: () => {}, files });
+    expect(await afterReload.loadFile(p.fileId)).toEqual({ data: 'AQID', mediaType: 'image/jpeg' });
+    expect(await afterReload.loadFile('photo-missing')).toBeNull();
+    backend.close();
   });
 });

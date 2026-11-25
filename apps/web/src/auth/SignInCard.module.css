@@ -1,0 +1,98 @@
+/* The sign-in card (ADR-0003 §K3): a plain white unit centred over the dotted floor. */
+.screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    calc(var(--space-4) + env(safe-area-inset-bottom)) calc(var(--space-4) + env(safe-area-inset-left));
+  overflow-y: auto;
+  background-color: var(--color-floor);
+  background-image: radial-gradient(circle, var(--color-dot) 1px, transparent 1px);
+  background-size: var(--space-4) var(--space-4);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: var(--size-chat-panel);
+  padding: var(--space-5);
+  background: var(--color-paper);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--shadow-modal);
+  color: var(--color-ink);
+}
+
+.logo {
+  display: flex;
+}
+
+.title {
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: 600;
+  color: var(--color-ink-soft);
+}
+
+.field {
+  min-height: var(--size-touch);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper);
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-field);
+  font: inherit;
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: var(--type-body-weight);
+  color: var(--color-ink);
+}
+
+.field:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-ink);
+  outline-offset: var(--size-focus-ring);
+}
+
+.field:disabled {
+  background: var(--color-unit);
+}
+
+.keys {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.primary,
+.wide {
+  width: 100%;
+}
+
+.line {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-muted);
+}
+
+.alert {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-ink);
+}
