@@ -99,16 +99,8 @@ export class CommandBus {
    * errors are plain sentences Claude can act on.
    */
   execute(name: string, rawInput: unknown): ExecResult {
-    const def = commandRegistry.get(name);
-    if (!def || !def.exposed) {
-      const close = suggest(name, [...commandRegistry.values()].filter((d) => d.exposed).map((d) => d.name));
-      return {
-        ok: false,
-        errors: [
-          commandError('unknown_command', `There's no command "${name}".`, close ? { hint: `Did you mean "${close}"?` } : {}),
-        ],
-      };
-    }
+    const unknown = this.#unknownCommand(name);
+    if (unknown) return unknown;
     const result = this.#run({ name, input: rawInput });
     if (!result.ok) return result;
 
@@ -122,6 +114,29 @@ export class CommandBus {
     this.#redo = [];
     this.#emit({ type: 'execute', summary: result.summary });
     return { ok: true, summary: result.summary, created: result.created };
+  }
+
+  /**
+   * Validate and apply a command against the current project without recording, emitting
+   * or touching the open group: what `execute` would do, with nothing changed. The agent's
+   * big-change guard uses it to count the parts a call would create.
+   */
+  dryRun(name: string, rawInput: unknown): ExecResult {
+    const unknown = this.#unknownCommand(name);
+    if (unknown) return unknown;
+    const result = this.#run({ name, input: rawInput });
+    if (!result.ok) return result;
+    return { ok: true, summary: result.summary, created: result.created };
+  }
+
+  #unknownCommand(name: string): ExecResult | null {
+    const def = commandRegistry.get(name);
+    if (def && def.exposed) return null;
+    const close = suggest(name, [...commandRegistry.values()].filter((d) => d.exposed).map((d) => d.name));
+    return {
+      ok: false,
+      errors: [commandError('unknown_command', `There's no command "${name}".`, close ? { hint: `Did you mean "${close}"?` } : {})],
+    };
   }
 
   /** Validate and apply one command against the current project, without recording. */
