@@ -187,4 +187,21 @@ describe('agent memory', () => {
     expectValidMessages(msgs);
     expect(blocks(msgs[2]!).map((b) => b.type)).toEqual(['tool_result', 'text']);
   });
+  it('transcript() rebuilds the chat panel from a saved log: what was asked and what Claude said', () => {
+    const mem = new AgentMemory();
+    turn(mem, 't1', 'Build a wall', { tool: true });
+    turn(mem, 't2', 'Thanks');
+    const reopened = new AgentMemory(mem.toChatLog());
+    expect(reopened.transcript()).toEqual([
+      { turnId: 't1', asked: 'Build a wall', reply: 'On it.\n\nDone with t1.' },
+      { turnId: 't2', asked: 'Thanks', reply: 'Done with t2.' },
+    ]);
+    expect(new AgentMemory().transcript()).toEqual([]);
+  });
+
+  it('transcript() falls back to the typed text for a turn that never finished', () => {
+    const mem = new AgentMemory();
+    mem.beginTurn('t1', [{ type: 'slapdash_project', text: '<project/>' }, { type: 'text', text: 'Add a door' }]);
+    expect(mem.transcript()).toEqual([{ turnId: 't1', asked: 'Add a door', reply: '' }]);
+  });
 });

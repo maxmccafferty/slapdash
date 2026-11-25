@@ -49,6 +49,7 @@ export {
   type MemoryOptions,
   type StoredBlock,
   type StoredMessage,
+  type TranscriptTurn,
 } from './memory.ts';
 export {
   BIG_CHANGE_MESSAGE,
