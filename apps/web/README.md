@@ -11,7 +11,8 @@ pnpm --filter @slapdash/web test           # unit tests (vitest, jsdom)
 pnpm --filter @slapdash/web typecheck
 pnpm --filter @slapdash/web build
 pnpm --filter @slapdash/web tokens         # regenerate src/styles/tokens.{css,ts}
-pnpm --filter @slapdash/web check:secrets  # build with a sentinel API key and scan dist for it
+pnpm --filter @slapdash/web check:secrets  # build with sentinel secrets (Anthropic and Supabase) and scan dist for them
+pnpm --filter @slapdash/web icons          # regenerate public/icons/ from docs/design/logo/ (sharp)
 pnpm --filter @slapdash/web exec playwright install chromium   # once
 pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion, the 3D view, the 2D sheet
 ```
@@ -79,6 +80,64 @@ actions. React reads `projects-store.ts` and calls the actions through `Projects
   restores its transcript (what was asked and Claude's replies; Undo keys, plans and photos
   are not restored) and Claude sees the earlier turns.
 - Saves also run on `pagehide` and when the tab is hidden. A failed save shows as a chat note.
+
+## Hosting: sign-in, sync and the installable app (LOC-115)
+
+**Which storage** (`src/storage/backend.ts`). `readBackendConfig()` reads
+`VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`, which `vite.config.ts` bakes in at
+build time from the repo-root `.env` or the environment (also accepting the Vercel Supabase
+integration's `NEXT_PUBLIC_*` / `SUPABASE_*` names). Only those two values are mapped: an
+explicit allow-list. Without them `openBackend()` is the local-only app, unchanged. With them
+`main.tsx` (now `async boot()`):
+
+1. loads `@slapdash/storage/supabase` as a lazy chunk (never in a local-only build's
+   download, nor its offline precache);
+2. reads the stored session without the network; if there is none, renders the sign-in card
+   instead of the app and waits for a sign-in;
+3. opens a per-user IndexedDB (`slapdash-u-<user id>`) under `createSyncedBackend`, so work
+   saves on the device first and syncs to Supabase;
+4. once per user and device, moves projects from the anonymous `slapdash` database into the
+   account ("Moved N projects from this device into your account.").
+
+The Claude keyhole gets the user's access token as `Authorization: Bearer …` on every request
+(`fetchKeyholeClient({ headers })`, `fetchKeyholeStatus(…, headers)`). A `401
+sign_in_required` shows "You've been signed out. Sign in again to talk to Claude." If the
+session is gone here too (or Supabase signs the user out), the page reloads to the card.
+
+**The sign-in card** (`src/auth/SignInCard.tsx`, ADR-0003 §K3): a plain white unit over the
+dotted floor; the logo lockup on desktop only; Email (`autocomplete="username webauthn"`) and
+Password; **Sign in**; **Sign in with a passkey** where WebAuthn exists; "You'll stay signed
+in on this device."; errors in a `role="alert"` line. No sign-up and no reset link. Where the
+browser supports conditional UI, the email field's autofill also offers the passkey. After
+the first password sign-in on a device that can use passkeys it asks "Use Face ID or a passkey
+next time?" (**Add passkey** / **Not now**); the answer is remembered in
+`localStorage['slapdash.passkeyOffer']`. That offer is the only place a passkey is added,
+since there is no settings screen.
+
+**Sync status** (`src/sync/sync-status.ts`). The projects controller listens to the synced
+store: the first time the cloud can't be reached it notes "Can't reach the cloud right now.
+Your work is saved on this device and will sync when it's back.", and "Synced." once
+everything has gone through. On `focus`, `online` and `visibilitychange → visible` it retries
+the push, refreshes the list and, if another device saved a newer copy of the open project and
+nothing here is unsaved (and no Claude turn is running), reopens it. A conflict is noted with
+the name of the kept copy. The Projects modal shows "Synced across your devices." or "Can't
+reach the cloud right now: showing what's on this device.", and its footer "Signed in as … ·
+Sign out" (saves, waits up to 3 s for sync, signs out on this device and reloads).
+
+**Photos** (`src/agent/photos.ts`) are now stored with the open project through
+`ProjectStore.files`, so on a hosted copy they go to the Supabase bucket, and a reloaded chat
+still finds them.
+
+**The installable app (PWA).** `vite-plugin-pwa` writes `manifest.webmanifest`
+(`pwa-manifest.ts`: "Slapdash", `display: standalone`, the `paper` token as theme and
+background, 192/512 and a maskable 512 icon) and a Workbox service worker that precaches the
+app shell, the lazy chunks, fonts and the basis transcoder, keeps `.ktx2` textures once seen,
+and never caches `/api/` or Supabase. `index.html` has the iOS tags (`apple-mobile-web-app-capable`,
+`black-translucent` status bar, `apple-touch-icon`) and the desktop shell pads for
+`env(safe-area-inset-*)`, since the status bar overlays the page in a home-screen app. The
+service worker registers only in production builds and not under `?e2e` (add `?pwa` to opt
+in), so e2e runs aren't served stale bundles. Icons come from `docs/design/logo/` via
+`pnpm --filter @slapdash/web icons` and are committed.
 
 ## Build steps (`src/steps/`, ADR-0003 §E)
 

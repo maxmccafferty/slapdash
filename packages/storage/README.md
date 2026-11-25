@@ -12,8 +12,9 @@ Project storage behind small interfaces (ADR-0001 §10). The app talks only to
 
 | Import | What |
 | --- | --- |
-| `@slapdash/storage` | Interfaces, `ProjectSession` (autosave), `.slapdash` encode/decode, record and chat schemas. No backend code. |
-| `@slapdash/storage/local` | `createLocalBackend()`: IndexedDB via Dexie, no sign-in. The default. |
+| `@slapdash/storage` | Interfaces, `ProjectSession` (autosave), `.slapdash` encode/decode, record and chat schemas, and the sync layer (`createSyncedBackend`, `SyncedProjectStore`, `adoptProjects`). No backend SDK. |
+| `@slapdash/storage/local` | `createLocalBackend()`: IndexedDB via Dexie, no sign-in. The default. Also `LocalSyncJournal` and `hasProjects()`. |
+| `@slapdash/storage/supabase` | `createSupabaseBackend({ url, key, storage?, device? })`: Postgres rows, a private Storage bucket and Supabase Auth (password and passkey). The app loads it lazily, only when the Supabase env vars are set. |
 | `@slapdash/storage/testing` | Shared vitest suites every adapter must pass, plus fixtures. |
 
 ## Interfaces (`src/types.ts`)
@@ -129,9 +130,80 @@ Dexie 4 over IndexedDB, in one database (`slapdash` by default) with the tables 
 schema, add `version(2)` in `src/adapters/local/db.ts`; never edit version 1. Tests inject
 a fresh `fake-indexeddb` factory per test with `createLocalBackend({ indexedDB, IDBKeyRange })`.
 
+## The Supabase adapter (`src/adapters/supabase/`)
+
+The hosted copy's backend (ADR-0001 §10, ADR-0002 §D1 P5). The schema is
+`supabase/migrations/20261125000000_projects.sql` at the repo root:
+
+- `projects`: one row per project and user, primary key `(user_id, id)`. The summary columns
+  (`name`, `named`, `created_at`, `updated_at`, `part_count`) make `list()` cheap; `body`
+  (`{ meta, project, history }`) and `chat` are `jsonb`. Times are `bigint` ms, so
+  `ProjectMeta` round-trips exactly. Project ids are any string the app picks, not UUIDs.
+- `project_files`: file metadata, primary key `(user_id, project_id, id)`. No foreign key to
+  `projects`, because the contract lets a file be stored before its project's first save.
+- The private bucket `project-files` holds the bytes at `<user_id>/<project_id>/<file_id>`
+  (ids that aren't plain `[A-Za-z0-9_-]` are written as `b64.<base64url>`: Storage keys can't
+  hold `%`). 25 MB per file.
+- Row-level security on both tables and on `storage.objects`: each user reaches only their own
+  rows and their own folder. The `anon` role gets nothing.
+
+`save()` is one upsert, so a row is replaced whole or not at all. `delete()` removes the
+objects first, then the rows, so a failure leaves rows a retry can find. Errors go through
+`toStorageError()` (`errors.ts`): no network, a timeout, 5xx, 540 or "project is paused" become
+`unavailable` with "Slapdash's cloud storage isn't answering…"; 413 becomes `too_large`; an
+expired session becomes "You've been signed out. Sign in again to sync."
+
+`SupabaseAuth`: `signIn({ kind: 'password' })` and `signIn({ kind: 'passkey' })` (Supabase's
+native WebAuthn; `conditional: true` offers it from the email field's autofill), plus the
+optional `Auth` extras `accessToken()` and `passkeys.{ supported, register }`.
+`currentUser()` reads the persisted session without the network, so the app opens offline or
+while the project is paused. Sign-in errors are plain sentences (`SIGN_IN_MESSAGES`).
+`@supabase/supabase-js` is pinned exactly because the passkey API is new. (In 2.119 the
+`experimental.passkey` client flag is deprecated and ignored: passkeys are on by default, so
+the adapter doesn't set it.)
+
+`DeviceState` stays on the device by definition, so the factory takes the caller's
+(`device: local.device`); without one it uses an in-memory one (tests).
+
+## Sync (`src/sync/`)
+
+`createSyncedBackend({ local, remote, journal })` is how the app uses a remote backend. It has
+no SDK code: `local` and `remote` are any two `StorageBackend`s.
+
+- **Writes** go to `local` and return as soon as that's done. The id goes into the journal
+  (the push queue, kept in the local database's `device` table by `LocalSyncJournal`), and the
+  push loop sends it. When the remote is unavailable the loop stops, the status becomes
+  `offline` with the adapter's sentence, and it retries with backoff (5 s doubling to 5 min) or
+  at once on `retry()`.
+- **Reads** merge both: the newer `meta.updatedAt` wins, and a remote copy that's newer (and
+  not waiting to be pushed from here) is kept locally. A project only the remote has is listed
+  and fetched on `load`. A project that was synced before and is gone from the remote was
+  deleted on another device and is removed here; one that was never synced is queued, never
+  dropped. Reads wait at most 5 s for the remote, then use the local copy.
+- **Conflicts**: the journal remembers the `updatedAt` last synced per project (its baseline).
+  If the remote copy is newer than that when we push, another device changed it too: the
+  remote version wins the id, and ours is saved as a new project "<name> (conflict, this
+  device)" (with its files) and pushed. `onConflict` tells the app.
+- `adoptProjects(from, into)` copies every project and file (keeping ids). The app uses it once
+  per user and device to move projects made before sign-in into the account.
+
+`SyncStatus` is `synced | syncing (pending) | offline (message, pending)`.
+
 ## Scripts
 
 ```sh
-pnpm --filter @slapdash/storage test       # vitest (node environment, fake-indexeddb)
+pnpm --filter @slapdash/storage test             # vitest (node environment, fake-indexeddb); the Supabase file skips itself
 pnpm --filter @slapdash/storage typecheck
+pnpm --filter @slapdash/storage test:supabase    # the shared suites + RLS tests against a local Supabase (needs Docker)
+pnpm --filter @slapdash/storage test:supabase --stop   # …and stop the stack afterwards
 ```
+
+`test:supabase` (also `pnpm test:supabase` at the root) runs `supabase start` (which applies
+the migration), reads the URL and keys from `supabase status -o env`, and runs
+`test/supabase-adapter.test.ts`: `describeProjectStore`, `describeAuth` and
+`describeDeviceState`, then the row-level-security checks (another user sees nothing, can't
+download your objects; a signed-out client reads nothing; a wrong password gives a plain
+message). Each test gets a fresh confirmed user made with the admin API and deleted after. To
+run it against a hosted project instead, set `SUPABASE_TEST_URL`,
+`SUPABASE_TEST_PUBLISHABLE_KEY` and `SUPABASE_TEST_SECRET_KEY` and run
+`pnpm --filter @slapdash/storage exec vitest run test/supabase-adapter.test.ts`.
