@@ -347,7 +347,7 @@ export class CommandBus {
     for (const fn of this.#listeners) fn(this.#project, event);
   }
 
-  // ── Persistence hooks (storage is a later ticket) ─────────────────────────
+  // ── Persistence hooks (used by @slapdash/storage) ─────────────────────────
 
   /** History and versions as plain data. Commands in a still-open group are not included; end it first. */
   serialize(): SerializedBus {
