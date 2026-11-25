@@ -3,6 +3,7 @@ import { builderCommands } from './builders.ts';
 import { internalCommands } from './internal.ts';
 import { jointCommands } from './joints.ts';
 import { partCommands } from './parts.ts';
+import { priceCommands, setPricesCommand } from './prices.ts';
 import { projectCommands } from './project.ts';
 import { siteCommands } from './site.ts';
 import type { AnyCommandDef } from './types.ts';
@@ -14,7 +15,9 @@ const all: AnyCommandDef[] = [
   ...jointCommands,
   ...builderCommands,
   ...siteCommands,
+  ...priceCommands,
   ...internalCommands,
+  setPricesCommand,
 ] as AnyCommandDef[];
 
 /** Every command by name, including the internal ones used for undo. */

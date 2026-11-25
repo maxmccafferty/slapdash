@@ -32,6 +32,12 @@ describe('agent tools', () => {
     for (const n of ['set_site_location', 'set_design_load', 'clear_design_load']) expect(names).toContain(n);
   });
 
+  it("include the person's own prices, but not the internal undo command", () => {
+    const names = tools.map((t) => t.name);
+    for (const n of ['set_price', 'clear_price']) expect(names).toContain(n);
+    expect(names).not.toContain('set_prices');
+  });
+
   it('give every agent tool a strict input schema', () => {
     for (const name of AGENT_TOOL_NAMES) {
       const tool = tools.find((t) => t.name === name)!;

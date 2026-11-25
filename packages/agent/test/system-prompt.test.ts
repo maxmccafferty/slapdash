@@ -55,6 +55,10 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toContain('<pointing_at>');
   });
 
+  it('tells Claude to record the person\'s prices with set_price', () => {
+    expect(SYSTEM_PROMPT).toContain('When the person gives a price, call set_price; it replaces the table price for this project.');
+  });
+
   it('names only tools that exist', () => {
     const names = new Set(agentTools().map((t) => t.name));
     const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation' && m !== 'pointing_at');

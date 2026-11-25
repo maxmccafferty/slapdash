@@ -12,6 +12,7 @@
  */
 import { z } from 'zod';
 import { ASSEMBLY_KINDS, PART_ROLES } from './ids.ts';
+import { zPriceUnit } from '../catalog/prices.ts';
 
 export const PROJECT_SCHEMA_VERSION = 1;
 
@@ -161,6 +162,29 @@ export const zIdCounters = z.strictObject({
   joints: z.number(),
 });
 
+/**
+ * A price the person gave for this project (ADR-0001 §11: user prices override the table
+ * per project). It replaces the table's low–high range with one number. Keyed in
+ * `Project.prices` by `materialId`, or `materialId|variant` for one size.
+ */
+export const zUserPrice = z.strictObject({
+  materialId: z.string(),
+  /** A section id ("2x4") or sheet thickness ("23/32in"); absent means every size. */
+  variant: z.string().optional(),
+  usd: z.number().positive(),
+  per: zPriceUnit,
+  /** The board length a per-piece lumber price is for. */
+  length_mm: z.number().positive().optional(),
+  note: z.string().optional(),
+  source: z.literal('user'),
+});
+export type UserPrice = z.infer<typeof zUserPrice>;
+
+/** The `Project.prices` key for a material and optional size. */
+export function userPriceKey(materialId: string, variant?: string): string {
+  return variant === undefined ? materialId : `${materialId}|${variant}`;
+}
+
 export const zProject = z.strictObject({
   schemaVersion: z.literal(PROJECT_SCHEMA_VERSION),
   name: z.string(),
@@ -170,6 +194,8 @@ export const zProject = z.strictObject({
   parts: z.record(z.string(), zPart),
   joints: z.record(z.string(), zJoint),
   site: zSiteSettings,
+  /** The person's own prices; optional, so v1 files without it still load. */
+  prices: z.record(z.string(), zUserPrice).optional(),
   counters: zIdCounters,
 });
 export type Project = z.infer<typeof zProject>;
