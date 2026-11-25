@@ -5,8 +5,9 @@
  */
 import { fileURLToPath } from 'node:url';
 import { AgentMemory, fetchKeyholeClient, runTurn, type AgentEvent, type KeyholeClient, type TurnResult, type UserInput } from '@slapdash/agent';
-import { TIER1_CATALOG } from '@slapdash/catalog';
-import { CommandBus, createProject, type Project } from '@slapdash/core';
+import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
+import { CommandBus, createProject, indexCatalog, type Project, type SiteDefaults } from '@slapdash/core';
+import { analyze } from '@slapdash/solver';
 import { createKeyholeFromEnv, type Env } from '@slapdash/keyhole';
 
 const REPO_USAGE_FILE = fileURLToPath(new URL('../../.data/usage.json', import.meta.url));
@@ -28,7 +29,10 @@ export interface EvalSession {
 }
 
 export function evalSession(client: KeyholeClient, opts: { project?: Project; log?: (line: string) => void } = {}): EvalSession {
-  const bus = new CommandBus({ project: opts.project ?? createProject({ name: 'Eval' }), catalog: TIER1_CATALOG });
+  const siteDefaults: SiteDefaults = { table: DESIGN_LOAD_TABLE };
+  const bus = new CommandBus({ project: opts.project ?? createProject({ name: 'Eval' }), catalog: TIER1_CATALOG, siteDefaults: () => siteDefaults });
+  const index = indexCatalog(TIER1_CATALOG);
+  const analysis = async (p: Project) => analyze(p, index, { siteDefaults });
   const memory = new AgentMemory();
   const log = opts.log ?? (() => {});
   let n = 0;
@@ -40,6 +44,6 @@ export function evalSession(client: KeyholeClient, opts: { project?: Project; lo
     bus,
     memory,
     turn: (input) =>
-      runTurn({ bus, memory, client, onEvent, newTurnId: () => `eval-${++n}` }, typeof input === 'string' ? { text: input } : input),
+      runTurn({ bus, memory, client, onEvent, analysis, siteDefaults, newTurnId: () => `eval-${++n}` }, typeof input === 'string' ? { text: input } : input),
   };
 }
