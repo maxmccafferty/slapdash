@@ -1,0 +1,137 @@
+/**
+ * The compact `<project>` block that starts every message from the person, so Claude knows
+ * the ids and key sizes without asking for everything. Deterministic: the same project gives
+ * the same text. Detail comes from the query tools.
+ */
+import {
+  DESIGN_LOAD_KEYS,
+  formatLoad,
+  resolveDesignLoads,
+  type Assembly,
+  type DesignLoadKey,
+  type Part,
+  type Project,
+  type SiteDefaults,
+} from '@slapdash/core';
+import { clip, compareIds, ft, plural } from './format.ts';
+import { boundsOf } from './tools/queries.ts';
+
+export interface SummaryOptions {
+  siteDefaults?: SiteDefaults;
+  /** Names of saved versions. */
+  versions?: readonly string[];
+  /** The plan from the previous turn, waiting for the person's answer. */
+  pendingPlan?: string | null;
+  /** The big-change check; false after "just do it". Default true. */
+  confirmBigChanges?: boolean;
+  /** Assembly lines before "…N more". Default 40. */
+  maxAssemblies?: number;
+}
+
+const LOAD_WORDS: Record<DesignLoadKey, string> = { groundSnow: 'snow', windSpeed: 'wind', frostDepth: 'frost' };
+
+type Pt = { x: number; z: number };
+const isPt = (v: unknown): v is Pt => typeof v === 'object' && v !== null && typeof (v as Pt).x === 'number' && typeof (v as Pt).z === 'number';
+const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+const pt = (p: Pt) => `(${ft(p.x)}, ${ft(p.z)})`;
+
+/** Key dimensions from the builder recipe, or the bounds when there is none. */
+function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
+  const p = asm.builder?.params ?? {};
+  switch (asm.builder?.name) {
+    case 'pour_slab':
+      if (isPt(p.from) && isPt(p.to)) {
+        const t = num(p.thickness);
+        return `${ft(Math.abs(p.to.x - p.from.x))} × ${ft(Math.abs(p.to.z - p.from.z))}${t ? ` × ${ft(t)}` : ''}`;
+      }
+      break;
+    case 'build_wall':
+      if (isPt(p.start) && isPt(p.end)) {
+        const h = num(p.height);
+        const len = num(p.length);
+        return `${pt(p.start)}→${pt(p.end)}${len ? ` · ${ft(len)} long` : ''}${h ? ` · ${ft(h)} high` : ''}`;
+      }
+      break;
+    case 'add_opening': {
+      const w = num(p.width);
+      const h = num(p.height);
+      const at = num(p.at);
+      if (w && h) return `${ft(w)} × ${ft(h)} ${String(p.kind ?? 'opening')} RO in ${String(p.wallId)}${at !== undefined ? ` · from ${ft(at)} along the wall` : ''}`;
+      break;
+    }
+    case 'frame_floor':
+      if (isPt(p.from) && isPt(p.to)) {
+        const top = num(p.top);
+        return `${ft(Math.abs(p.to.x - p.from.x))} × ${ft(Math.abs(p.to.z - p.from.z))} · ${String(p.joistSize)} joists${top !== undefined ? ` · top ${ft(top)}` : ''}`;
+      }
+      break;
+    case 'build_roof':
+      if (isPt(p.from) && isPt(p.to)) {
+        const rise = num(p.pitchRise);
+        const pitch = rise !== undefined ? ` ${Number(rise.toFixed(2))}/12` : '';
+        const ridge = p.ridgeAxis === 'x' ? ' ridge E–W' : p.ridgeAxis === 'z' ? ' ridge N–S' : p.lowSide ? ` low side ${String(p.lowSide)}` : '';
+        return `${String(p.type)}${pitch}${ridge} over ${ft(Math.abs(p.to.x - p.from.x))} × ${ft(Math.abs(p.to.z - p.from.z))}`;
+      }
+      break;
+    case 'build_fence': {
+      const path = Array.isArray(p.path) ? p.path.filter(isPt) : [];
+      let run = 0;
+      for (let i = 1; i < path.length; i++) run += Math.hypot(path[i]!.x - path[i - 1]!.x, path[i]!.z - path[i - 1]!.z);
+      const h = num(p.height);
+      return `${ft(run)} run${h ? ` · ${ft(h)} high` : ''} · ${String(p.style ?? '')}`.trim();
+    }
+    case 'place_structure':
+      return `${String(p.kind)} at ${isPt(p.at) ? pt(p.at) : '?'} (site context)`;
+  }
+  const b = boundsOf(parts);
+  return b ? `${ft(b.max.x - b.min.x)} × ${ft(b.max.z - b.min.z)} × ${ft(b.max.y - b.min.y)}` : 'empty';
+}
+
+function siteLine(project: Project, defaults: SiteDefaults | undefined): string {
+  const site = resolveDesignLoads(project, defaults);
+  const bits: string[] = [];
+  bits.push(site.location ? `${site.location.label} (${site.location.source})` : 'location not set');
+  for (const key of DESIGN_LOAD_KEYS) {
+    const v = site.loads[key];
+    bits.push(v ? `${LOAD_WORDS[key]} ${formatLoad(key, v.value)} (${v.overridden ? 'project' : v.source})` : `${LOAD_WORDS[key]} not set`);
+  }
+  return `Site: ${bits.join(' · ')}`;
+}
+
+/** The `<project>` … `</project>` block. */
+export function projectSummary(project: Project, opts: SummaryOptions = {}): string {
+  const parts = Object.values(project.parts);
+  const lines = [
+    `Name: ${project.name} · units ${project.units.display} · ${plural(parts.length, 'part')} · ${plural(Object.keys(project.joints).length, 'joint')}`,
+    siteLine(project, opts.siteDefaults),
+  ];
+  const b = boundsOf(parts);
+  lines.push(
+    b
+      ? `Bounds: ${ft(b.max.x - b.min.x)} E–W × ${ft(b.max.z - b.min.z)} N–S × ${ft(b.max.y - b.min.y)} tall (origin SW corner, +x east, +z south)`
+      : 'Bounds: nothing built yet (origin SW corner, +x east, +z south)',
+  );
+
+  const byAssembly = new Map<string, Part[]>();
+  for (const part of parts) {
+    const list = byAssembly.get(part.assemblyId);
+    if (list) list.push(part);
+    else byAssembly.set(part.assemblyId, [part]);
+  }
+  const assemblies = Object.values(project.assemblies).sort((x, y) => compareIds(x.id, y.id));
+  if (assemblies.length === 0) {
+    lines.push('Assemblies: none');
+  } else {
+    lines.push('Assemblies:');
+    const max = opts.maxAssemblies ?? 40;
+    for (const asm of assemblies.slice(0, max)) {
+      const own = byAssembly.get(asm.id) ?? [];
+      lines.push(`- ${asm.id} ${asm.name} (${asm.kind}) ${keyDimensions(asm, own)} · ${plural(own.length, 'part')}`);
+    }
+    if (assemblies.length > max) lines.push(`- …${assemblies.length - max} more; use find_parts`);
+  }
+  if (opts.versions && opts.versions.length > 0) lines.push(`Saved versions: ${opts.versions.join(', ')}`);
+  if (opts.pendingPlan) lines.push(`Pending plan: "${clip(opts.pendingPlan, 300)}"`);
+  lines.push(`Big-change check: ${opts.confirmBigChanges === false ? 'off ("just do it")' : 'on'}`);
+  return `<project>\n${lines.join('\n')}\n</project>`;
+}

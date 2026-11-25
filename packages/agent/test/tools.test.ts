@@ -1,11 +1,11 @@
 import { commandJsonSchemas, exposedCommands } from '@slapdash/core';
 import { describe, expect, it } from 'vitest';
-import { agentTools, buildAgentTools } from '../src/index.ts';
+import { AGENT_TOOL_NAMES, agentTools, buildAgentTools } from '../src/index.ts';
 
 describe('agent tools', () => {
   const tools = agentTools();
 
-  it('are the exposed commands plus the history tools, in a fixed order', () => {
+  it('are the exposed commands, the history tools, then the agent tools, in a fixed order', () => {
     expect(tools.map((t) => t.name)).toEqual([
       ...exposedCommands().map((d) => d.name),
       'undo',
@@ -14,8 +14,35 @@ describe('agent tools', () => {
       'save_version',
       'list_versions',
       'restore_version',
+      'find_parts',
+      'get_part',
+      'measure',
+      'list_materials',
+      'snapshot',
+      'propose_plan',
+      'request_photo',
+      'set_preferences',
     ]);
-    expect(tools.map((t) => t.name)).toEqual(commandJsonSchemas().map((t) => t.name));
+    expect(tools.map((t) => t.name).slice(0, commandJsonSchemas().length)).toEqual(commandJsonSchemas().map((t) => t.name));
+  });
+
+  it('include the location and design-load overrides', () => {
+    const names = tools.map((t) => t.name);
+    for (const n of ['set_site_location', 'set_design_load', 'clear_design_load']) expect(names).toContain(n);
+  });
+
+  it('give every agent tool a strict input schema', () => {
+    for (const name of AGENT_TOOL_NAMES) {
+      const tool = tools.find((t) => t.name === name)!;
+      expect(tool.input_schema.type, name).toBe('object');
+      expect(tool.input_schema.additionalProperties, name).toBe(false);
+      expect(tool.description.length, name).toBeGreaterThan(40);
+    }
+  });
+
+  it('take lengths as strings, so Claude never converts units', () => {
+    const measure = tools.find((t) => t.name === 'measure')!;
+    expect(JSON.stringify(measure.input_schema)).toContain('16ft 6in');
   });
 
   it('have unique names', () => {
