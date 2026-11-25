@@ -43,20 +43,26 @@ export interface SiteLoads {
   windSpeed: SourcedValue;
 }
 
+/**
+ * Ground snow and wind speed as the solver uses them. `resolveDesignLoads` gives the
+ * project override, then the loads-table row for the location, then the app fallback;
+ * past that the solver's own defaults apply and say why.
+ */
 export function siteLoads(project: Project, defaults: SiteDefaults | undefined): SiteLoads {
   const site = resolveDesignLoads(project, defaults);
   const snow = site.loads.groundSnow;
   const wind = site.loads.windSpeed;
+  const why = !site.location ? 'no location set' : site.locationInTable ? `no value for ${site.location.label}` : `${site.location.label} is not in the loads table`;
   return {
     groundSnow: snow
       ? { value: snow.value, unit: 'kPa', source: snow.overridden ? `project: ${snow.source}` : snow.source }
       : {
           value: BUILDER_DEFAULTS.groundSnowPsf * KPA_PER_PSF,
           unit: 'kPa',
-          source: `default ${BUILDER_DEFAULTS.groundSnowPsf} psf ground snow (no location set)`,
+          source: `default ${BUILDER_DEFAULTS.groundSnowPsf} psf ground snow (${why})`,
         },
     windSpeed: wind
       ? { value: wind.value, unit: 'm/s', source: wind.overridden ? `project: ${wind.source}` : wind.source }
-      : { value: DEFAULT_WIND_SPEED_MS, unit: 'm/s', source: 'default 115 mph basic wind speed (no location set)' },
+      : { value: DEFAULT_WIND_SPEED_MS, unit: 'm/s', source: `default 115 mph basic wind speed (${why})` },
   };
 }

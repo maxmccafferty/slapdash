@@ -38,9 +38,30 @@ describe('site loads (ASCE 7-22)', () => {
     const p = poolHouse();
     const s = siteLoads(p, undefined);
     expect(s.groundSnow.value).toBeCloseTo(30 * KPA_PER_PSF, 9);
-    expect(s.groundSnow.source).toMatch(/default 30 psf/);
+    expect(s.groundSnow.source).toBe('default 30 psf ground snow (no location set)');
     expect(s.windSpeed.value).toBe(DEFAULT_WIND_SPEED_MS);
     expect(s.windSpeed.source).toMatch(/115 mph/);
+  });
+
+  it("the location's table row comes through with its sources", () => {
+    const p = structuredClone(poolHouse());
+    const table = {
+      'bend, or': {
+        label: 'Bend, OR',
+        loads: {
+          groundSnow: { value: 25 * KPA_PER_PSF, unit: 'kPa' as const, source: 'Bend snow source' },
+          windSpeed: { value: 98 * MS_PER_MPH, unit: 'm/s' as const, source: 'Bend wind source' },
+        },
+      },
+    };
+    const s = siteLoads(p, { location: { label: 'Bend, OR' }, table });
+    expect(s.groundSnow).toEqual({ value: 25 * KPA_PER_PSF, unit: 'kPa', source: 'Bend snow source' });
+    expect(s.windSpeed).toEqual({ value: 98 * MS_PER_MPH, unit: 'm/s', source: 'Bend wind source' });
+    // The project's own location wins over the default; this one isn't in the table.
+    p.site.location = { label: 'Nowhere, ZZ', source: 'project' };
+    const missing = siteLoads(p, { location: { label: 'Bend, OR' }, table });
+    expect(missing.groundSnow.source).toBe('default 30 psf ground snow (Nowhere, ZZ is not in the loads table)');
+    expect(missing.windSpeed.source).toBe('default 115 mph basic wind speed (Nowhere, ZZ is not in the loads table)');
   });
 
   it('a project override wins and keeps its source', () => {

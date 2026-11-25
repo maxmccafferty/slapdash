@@ -81,8 +81,8 @@ flexible", which is a warning.
 | `D` | Self-weight (density × volume, or areal mass × face), plus optional superimposed dead |
 | `L` | 40 psf (1.92 kPa) on floor sheathing |
 | `Lr` | 20 psf (0.96 kPa) on roof sheathing, on the horizontal projection |
-| `S` | `ps = Cs·0.7·Ce·Ct·Is·pg`, with Ce = Ct = Is = 1 and Cs for a warm roof (ASCE 7-22 Fig. 7.4-1). `pg` comes from the project or app defaults, otherwise 30 psf |
-| `W±x`, `W±z` | `qh = 0.613·Kz·Kzt·Kd·Ke·V²` (exposure C, Kd = 0.85). Simplified envelope: windward wall +0.8, leeward −0.5, roof −0.9 normal to the surface, side walls not loaded. `V` comes from the project or app defaults, otherwise 115 mph |
+| `S` | `ps = Cs·0.7·Ce·Ct·Is·pg`, with Ce = Ct = Is = 1 and Cs for a warm roof (ASCE 7-22 Fig. 7.4-1). `pg` comes from the project's override, then the loads-table row for the location (`DESIGN_LOAD_TABLE` in `@slapdash/catalog`, passed as `siteDefaults.table`), then the app fallback, otherwise 30 psf; the source says which |
+| `W±x`, `W±z` | `qh = 0.613·Kz·Kzt·Kd·Ke·V²` (exposure C, Kd = 0.85). Simplified envelope: windward wall +0.8, leeward −0.5, roof −0.9 normal to the surface, side walls not loaded. `V` comes the same way (project, loads table, app fallback), otherwise 115 mph |
 
 An assembly with no sheathing takes its area loads straight on its rafters, joists or
 studs, over the builder's spacing (default 16 in).
