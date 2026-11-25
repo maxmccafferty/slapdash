@@ -498,7 +498,7 @@ export function layoutWall(
       return;
     }
     resolved.push(r.opening);
-    const unit = openingUnitMaterial(catalog);
+    const unit = r.opening.product ?? openingUnitMaterial(catalog);
     frameOpening(state, r.opening, openingRef(i), unit ? { materialId: unit, seq: openingSeq + resolved.length - 1 } : undefined);
   });
   if (errors.length > 0) return { state, openings: resolved, joints: [], backers: [], notes, errors };

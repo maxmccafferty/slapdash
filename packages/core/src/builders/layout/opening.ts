@@ -48,6 +48,15 @@ export const zOpeningFields = {
     .describe(
       `Windows only: height of the bottom of the rough opening above the subfloor. Default puts the top of the window at 82 1/2in, level with a door head. ${LENGTH_DESCRIPTION}`,
     ),
+  product: z
+    .string()
+    .min(1)
+    .optional()
+    .describe('A specific window or door from the catalog (category opening, e.g. "window-casement" or "door-french"). Default: a generic unit, unpriced until you pick one.'),
+  safetyGlazing: z
+    .boolean()
+    .optional()
+    .describe('Mark the unit as tempered or laminated safety glazing (needed near a pool, in and beside doors, near tubs). Default false.'),
 };
 export const zOpeningItem = z.strictObject(zOpeningFields).describe('An opening to frame in this wall.');
 export type OpeningInput = z.output<typeof zOpeningItem>;
@@ -67,6 +76,10 @@ export interface ResolvedOpening {
   framingU1: number;
   /** Why this header: the table column used. */
   headerNote: string;
+  /** A specific catalog unit, when given. */
+  product?: string;
+  /** Asked for tempered or laminated glazing. */
+  safetyGlazing?: boolean;
 }
 
 /** A framed opening already in the wall (from its O assembly) or earlier in the same build. */
@@ -232,7 +245,23 @@ export function resolveOpening(
 
   return {
     ok: true,
-    opening: { kind: input.kind, roU0, roU1, roBottom, roTop, width, height, header, jacks, kings, framingU0, framingU1, headerNote },
+    opening: {
+      kind: input.kind,
+      roU0,
+      roU1,
+      roBottom,
+      roTop,
+      width,
+      height,
+      header,
+      jacks,
+      kings,
+      framingU0,
+      framingU1,
+      headerNote,
+      ...(input.product !== undefined ? { product: input.product } : {}),
+      ...(input.safetyGlazing !== undefined ? { safetyGlazing: input.safetyGlazing } : {}),
+    },
   };
 }
 
@@ -396,7 +425,7 @@ export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: s
   if (panel) {
     addMember(state, {
       role: 'panel',
-      tags: [o.kind, `opening:${openingRef}`],
+      tags: [o.kind, `opening:${openingRef}`, ...(o.safetyGlazing ? ['safety-glazing'] : [])],
       box: { u0: o.roU0, u1: o.roU1, v0: o.roBottom, v1: o.roTop, w0: 0, w1: D },
       lengthAxis: 'u',
       widthAxis: 'v',

@@ -1,5 +1,5 @@
 import { expect } from 'vitest';
-import { CommandBus, SAMPLE_CATALOG, commandRegistry, createProject, indexCatalog, type Project } from '../src/index.ts';
+import { CommandBus, SAMPLE_CATALOG, checkJoint, commandRegistry, createProject, findAllClashes, indexCatalog, type Project } from '../src/index.ts';
 import type { AppliedCommand, ApplyResult, CommandContext } from '../src/commands/types.ts';
 import type { CommandError } from '../src/commands/errors.ts';
 import { zodIssuesToErrors } from '../src/commands/errors.ts';
@@ -104,4 +104,20 @@ export function fixtureProject(): Project {
   p = runOk(p, 'connect', { jointTypeId: 'nailed-16d', partIds: ['W1-S01', 'W1-P01'], at: { x: 0, y: 38.1, z: 0 } }).project;
   p = runOk(p, 'connect', { jointTypeId: 'post-base', partIds: ['W1-S02', 'GROUND'], at: { x: '16in', y: 0, z: 0 } }).project;
   return p;
+}
+
+/**
+ * No part runs through another (site context excepted, and posts set into their own
+ * concrete pier on purpose), and every joint passes the bus's joint checks.
+ */
+export function expectSound(p: Project, cat = catalog) {
+  const joints = Object.values(p.joints);
+  const embedded = new Set(joints.filter((j) => j.jointTypeId === 'post-embedded').map((j) => [...j.partIds].sort().join('|')));
+  const skip = (a: { id: string; tags: string[] }, b: { id: string; tags: string[] }) =>
+    a.tags.includes('site-context') || b.tags.includes('site-context') || embedded.has([a.id, b.id].sort().join('|'));
+  expect(findAllClashes(p, { skip })).toEqual([]);
+  for (const j of joints) {
+    const { [j.id]: _self, ...others } = p.joints;
+    expect(checkJoint({ ...p, joints: others }, j, cat), j.id).toEqual([]);
+  }
 }

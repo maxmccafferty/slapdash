@@ -9,9 +9,11 @@ import { checkCatalogRefs, emit, fail, type Layout, type LayoutResult } from '..
 import { contactJoints } from '../builders/contact.ts';
 import { zBuilderMaterials } from '../builders/defaults.ts';
 import { SPACINGS, largestHeader, pickHeader } from '../builders/rules.ts';
-import { builderSeq, fi, sectionDims, snowLoad, zBuilderName, zPlanPoint } from '../builders/util.ts';
-import { layoutFence } from '../builders/layout/fence.ts';
+import { builderSeq, fi, requireMaterial, sectionDims, snowLoad, zBuilderName, zPlanPoint } from '../builders/util.ts';
+import { FENCE_STYLES, layoutFence } from '../builders/layout/fence.ts';
+import { layoutDeck } from '../builders/layout/deck.ts';
 import { layoutFloor } from '../builders/layout/floor.ts';
+import { layoutPergola } from '../builders/layout/pergola.ts';
 import {
   bottomPlates,
   frameHeader,
@@ -52,6 +54,31 @@ function validateLayout(project: Project, layout: Layout, ctx: CommandContext): 
   return clashes.length > 0 ? [describeClashes(project, clashes, layout.what)] : [];
 }
 
+/**
+ * A specific window or door unit may not take the 16d nails contact framing uses (vinyl
+ * windows are nailed through their fin with roofing nails). Re-type joints to an opening
+ * unit to the first of these that both sides accept.
+ */
+const OPENING_JOINT_FALLBACKS = ['nailed-16d', 'nailed-roofing', 'screwed-structural'];
+function fitOpeningJoints(project: Project, res: LayoutResult, ctx: CommandContext): LayoutResult {
+  if (!res.ok) return res;
+  const specs = new Map(res.layout.parts.map((p) => [p.key, p]));
+  const materialOf = (ref: string) => ctx.catalog.materials.get(specs.get(ref)?.materialId ?? project.parts[ref]?.materialId ?? '');
+  let changed = false;
+  const joints = res.layout.joints.map((j) => {
+    const a = materialOf(j.a);
+    const b = j.b === 'GROUND' ? undefined : materialOf(j.b);
+    if (a?.category !== 'opening' && b?.category !== 'opening') return j;
+    const ok = (id: string) => (a?.acceptsJoints.includes(id) ?? true) && (b?.acceptsJoints.includes(id) ?? true);
+    if (ok(j.jointTypeId)) return j;
+    const alt = OPENING_JOINT_FALLBACKS.find(ok);
+    if (!alt) return j;
+    changed = true;
+    return { ...j, jointTypeId: alt };
+  });
+  return changed ? { ok: true, layout: { ...res.layout, joints } } : res;
+}
+
 function builderCommand<S extends z.ZodType>(def: {
   name: string;
   description: string;
@@ -64,11 +91,11 @@ function builderCommand<S extends z.ZodType>(def: {
     exposed: true,
     schema: def.schema,
     check(project, input, ctx) {
-      const res = def.layout(project, input, ctx);
+      const res = fitOpeningJoints(project, def.layout(project, input, ctx), ctx);
       return res.ok ? validateLayout(project, res.layout, ctx) : res.errors;
     },
     apply(project, input, ctx) {
-      const res = def.layout(project, input, ctx);
+      const res = fitOpeningJoints(project, def.layout(project, input, ctx), ctx);
       if (!res.ok) throw new Error(formatErrors(res.errors));
       const out = emit(project, res.layout);
       const patch = { put: out.put, remove: out.remove, counters: out.counters };
@@ -113,6 +140,8 @@ function wallLayout(project: Project, input: z.output<typeof buildWallSchema>, c
   const r = resolveWall(project, input, ctx.catalog, ctx.siteDefaults);
   if (!r.ok) return fail(...r.errors);
   const openings = input.openings ?? [];
+  const productErrs = openings.flatMap((o, i) => checkProduct(o.product, ctx, `openings[${i}].product`) ?? []);
+  if (productErrs.length > 0) return fail(...productErrs);
   const openingSeq = builderSeq(project, OPENING_BUILDER);
   const wl = layoutWall(project, r.params, r.butts, openings, '#w', (i) => `#o${i}`, ctx.catalog, openingSeq);
   if (wl.errors.length > 0) return fail(...wl.errors);
@@ -177,9 +206,17 @@ function openingAssembly(key: string, o: ResolvedOpening, wallRef: string, wallN
         jacks: o.jacks,
         kings: o.kings,
         headerRule: o.headerNote,
+        // Only when given, so recipes made before these fields existed stay the same.
+        ...(o.product !== undefined ? { product: o.product } : {}),
+        ...(o.safetyGlazing !== undefined ? { safetyGlazing: o.safetyGlazing } : {}),
       },
     }),
   };
+}
+
+/** A `product` must be a catalog opening (window or door unit). */
+function checkProduct(product: string | undefined, ctx: CommandContext, path: string): CommandError | null {
+  return product === undefined ? null : requireMaterial(ctx.catalog, product, ['opening'], path);
 }
 
 const buildWallSchema = z.strictObject({
@@ -238,9 +275,11 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
   }
   const state = loadWallState(project, input.wallId, params);
   const braces = state.items.filter((i) => i.role === 'brace').map((i) => i.box);
+  const productErr = checkProduct(input.product, ctx, 'product');
+  if (productErr) return fail(productErr);
   const r = resolveOpening(params, input, openingsIn(project, input.wallId), braces, (id) => sectionDims(ctx.catalog, id).depth);
   if (!r.ok) return fail(...r.errors);
-  const unit = openingUnitMaterial(ctx.catalog);
+  const unit = r.opening.product ?? openingUnitMaterial(ctx.catalog);
   const seq = builderSeq(project, OPENING_BUILDER);
   frameOpening(state, r.opening, '#o', unit ? { materialId: unit, seq } : undefined);
 
@@ -332,19 +371,103 @@ export const buildRoof = builderCommand({
 
 // ── build_fence ─────────────────────────────────────────────────────────────
 
+const zFenceGate = z
+  .strictObject({
+    at: zLength.optional().describe(`Where the gate opening starts, measured along the whole path from its first point. Give "at" or "centerAt". ${LENGTH_DESCRIPTION}`),
+    centerAt: zLength.optional().describe(`Where the middle of the gate opening is, measured along the whole path. ${LENGTH_DESCRIPTION}`),
+    width: zPositiveLength.optional().describe(`Opening between the gate posts, 3ft to 6ft. Default 4ft. ${LENGTH_DESCRIPTION}`),
+    hinge: z.enum(['start', 'end']).optional().describe('Which gate post the hinges go on, the one nearer the start or the end of the path. Default "start".'),
+    swing: z.enum(['in', 'out']).optional().describe('"in" swings toward the pool side (or the left of the path), "out" away. Default "out"; a pool barrier gate must swing out.'),
+  })
+  .describe('A single gate in the fence line.');
+
 export const buildFence = builderCommand({
   name: 'build_fence',
   description:
-    'Build a wood fence along a path: pressure-treated 4x4 posts set in concrete at every corner and at most 8ft apart, 2x4 rails (3 rails over 5ft tall), and 1x6 privacy boards or 1x4 pickets.',
+    'Build a fence along a path. Styles: "privacy" (1x6 boards) or "picket" (1x4 pickets) on 2x4 rails and pressure-treated 4x4 posts set in concrete at most 8ft apart; "chain-link" (galvanized terminal and line posts at most 10ft apart, top rail, fabric); "aluminum" (6ft panels on 2x2 posts); "glass" (frameless tempered panels on spigots in a concrete deck). Gates get posts on both sides, hinges and a latch. With "poolBarrier": at least 4ft tall, gaps under 4in, 1 1/4in mini-mesh for chain link, rails on the pool side, self-closing hinges and a magnetic latch 54in up, gates swinging away from the pool (IRC Appendix AG105; a reminder, not a code check).',
   schema: z.strictObject({
     path: z.array(zPlanPoint).min(2).describe('Fence line: two or more plan points; a post goes at each.'),
-    height: zPositiveLength.optional().describe(`Fence height above grade, 3ft to 8ft. Default 6ft. ${LENGTH_DESCRIPTION}`),
-    style: z.enum(['privacy', 'picket']).optional().describe('"privacy" (tight 1x6 boards, default) or "picket" (1x4 pickets with 3 1/2in gaps).'),
-    postSpacing: zPositiveLength.optional().describe(`Maximum post spacing, up to 8ft. Default 8ft. ${LENGTH_DESCRIPTION}`),
+    height: zPositiveLength.optional().describe(`Fence height above grade, 3ft to 8ft (4ft minimum for a pool barrier, 6ft maximum for glass). Default 6ft (4ft for glass). ${LENGTH_DESCRIPTION}`),
+    style: z.enum(FENCE_STYLES).optional().describe('"privacy" (default), "picket", "chain-link", "aluminum" or "glass".'),
+    postSpacing: zPositiveLength
+      .optional()
+      .describe(`Maximum post spacing: up to 8ft for wood (default 8ft), 10ft for chain-link (default 10ft), 6ft for aluminum (default 6ft). Ignored for glass. ${LENGTH_DESCRIPTION}`),
+    infill: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Catalog material for the boards (lumber, for wood styles) or the fabric/panels (fencing, for chain-link, aluminum and glass). Default: the style\'s own.'),
+    gates: z.array(zFenceGate).max(8).optional().describe('Gates, each inside one straight run of the path.'),
+    poolBarrier: z.boolean().optional().describe('Build it as a pool barrier (IRC Appendix AG105 / ISPSC 305). Default false.'),
+    poolSide: z
+      .enum(['left', 'right'])
+      .optional()
+      .describe('Which side of the path, walking from its first point, the pool is on. Default: the side facing the nearest pool, else left.'),
     materials,
     name: zBuilderName,
   }),
   layout: (project, input, ctx) => layoutFence(project, input, ctx.catalog),
+});
+
+// ── build_pergola ───────────────────────────────────────────────────────────
+
+export const buildPergola = builderCommand({
+  name: 'build_pergola',
+  description:
+    'Build a freestanding pergola: pressure-treated posts on post bases and concrete piers (frost depth, 12in minimum), doubled beams bolted to the post tops, rafters across them with hurricane ties, and optionally a roof of 2x4 purlins and clear polycarbonate or metal panels. Beam spans pick the post count. "from"/"to" are the outside faces of the posts.',
+  schema: z.strictObject({
+    from: zPlanPoint.describe('One corner of the pergola (outside face of the posts).'),
+    to: zPlanPoint.describe('The opposite corner.'),
+    height: zPositiveLength.optional().describe(`Top of the beams on the high side. Default 8ft. ${LENGTH_DESCRIPTION}`),
+    postSize: z.enum(['4x4', '6x6']).optional().describe('Post size. Default "6x6".'),
+    beamSize: z.enum(['2x8', '2x10', '2x12']).optional().describe('Doubled beam size: 2x8 spans 8ft between posts, 2x10 10ft, 2x12 12ft. Default "2x8".'),
+    beamAxis: z.enum(['x', 'z']).optional().describe('Direction the beams run. Default: along the longer side (or across the low side if given).'),
+    rafterSize: z.enum(['2x6', '2x8']).optional().describe('Rafter size. Default "2x6".'),
+    rafterSpacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing. Default 16in, or 24in with roofing.'),
+    overhang: zLength.optional().describe(`How far beams and rafters run past the posts. Default 12in. ${LENGTH_DESCRIPTION}`),
+    roofing: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('"none" (default, open), "polycarbonate" (clear corrugated panels), "metal", or a catalog roofing material id.'),
+    slope: zPitch.optional().describe('Rafter slope, e.g. "1 in 12". Default 1 in 12 with roofing (polycarbonate needs at least that), flat when open.'),
+    lowSide: z.enum(['north', 'south', 'east', 'west']).optional().describe('The low side the rafters slope down to. Default north (beams along x) or west.'),
+    materials,
+    name: zBuilderName,
+  }),
+  layout: (project, input, ctx) => layoutPergola(project, input, ctx.catalog, ctx.siteDefaults),
+});
+
+// ── build_deck ──────────────────────────────────────────────────────────────
+
+export const buildDeck = builderCommand({
+  name: 'build_deck',
+  description:
+    'Build a freestanding deck (no ledger to the house): 6x6 posts on piers at most 8ft apart, doubled 2x10 beams, joists sized from IRC Table R507.6, and decking screwed down with 1/8in gaps. Over 30in up it adds a 36in guard (wood balusters, cable or glass); stairs come down one side on 2x12 stringers to a concrete pad with risers at most 7 3/4in. "from"/"to" are the outside of the rim.',
+  schema: z.strictObject({
+    from: zPlanPoint.describe('One corner of the deck (outside of the rim joist).'),
+    to: zPlanPoint.describe('The opposite corner.'),
+    height: zPositiveLength.describe(`Top of the decking above grade. ${LENGTH_DESCRIPTION}`),
+    joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default: the smallest that spans (IRC R507.6); more beams are added if needed.'),
+    spacing: z.enum(['12in', '16in']).optional().describe('Joist spacing. Default 16in, or 12in for composite decking (most makers require it).'),
+    joistDirection: z.enum(['x', 'z']).optional().describe('Direction the joists run. Default: across the shorter side.'),
+    decking: z.string().min(1).optional().describe('Decking material id: "pt-syp-no2-gc" (5/4x6 treated pine, default), "cedar-wrc" or "composite-decking".'),
+    railing: z
+      .enum(['auto', 'none', 'wood', 'cable', 'glass'])
+      .optional()
+      .describe('Guard infill. "auto" (default): wood balusters when the deck is over 30in up, else none. "none" is refused over 30in (IRC R312.1.1).'),
+    stairs: z
+      .strictObject({
+        side: z.enum(['north', 'south', 'east', 'west']).describe('The side the stairs come down from.'),
+        at: zLength.describe(`Where the stairs start along that side, from its west end (north/south sides) or north end (east/west sides). ${LENGTH_DESCRIPTION}`),
+        width: zPositiveLength.optional().describe(`Stair width, at least 3ft. Default 3ft. ${LENGTH_DESCRIPTION}`),
+      })
+      .optional()
+      .describe('One flight of stairs to grade.'),
+    materials,
+    name: zBuilderName,
+  }),
+  layout: (project, input, ctx) => layoutDeck(project, input, ctx.catalog, ctx.siteDefaults),
 });
 
 // ── place_structure ─────────────────────────────────────────────────────────
@@ -576,4 +699,4 @@ export const resizeHeader = builderCommand({
   layout: resizeHeaderLayout,
 });
 
-export const builderCommands = [pourSlab, buildWall, addOpening, resizeHeader, frameFloor, buildRoof, buildFence, placeStructure];
+export const builderCommands = [pourSlab, buildWall, addOpening, resizeHeader, frameFloor, buildRoof, buildFence, buildPergola, buildDeck, placeStructure];
