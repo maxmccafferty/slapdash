@@ -118,6 +118,14 @@ export const SECTION_SHAPES = ['rect', 'sheet', 'round', 'tube', 'i-beam', 'angl
 export const zSectionShape = z.enum(SECTION_SHAPES);
 export type SectionShape = z.infer<typeof zSectionShape>;
 
+/** One stock length a section is sold in, e.g. a 92 5/8in precut stud or a 12ft board. */
+export const zStockLength = z.strictObject({
+  length_mm: z.number().positive(),
+  /** What the trade calls it when it isn't just "a board", e.g. "precut stud". */
+  name: z.string().min(1).optional(),
+});
+export type StockLength = z.infer<typeof zStockLength>;
+
 export const zSection = z.strictObject({
   id: kebabId,
   name: z.string().min(1),
@@ -133,6 +141,11 @@ export const zSection = z.strictObject({
   }),
   /** Material categories this section is made in. */
   materialCategories: z.array(zMaterialCategory).min(1),
+  /**
+   * Board lengths this section is sold in, shortest first, for the cut-list optimizer.
+   * A section without `stock` is cut to length (priced and listed by the linear foot).
+   */
+  stock: z.array(zStockLength).min(1).optional(),
 });
 export type Section = z.infer<typeof zSection>;
 

@@ -3,7 +3,13 @@
  * tier-1 catalog (that lives in `packages/catalog`) and its numbers are rounded
  * placeholders, not design values.
  */
-import type { Catalog } from './schema.ts';
+import type { Catalog, StockLength } from './schema.ts';
+
+const FT = 304.8;
+const IN = 25.4;
+const boards = (...feet: number[]): StockLength[] => feet.map((f) => ({ length_mm: f * FT }));
+const precut = (...inches: number[]): StockLength[] => inches.map((i) => ({ length_mm: i * IN, name: 'precut stud' }));
+const sorted = (...lists: StockLength[][]): StockLength[] => lists.flat().sort((a, b) => a.length_mm - b.length_mm);
 
 export const SAMPLE_CATALOG: Catalog = {
   schemaVersion: 1,
@@ -77,6 +83,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 38.1, depth: 88.9 },
       materialCategories: ['lumber'],
+      stock: sorted(precut(92.625, 104.625), boards(8, 10, 12, 14, 16, 20)),
     },
     {
       id: '2x6',
@@ -85,6 +92,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 38.1, depth: 139.7 },
       materialCategories: ['lumber'],
+      stock: sorted(precut(92.625, 104.625, 116.625), boards(8, 10, 12, 14, 16, 18, 20)),
     },
     {
       id: '2x8',
@@ -93,6 +101,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 38.1, depth: 184.15 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12, 14, 16, 18, 20),
     },
     {
       id: '2x10',
@@ -101,6 +110,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 38.1, depth: 234.95 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12, 14, 16, 18, 20),
     },
     {
       id: '2x12',
@@ -109,6 +119,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 38.1, depth: 285.75 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12, 14, 16, 18, 20),
     },
     {
       id: '1x4',
@@ -117,6 +128,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 19.05, depth: 88.9 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12),
     },
     {
       id: '1x6',
@@ -125,6 +137,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 19.05, depth: 139.7 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12),
     },
     {
       id: '4x4',
@@ -133,6 +146,7 @@ export const SAMPLE_CATALOG: Catalog = {
       shape: 'rect',
       dims_mm: { width: 88.9, depth: 88.9 },
       materialCategories: ['lumber'],
+      stock: boards(8, 10, 12),
     },
     {
       id: 'hss-2x2',

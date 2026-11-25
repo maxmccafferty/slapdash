@@ -7,8 +7,8 @@ export type CatalogResult = { ok: true; catalog: Catalog } | { ok: false; errors
 /**
  * Validate a raw catalog: migrate it to the current version, check its shape, then
  * check what a schema can't: ids are unique within each list, every
- * `acceptsJoints` entry names a real joint type and every joint type's `hardwareId`
- * names a fastener. Errors are plain sentences.
+ * `acceptsJoints` entry names a real joint type, every joint type's `hardwareId`
+ * names a fastener and each section's stock lengths are sorted and unique. Errors are plain sentences.
  */
 export function validateCatalog(raw: unknown): CatalogResult {
   const migrated = migrateCatalog(raw);
@@ -31,6 +31,17 @@ export function validateCatalog(raw: unknown): CatalogResult {
   checkUnique(catalog.materials, 'materials');
   checkUnique(catalog.sections, 'sections');
   checkUnique(catalog.jointTypes, 'joint types');
+
+  for (const s of catalog.sections) {
+    const lengths = (s.stock ?? []).map((st) => st.length_mm);
+    for (let i = 1; i < lengths.length; i++) {
+      if (lengths[i]! === lengths[i - 1]!) {
+        errors.push(`Section "${s.id}" lists the stock length ${lengths[i]} mm twice.`);
+      } else if (lengths[i]! < lengths[i - 1]!) {
+        errors.push(`Section "${s.id}" lists its stock lengths out of order; put them shortest first.`);
+      }
+    }
+  }
 
   const jointIds = new Set(catalog.jointTypes.map((j) => j.id));
   for (const m of catalog.materials) {

@@ -100,6 +100,26 @@ describe('catalog', () => {
     });
   });
 
+  it('reports stock lengths that are out of order or repeated', () => {
+    const c = clone();
+    c.sections[0]!.stock = [{ length_mm: 3048 }, { length_mm: 2438.4 }];
+    c.sections[1]!.stock = [{ length_mm: 2438.4 }, { length_mm: 2438.4 }];
+    const r = validateCatalog(c);
+    expect(r).toEqual({
+      ok: false,
+      errors: [
+        'Section "2x4" lists its stock lengths out of order; put them shortest first.',
+        'Section "2x6" lists the stock length 2438.4 mm twice.',
+      ],
+    });
+  });
+
+  it('a stock length must be more than zero', () => {
+    const c = clone();
+    c.sections[0]!.stock = [{ length_mm: 0 }];
+    expect(validateCatalog(c).ok).toBe(false);
+  });
+
   it('indexCatalog gives O(1) lookups', () => {
     const idx = indexCatalog(SAMPLE_CATALOG);
     expect(idx.materials.get('spf-no2')?.category).toBe('lumber');

@@ -11,6 +11,17 @@
     "materialCategories": [
       "lumber",
       "envelope"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      }
     ]
   },
   {
@@ -25,6 +36,17 @@
     "materialCategories": [
       "lumber",
       "envelope"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      }
     ]
   },
   {
@@ -39,6 +61,17 @@
     "materialCategories": [
       "lumber",
       "envelope"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      }
     ]
   },
   {
@@ -52,6 +85,34 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2352.675,
+        "name": "precut stud"
+      },
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 2657.475,
+        "name": "precut stud"
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -65,6 +126,41 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2352.675,
+        "name": "precut stud"
+      },
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 2657.475,
+        "name": "precut stud"
+      },
+      {
+        "length_mm": 2962.275,
+        "name": "precut stud"
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -78,6 +174,29 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -91,6 +210,29 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -104,6 +246,29 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -117,6 +282,17 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      }
     ]
   },
   {
@@ -130,6 +306,20 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4876.8
+      }
     ]
   },
   {
@@ -143,6 +333,20 @@
     },
     "materialCategories": [
       "lumber"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4876.8
+      }
     ]
   },
   {
@@ -156,6 +360,35 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 6705.6
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -169,6 +402,35 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 6705.6
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -182,6 +444,35 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 6705.6
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -195,6 +486,35 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 2438.4
+      },
+      {
+        "length_mm": 3048.0
+      },
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4267.2
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 5486.4
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 6705.6
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -249,6 +569,20 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -264,6 +598,20 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -279,6 +627,20 @@
     },
     "materialCategories": [
       "engineered-wood"
+    ],
+    "stock": [
+      {
+        "length_mm": 3657.6
+      },
+      {
+        "length_mm": 4876.8
+      },
+      {
+        "length_mm": 6096.0
+      },
+      {
+        "length_mm": 7315.2
+      }
     ]
   },
   {
@@ -292,6 +654,11 @@
     },
     "materialCategories": [
       "steel"
+    ],
+    "stock": [
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -305,6 +672,11 @@
     },
     "materialCategories": [
       "steel"
+    ],
+    "stock": [
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
@@ -318,6 +690,11 @@
     },
     "materialCategories": [
       "steel"
+    ],
+    "stock": [
+      {
+        "length_mm": 6096.0
+      }
     ]
   },
   {
