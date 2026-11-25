@@ -1,0 +1,25 @@
+{
+  "name": "@slapdash/keyhole",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slapdash Claude keyhole: the server-only handler that holds the Anthropic API key, enforces the rate limit and the monthly budget, and streams Claude's reply.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./node": "./src/node.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "@slapdash/agent": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}
