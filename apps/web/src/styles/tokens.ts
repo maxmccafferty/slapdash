@@ -20,6 +20,11 @@ export const SCENE_COLORS = {
   signal: '#e8590c',
   hairline: '#ececea',
   concrete: '#dcd9d2',
+  stress1: '#e4e4e2',
+  stress2: '#c4c4c1',
+  stress3: '#9c9c99',
+  stress4: '#f3a877',
+  stress5: '#e8590c',
 } as const;
 
 /** Every custom property in tokens.css, without the leading `--`. */
@@ -39,6 +44,11 @@ export const TOKEN_NAMES = [
   'color-signal-pressed',
   'color-wood',
   'color-concrete',
+  'color-stress-1',
+  'color-stress-2',
+  'color-stress-3',
+  'color-stress-4',
+  'color-stress-5',
   'font-sans',
   'type-title-xl-size',
   'type-title-xl-line',

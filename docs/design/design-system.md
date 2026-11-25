@@ -7,7 +7,7 @@ The design is monochrome Braun: a plain white world, grey control units like the
 ## Principles
 
 - **The model is the only colour.** Wood is wood (`wood`), concrete is concrete (`concrete`). Everything around it is white, grey and black, so the building is what you see first.
-- **Orange means one thing.** `signal` marks what's selected or what Claude is working on right now: the dot on a chosen option, the floor slider knob, rafters being added, the Talk key. It is never decoration and never body text on white.
+- **Orange means one thing.** `signal` marks what's selected or what Claude is working on right now: the dot on a chosen option, the floor slider knob, rafters being added, the Talk key. It is never decoration and never body text on white. The one fill use is the stress view's top two bands (60–100% of a part's limit), which is a reading of the model, not chrome.
 - **Controls live in units.** Anything you can press sits in a grey `unit` housing (`radius-unit` or `radius-panel`), with white keys inside it. Units float over the model with a `space-4` inset from the screen edge.
 - **Every control is a title and its options.** A small `label` title sits over each two-way choice (View: 3D / 2D, Look from: Outside / Inside, Dimensions: On / Off, Stress: On / Off). Each is its own unit, so it never reads as one four-way switch.
 - **Editing happens by talking.** There are no edit buttons on the model or in lists. Where something is missing, say so in grey (`no price yet`) and let Claude fill it in.
