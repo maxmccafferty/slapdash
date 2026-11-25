@@ -74,6 +74,7 @@ export function sampleRecord(opts: { id?: string; name?: string; updatedAt?: num
     chat: {
       version: 1,
       summary: 'The user wants a small pool house with one framed wall so far.',
+      prefs: { confirmBigChanges: false },
       messages: [
         { id: 'm1', role: 'user', at: 1_700_000_000_500, turnId: 't1', content: 'Build me the south wall, 8 ft long.' },
         {

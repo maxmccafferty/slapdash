@@ -306,6 +306,27 @@ describe('ProjectSession', () => {
     await s.close();
   });
 
+  it('chat: replaceChat stores a whole log with prefs; setChatSummary keeps the prefs', async () => {
+    const b = backendOn(new IDBFactory());
+    const s = await ProjectSession.open(deps(b, { now: () => 5, newId: sequentialIds('m') }));
+    const log = {
+      version: 1 as const,
+      prefs: { confirmBigChanges: false },
+      messages: [
+        { id: 'a', role: 'user' as const, at: 1, turnId: 't1', content: [{ type: 'text', text: 'Build it' }] },
+        { id: 'b', role: 'assistant' as const, at: 2, turnId: 't1', content: [{ type: 'text', text: 'Done.' }] },
+      ],
+    };
+    s.replaceChat(log);
+    expect(s.chat).toEqual(log);
+    s.setChatSummary('Earlier.', 1);
+    expect(s.chat.prefs).toEqual({ confirmBigChanges: false });
+    expect(() => s.replaceChat({ version: 1, messages: [{ id: 'x', role: 'bot', at: 1, content: 1 }] } as never)).toThrow(StorageError);
+    await s.flush();
+    expect((await b.store.load(s.id))!.chat).toEqual(s.chat);
+    await s.close();
+  });
+
   it('newProject starts fresh without touching the last-project pointer', async () => {
     const b = backendOn(new IDBFactory());
     const shared = deps(b);

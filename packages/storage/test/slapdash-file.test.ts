@@ -41,6 +41,18 @@ describe('.slapdash files', () => {
     expect(encodeSlapdashFile(decoded.record, decoded.files, { now: clock })).toBe(text);
   });
 
+  it('reads a chat saved before chat prefs existed, and keeps prefs when present', () => {
+    const rec = sampleRecord();
+    expect(rec.chat.prefs).toEqual({ confirmBigChanges: false });
+    const { prefs: _prefs, ...oldChat } = rec.chat;
+    const decoded = decodeSlapdashFile(encodeSlapdashFile({ ...rec, chat: oldChat }, [], { now: clock }));
+    if (!decoded.ok) throw new Error(decoded.errors.join('\n'));
+    expect(decoded.record.chat).toEqual(oldChat);
+    expect(decoded.record.chat.prefs).toBeUndefined();
+    const withPrefs = decodeSlapdashFile(encodeSlapdashFile(rec, [], { now: clock }));
+    expect(withPrefs.ok && withPrefs.record.chat.prefs).toEqual({ confirmBigChanges: false });
+  });
+
   it('is readable JSON with the format fields first', () => {
     const text = encodeSlapdashFile(sampleRecord(), [], { now: clock });
     const obj = JSON.parse(text) as Record<string, unknown>;
