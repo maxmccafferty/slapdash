@@ -17,7 +17,8 @@
     "eval": "pnpm --filter @slapdash/evals eval",
     "check:secrets": "pnpm --filter @slapdash/web check:secrets",
     "test:supabase": "pnpm --filter @slapdash/storage test:supabase",
-    "supabase:add-user": "node scripts/supabase-add-user.ts"
+    "supabase:add-user": "node scripts/supabase-add-user.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

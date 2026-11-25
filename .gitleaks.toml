@@ -1,0 +1,14 @@
+# gitleaks config (ADR-0001 §9). Used by the pre-commit hook (.githooks/pre-commit)
+# and by the gitleaks job in CI. Keep allowlists narrow: specific rules and shapes,
+# never whole directories of source, never .env.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Catalog price keys (\"priceKey\": \"lumber.spf-no2\") are material ids, not secrets"
+targetRules = ["generic-api-key"]
+regexTarget = "match"
+regexes = [
+  '''(?i)\b(?:price)?key["']?\s*:\s*["'][a-z]+\.[a-z0-9]+(?:-[a-z0-9]+)*["']''',
+]

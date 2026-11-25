@@ -1,0 +1,10 @@
+#!/bin/sh
+# Secret scan of staged changes (ADR-0001 §9). Rules: .gitleaks.toml.
+# Needs gitleaks >= 8.19 (for `gitleaks git`). Install: brew install gitleaks
+# CI runs gitleaks too, so --no-verify only delays the failure.
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed. Install it (brew install gitleaks, or" >&2
+  echo "https://github.com/gitleaks/gitleaks/releases), then commit again." >&2
+  exit 1
+fi
+exec gitleaks git --pre-commit --staged --redact --no-banner --verbose
