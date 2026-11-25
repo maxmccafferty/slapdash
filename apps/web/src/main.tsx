@@ -2,6 +2,7 @@ import { fetchKeyholeClient } from '@slapdash/agent';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.tsx';
+import { solverDebug } from './analysis/debug-solver.ts';
 import { createChatController } from './agent/chat-controller.ts';
 import { ChatProvider } from './agent/ChatContext.tsx';
 import { fetchKeyholeStatus } from './agent/keyhole-status.ts';
@@ -43,6 +44,7 @@ if (debugEnabled()) {
     voice: {
       support: () => ({ ...voice.support }),
     },
+    solver: solverDebug,
   });
 }
 

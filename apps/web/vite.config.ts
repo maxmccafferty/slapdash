@@ -72,4 +72,7 @@ export default defineConfig({
     // The 3D view is a lazy chunk; three.js alone is over the default warning size.
     chunkSizeWarningLimit: 1500,
   },
+  // The solver worker (src/analysis/solver-worker.ts) is an ES module so it can load
+  // Rapier as a lazy chunk only when a stability sim is asked for.
+  worker: { format: 'es' },
 });
