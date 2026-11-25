@@ -9,6 +9,9 @@
   inset: 0;
 }
 
+/* The chat sheet (BottomSheet, z-index 20) sits above anything in the model area. Model-area
+   sheets and modals go inside .main with a lower z-index, so the chat stays on top and usable. */
+
 .model {
   position: absolute;
   inset: 0;

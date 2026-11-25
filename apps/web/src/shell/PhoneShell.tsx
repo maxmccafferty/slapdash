@@ -132,6 +132,8 @@ export function PhoneShell({ project, actions }: ShellProps) {
         </div>
       </main>
 
+      {/* Model-area sheets and modals render inside <main>, below the chat sheet's z-index, and
+          never make the chat inert: the chat stays usable while they are open. */}
       <BottomSheet id={CHAT_SHEET_ID} title="Chat" open={chatOpen} onClose={closeChat} triggerRef={chatRef}>
         <ChatPanel as="div" variant="phone" className={styles['sheet-chat']} />
       </BottomSheet>

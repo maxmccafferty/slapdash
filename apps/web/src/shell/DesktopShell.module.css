@@ -5,6 +5,7 @@
   height: 100dvh;
 }
 
+/* Modals mount in here (position: absolute; inset: 0) so they cover the model, never the chat. */
 .model {
   position: relative;
   grid-area: 1 / 1;

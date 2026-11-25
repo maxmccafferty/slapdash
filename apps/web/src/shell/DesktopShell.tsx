@@ -48,6 +48,8 @@ export function DesktopShell({ project, actions }: ShellProps) {
           <ProjectHeader project={project} variant="desktop" />
         </div>
       </header>
+      {/* Modals (Materials, Steps, Projects) render inside <main> and cover the model only. The
+          chat is a grid sibling and must stay usable: never make it or the app root inert. */}
       <main className={styles.model} aria-label="Model">
         <ModelArea zoomPercent={zoomPercent} />
         <div className={styles.floors}>

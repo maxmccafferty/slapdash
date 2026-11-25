@@ -30,3 +30,8 @@
   background: var(--color-signal-pressed);
   color: var(--color-paper);
 }
+
+.talk:disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
