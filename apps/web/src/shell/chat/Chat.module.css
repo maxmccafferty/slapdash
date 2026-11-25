@@ -158,6 +158,14 @@
   gap: var(--space-1);
 }
 
+/* First run: the starters, then the sample key. */
+.starters {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: var(--space-3);
+}
+
 /* Option text can run long: let it wrap inside the key. */
 .choices .choice {
   justify-content: flex-start;

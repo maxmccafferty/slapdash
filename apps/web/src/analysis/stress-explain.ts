@@ -9,7 +9,8 @@ import type { ChatController } from '../agent/chat-controller.ts';
 import { useChatStore } from '../state/chat-store.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
-import { isPartVisible } from '../renderer/visibility.ts';
+import { isPartVisible, stepsUpTo } from '../renderer/visibility.ts';
+import { stepGroups } from '../steps/useBuildSteps.ts';
 import { shouldExplain, stressContext } from './stress.ts';
 import { useStressStore } from './stress-store.ts';
 
@@ -21,7 +22,9 @@ export function watchStressExplain(chat: Pick<ChatController, 'explainStress'>):
     // The first result after this switch-on: considered once, whatever happens next.
     useStressStore.setState({ explainedFor: s.switchOn });
     const project = s.forProject;
-    const opts = { floor: shell.floor, lookFrom: shell.lookFrom };
+    const model = useModelStore.getState();
+    const steps = shell.panel === 'steps' ? stepsUpTo(stepGroups(project, model.catalog), shell.stepIndex) : null;
+    const opts = { floor: shell.floor, lookFrom: shell.lookFrom, steps };
     const ctx = stressContext(project, s.result, (id) => {
       const part = project.parts[id];
       return part ? isPartVisible(part, project.assemblies[part.assemblyId], opts) : false;

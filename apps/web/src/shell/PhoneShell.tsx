@@ -6,7 +6,9 @@ import { Popover, PopoverAnchor } from '../components/Popover.tsx';
 import { Unit } from '../components/Unit.tsx';
 import { MaterialsPanel } from '../materials/MaterialsPanel.tsx';
 import { useFloorStops } from '../model/floor-stops.ts';
+import { ProjectsPanel } from '../projects/ProjectsPanel.tsx';
 import { useShellStore, type PhonePopover } from '../state/shell-store.ts';
+import { BuildStepsPanel } from '../steps/BuildStepsPanel.tsx';
 import { ChatPanel } from './ChatPanel.tsx';
 import type { ShellProps } from './DesktopShell.tsx';
 import { ModelArea } from './ModelArea.tsx';
@@ -42,6 +44,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
   const viewsRef = useRef<HTMLButtonElement>(null);
   const chatRef = useRef<HTMLButtonElement>(null);
   const materialsRef = useRef<HTMLButtonElement>(null);
+  const stepsRef = useRef<HTMLButtonElement>(null);
 
   const toggle = (p: PhonePopover) => (popover === p ? closePopover() : openPopover(p));
   const trigger = (p: PhonePopover) => ({
@@ -74,7 +77,14 @@ export function PhoneShell({ project, actions }: ShellProps) {
             >
               <div className={styles['project-grid']}>
                 <Key label="Save" icon="save" onClick={actions.onSave} />
-                <Key label="Load" icon="load" onClick={actions.onLoad} />
+                <Key
+                  label="Load"
+                  icon="load"
+                  onClick={() => {
+                    closePopover();
+                    actions.onLoad();
+                  }}
+                />
                 <Key label="Undo" icon="undo" onClick={actions.onUndo} />
                 <Key label="Redo" icon="redo" onClick={actions.onRedo} />
               </div>
@@ -90,6 +100,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
             onClick={() => togglePanel('materials')}
           />
           <Key
+            ref={stepsRef}
             label="Build steps"
             icon="steps"
             iconSize="phone"
@@ -126,6 +137,9 @@ export function PhoneShell({ project, actions }: ShellProps) {
         </Unit>
 
         {panel === 'materials' && <MaterialsPanel variant="phone" triggerRef={materialsRef} />}
+        {/* Projects' trigger (Load) is inside the closed popover, so focus returns to Project. */}
+        {panel === 'projects' && <ProjectsPanel variant="phone" triggerRef={projectRef} />}
+        {panel === 'steps' && <BuildStepsPanel variant="phone" triggerRef={stepsRef} />}
 
         <div className={styles['chat-key']}>
           <Key

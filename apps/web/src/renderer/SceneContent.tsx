@@ -6,7 +6,7 @@
 import { useThree } from '@react-three/fiber';
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { BufferGeometry, Float32BufferAttribute } from 'three';
-import type { CatalogIndex, Part, Project } from '@slapdash/core';
+import type { CatalogIndex, Part, Project, StepKey } from '@slapdash/core';
 import type { Proposal } from '../state/model-store.ts';
 import { SCENE_COLORS } from '../styles/tokens.ts';
 import { groupParts, type Batch } from './batches.ts';
@@ -40,6 +40,8 @@ export interface ViewSpec {
   stress?: StressSpec | null;
   floor: FloorId;
   lookFrom: LookFrom;
+  /** The build steps shown while Build steps is open; absent or null shows the whole build. */
+  steps?: ReadonlySet<StepKey> | null;
   dimensions: boolean;
   /** Part ids outlined in orange (selection, in progress, or a snapshot's highlights). */
   outlined: readonly string[];
@@ -84,7 +86,10 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
   const previous = useRef<Batch[]>([]);
   const batches = useMemo(() => (previous.current = groupParts(project, previous.current)), [project]);
 
-  const vis = useMemo(() => ({ floor: spec.floor, lookFrom: spec.lookFrom }), [spec.floor, spec.lookFrom]);
+  const vis = useMemo(
+    () => ({ floor: spec.floor, lookFrom: spec.lookFrom, steps: spec.steps ?? null }),
+    [spec.floor, spec.lookFrom, spec.steps],
+  );
   const isVisible = useMemo(() => {
     const cache = new Map<string, boolean>();
     return (part: Part) => {

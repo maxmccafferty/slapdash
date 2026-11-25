@@ -1,9 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { displayText, type ChatItem } from '../../agent/chat-types.ts';
+import { isContextPart } from '../../renderer/bounds.ts';
 import { useChatStore } from '../../state/chat-store.ts';
+import { useModelStore } from '../../state/model-store.ts';
 import { ChatNote, ConnectionNote } from './ChatNote.tsx';
 import { ClaudeMessage } from './ClaudeMessage.tsx';
 import { ListeningMessage } from './ListeningMessage.tsx';
+import { Starters } from './Starters.tsx';
 import { UserMessage } from './UserMessage.tsx';
 import { WorkingLine } from './WorkingLine.tsx';
 import styles from './Chat.module.css';
@@ -28,6 +31,8 @@ export function Transcript() {
   const connection = useChatStore((s) => s.connection);
   const working = useChatStore((s) => s.running?.working ?? false);
   const listening = useChatStore((s) => s.listening);
+  // First run: an empty site gets the starters (site context alone still counts as empty).
+  const emptySite = useModelStore((s) => !!s.bus && Object.values(s.project?.parts ?? {}).every(isContextPart));
   const ref = useRef<HTMLDivElement>(null);
   const stick = useRef(true);
 
@@ -71,6 +76,7 @@ export function Transcript() {
         <div className={styles.message}>
           <span className={styles.speaker}>Claude</span>
           <p className={styles.text}>What are we building?</p>
+          {emptySite && !listening && <Starters />}
         </div>
       )}
       {items.map((item) =>

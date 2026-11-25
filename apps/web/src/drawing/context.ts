@@ -1,5 +1,5 @@
 /** What every view needs: the visible build, grouped by assembly. */
-import type { Assembly, AssemblyKind, Part, Project } from '@slapdash/core';
+import type { Assembly, AssemblyKind, Part, Project, StepKey } from '@slapdash/core';
 import { isContextPart, partAabb, unionAabb } from '../renderer/bounds.ts';
 import { isPartVisible } from '../renderer/visibility.ts';
 import type { FloorId } from '../state/shell-store.ts';
@@ -7,6 +7,8 @@ import type { FloorId } from '../state/shell-store.ts';
 export interface SheetOptions {
   floor: FloorId;
   dimensions: boolean;
+  /** While Build steps is open: the steps shown, so the sheet matches the 3D view. */
+  steps?: ReadonlySet<StepKey> | null;
 }
 
 export interface AssemblyGroup {
@@ -33,7 +35,7 @@ export function drawContext(project: Project, opts: SheetOptions): DrawContext {
   for (const part of Object.values(project.parts)) {
     if (isContextPart(part)) continue;
     const assembly = project.assemblies[part.assemblyId];
-    if (!isPartVisible(part, assembly, { floor: opts.floor, lookFrom: 'outside' })) continue;
+    if (!isPartVisible(part, assembly, { floor: opts.floor, lookFrom: 'outside', steps: opts.steps ?? null })) continue;
     let g = byId.get(part.assemblyId);
     if (!g) {
       g = { id: part.assemblyId, assembly, kind: assembly?.kind ?? 'misc', parts: [] };

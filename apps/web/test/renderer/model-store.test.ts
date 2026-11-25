@@ -80,6 +80,14 @@ describe('floor stops and the header', () => {
     expect(projectSummary(null)).toBe(PLACEHOLDER_PROJECT);
   });
 
+  it('the header uses the project name: first run reads "New project" with no part count', () => {
+    expect(projectSummary(null).name).toBe('New project');
+    const empty = projectSummary(createProject({ name: 'New project' }));
+    expect(empty.name).toBe('New project');
+    expect(empty.specs.find((s) => s.label === 'Parts')!.value).toBe('—');
+    expect(projectSummary(sampleBus().project).name).toBe('Pool house');
+  });
+
   it('come from the model: foundation top, wall top, ridge', () => {
     const project = sampleBus({ context: true }).project;
     expect(floorStops(project).map((s) => `${s.label} ${s.height}`)).toEqual(['Roof 13′ 10″', 'Floor 1 9′ 4″', 'Foundation 0′ 4″']);

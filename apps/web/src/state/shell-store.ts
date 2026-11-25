@@ -3,7 +3,7 @@ import { create } from 'zustand';
 export type View = '3d' | '2d';
 export type LookFrom = 'outside' | 'inside';
 export type FloorId = 'roof' | 'floor-1' | 'foundation';
-export type Panel = 'materials' | 'steps';
+export type Panel = 'materials' | 'steps' | 'projects';
 export type PhonePopover = 'project' | 'floors' | 'views';
 export type MaterialsTab = 'materials' | 'cutlist';
 
@@ -14,8 +14,10 @@ export interface ShellState {
   dimensions: boolean;
   stress: boolean;
   floor: FloorId;
-  /** The latched panel key (Materials or Steps). Mutually exclusive. */
+  /** The open panel (Materials, Steps or Projects). Mutually exclusive. */
   panel: Panel | null;
+  /** The Build steps panel's current step (0-based). Reset when Steps opens or a project opens. */
+  stepIndex: number;
   /** The Materials modal's tab. Kept here so it survives crossing the breakpoint. */
   materialsTab: MaterialsTab;
   phone: { popover: PhonePopover | null; chatOpen: boolean };
@@ -33,6 +35,10 @@ export interface ShellActions {
   setFloor: (floor: FloorId) => void;
   togglePanel: (panel: Panel) => void;
   closePanel: () => void;
+  setStepIndex: (index: number) => void;
+  /** Forward one step, up to the last of `count` steps. */
+  nextStep: (count: number) => void;
+  prevStep: () => void;
   setMaterialsTab: (tab: MaterialsTab) => void;
   openPopover: (popover: PhonePopover) => void;
   closePopover: () => void;
@@ -49,6 +55,7 @@ export const initialShellState: ShellState = {
   stress: false,
   floor: 'roof',
   panel: null,
+  stepIndex: 0,
   materialsTab: 'materials',
   phone: { popover: null, chatOpen: false },
   zoomPercent: 100,
@@ -63,8 +70,15 @@ export const useShellStore = create<ShellState & ShellActions>()((set) => ({
   setStress: (stress) => set({ stress }),
   toggleStress: () => set((s) => ({ stress: !s.stress })),
   setFloor: (floor) => set({ floor }),
-  togglePanel: (panel) => set((s) => ({ panel: s.panel === panel ? null : panel })),
+  togglePanel: (panel) =>
+    set((s) => {
+      const next = s.panel === panel ? null : panel;
+      return next === 'steps' ? { panel: next, stepIndex: 0 } : { panel: next };
+    }),
   closePanel: () => set({ panel: null }),
+  setStepIndex: (index) => set({ stepIndex: Math.max(0, Math.floor(index)) }),
+  nextStep: (count) => set((s) => ({ stepIndex: Math.max(0, Math.min(s.stepIndex + 1, count - 1)) })),
+  prevStep: () => set((s) => ({ stepIndex: Math.max(0, s.stepIndex - 1) })),
   setMaterialsTab: (materialsTab) => set({ materialsTab }),
   openPopover: (popover) => set((s) => ({ phone: { ...s.phone, popover } })),
   closePopover: () => set((s) => ({ phone: { ...s.phone, popover: null } })),

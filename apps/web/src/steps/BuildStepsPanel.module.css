@@ -1,0 +1,162 @@
+/* Build steps. Desktop: a panel in the model's bottom-right corner, so the build stays in
+   view. Phone: content for a bottom sheet sized to fit. */
+.panel {
+  position: absolute;
+  z-index: 2;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(var(--size-chat-panel-min), calc(100% - var(--space-4) * 2));
+  max-height: calc(100% - var(--space-4) * 2);
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  background: var(--color-paper);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--shadow-modal);
+  outline: none;
+}
+
+/* Phone: the sheet only as tall as its content, so most of the model shows above it. It sits
+   with the model-area modals (z 2), under the floating chat key (z 3) and the chat sheet
+   (z 20), so it leaves room for the key at the bottom. */
+div.steps-sheet {
+  z-index: 2;
+  height: auto;
+  max-height: 62dvh;
+  padding-bottom: calc(var(--size-touch) + var(--space-4) + env(safe-area-inset-bottom));
+}
+
+.steps-sheet > :last-child {
+  overflow-y: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.close {
+  margin-left: auto;
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0 var(--space-1);
+}
+
+.lead {
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-muted);
+}
+
+.step {
+  font-size: var(--type-title-m-size);
+  line-height: var(--type-title-m-line);
+  font-weight: var(--type-title-m-weight);
+}
+
+.how {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.facts,
+.muted {
+  font-size: var(--type-list-size);
+  line-height: var(--type-list-line);
+  color: var(--color-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-hairline);
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--size-touch);
+  padding: 0 var(--space-1);
+  border: 0;
+  border-bottom: 1px solid var(--color-hairline);
+  background: none;
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-size: var(--type-list-size);
+  line-height: var(--type-list-line);
+  text-align: left;
+  cursor: pointer;
+}
+
+.list-item:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-ink);
+  outline-offset: calc(var(--size-focus-ring) * -1);
+}
+
+.here {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* The current step's orange dot; a hollow ring for the others. */
+.dot {
+  flex: none;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  box-shadow: inset 0 0 0 1px var(--color-key-line);
+}
+
+.here .dot {
+  background: var(--color-signal);
+  box-shadow: none;
+}
+
+.keys {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.keys > * {
+  flex: 1;
+}
+
+/* Phone: compact, so the build stays in view above the sheet. "Step 2 of 3" says where you
+   are; the full list of steps is desktop only. */
+.steps-sheet .list {
+  display: none;
+}
+
+.steps-sheet .step {
+  font-size: var(--type-spec-size);
+  line-height: var(--type-spec-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.steps-sheet .content {
+  gap: var(--space-2);
+}

@@ -1,0 +1,183 @@
+/* The Projects modal. Like Materials, it mounts inside the model area (<main>) and covers it,
+   never the chat. */
+.panel {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-paper);
+  border-radius: var(--radius-sheet);
+  box-shadow: var(--shadow-modal);
+  outline: none;
+}
+
+/* Desktop: inset over the model, below the header's logo and keys, so the latched Load key
+   stays reachable (the same placement as Materials). */
+.desktop {
+  inset: calc(var(--space-4) + var(--space-5) + var(--space-3) + var(--size-touch) + var(--space-2) + var(--space-3)) var(--space-4)
+    var(--space-4) var(--space-4);
+}
+
+/* Phone: nearly full screen, with room at the bottom for the floating chat key. */
+.phone {
+  inset: calc(var(--space-2) + env(safe-area-inset-top)) calc(var(--space-2) + env(safe-area-inset-right))
+    calc(var(--space-2) + env(safe-area-inset-bottom)) calc(var(--space-2) + env(safe-area-inset-left));
+  padding: var(--space-4);
+  padding-bottom: calc(var(--size-touch) + var(--space-4));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.title {
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.close {
+  margin-left: auto;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--size-chat-panel-min) * 0.6), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Phone: two columns of cards. */
+.phone .grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.item {
+  display: flex;
+}
+
+.card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+  min-height: var(--size-touch);
+  padding: var(--space-2);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius-panel);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.card:hover:not(:disabled) {
+  border-color: var(--color-key-line);
+}
+
+.card:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-ink);
+  outline-offset: var(--size-focus-ring);
+}
+
+.card:disabled {
+  cursor: default;
+}
+
+.current {
+  border-color: var(--color-key-line);
+}
+
+.picture {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  margin-bottom: var(--space-1);
+  overflow: hidden;
+  border-radius: var(--radius-unit);
+  background-color: var(--color-floor);
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* No picture yet: the dot-grid floor. */
+.floor {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--color-dot) 1px, transparent 1px);
+  background-size: var(--space-4) var(--space-4);
+}
+
+.new-picture {
+  border: 1px dashed var(--color-key-line);
+  color: var(--color-ink-soft);
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-1);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* The open project. */
+.dot {
+  flex: none;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-signal);
+}
+
+.meta {
+  padding: 0 var(--space-1);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-muted);
+}
+
+.muted {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-muted);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.error {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+}

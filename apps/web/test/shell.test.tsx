@@ -16,7 +16,7 @@ describe('desktop shell (1440)', () => {
     expect(screen.getByRole('main', { name: 'Model' })).toBeInTheDocument();
     expect(screen.getByRole('complementary', { name: 'Chat' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'slapdash' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 1, name: 'Pool house' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'New project' })).toBeInTheDocument();
   });
 
   it('has three header units with labelled keys', () => {
@@ -41,6 +41,27 @@ describe('desktop shell (1440)', () => {
     for (const label of ['Footprint', 'Walls', 'Roof', 'Parts']) {
       expect(within(screen.getByRole('banner')).getByText(label)).toBeInTheDocument();
     }
+  });
+
+  it('Load latches the Projects modal; Materials, Steps and Projects are mutually exclusive', async () => {
+    const user = userEvent.setup();
+    render(<App actions={{ onSave: () => {}, onLoad: () => useShellStore.getState().togglePanel('projects'), onUndo: () => {}, onRedo: () => {} }} />);
+    const load = screen.getByRole('button', { name: 'Load' });
+    const materials = screen.getByRole('button', { name: 'Materials' });
+    const steps = screen.getByRole('button', { name: 'Steps' });
+    await user.click(load);
+    expect(load).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('dialog', { name: 'Projects' })).toBeInTheDocument();
+    await user.click(steps);
+    expect(load).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('dialog', { name: 'Projects' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Build steps' })).toBeInTheDocument();
+    await user.click(materials);
+    expect(screen.queryByRole('dialog', { name: 'Build steps' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Materials' })).toBeInTheDocument();
+    await user.click(load);
+    expect(materials).toHaveAttribute('aria-pressed', 'false');
+    expect(useShellStore.getState().panel).toBe('projects');
   });
 
   it('Materials and Steps latch and are mutually exclusive', async () => {

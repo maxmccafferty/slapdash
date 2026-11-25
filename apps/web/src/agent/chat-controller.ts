@@ -4,7 +4,8 @@
  * components only read the store and call these methods, so a turn keeps running when the
  * phone sheet closes.
  *
- * One `AgentMemory` per bus: opening another project (a new bus) starts a fresh chat.
+ * One `AgentMemory` per bus: opening another project (a new bus) switches to that project's
+ * saved chat (`chatLogFor`), or a fresh one.
  */
 import {
   AgentMemory,
@@ -48,8 +49,10 @@ export interface ChatControllerDeps {
   siteDefaults?: () => SiteDefaults | undefined;
   /** Opens the sample pool house (a new bus). */
   openSample?: () => void;
-  /** Where the chat log is saved once project storage is wired in. */
+  /** Saves the chat log with the open project, after each turn. */
   onChatChanged?: (log: ChatLogLike) => void;
+  /** The saved chat of the project a bus belongs to, so opening a project restores its chat. */
+  chatLogFor?: (bus: CommandBus) => ChatLogLike | null;
   caps?: Partial<TurnCaps>;
   newTurnId?: () => string;
   /** Hold-to-talk and spoken replies; without it Talk is hidden. */
@@ -150,9 +153,28 @@ function errorNote(error: unknown): string {
   return "Claude couldn't answer. Try again.";
 }
 
+/** The transcript a saved chat shows: what was asked and Claude's reply, without keys or cards. */
+export function restoredItems(memory: AgentMemory): ChatItem[] {
+  const items: ChatItem[] = [];
+  for (const turn of memory.transcript()) {
+    if (turn.asked !== '') {
+      items.push({
+        kind: 'user',
+        id: nextId('user'),
+        text: turn.asked,
+        photos: [],
+        ...(turn.asked === STRESS_TRIGGER_TEXT ? { trigger: 'stress' as const } : {}),
+      });
+    }
+    if (turn.reply !== '') items.push({ ...emptyClaudeItem(nextId('claude'), turn.turnId ?? null), text: turn.reply, streaming: false });
+  }
+  return items;
+}
+
 export function createChatController(deps: ChatControllerDeps): ChatController {
   let bus: CommandBus | null = useModelStore.getState().bus;
-  let memory = newMemory();
+  let memory = newMemory(bus);
+  if (bus && memory.turnCount > 0) set({ items: restoredItems(memory) });
   let abort: AbortController | null = null;
 
   const voice = deps.voice;
@@ -169,20 +191,23 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     set({ listening: null });
   }
 
-  function newMemory() {
-    return new AgentMemory(undefined, { loadFile: (id) => deps.photos.loadFile(id) });
+  function newMemory(forBus: CommandBus | null) {
+    const log = forBus ? deps.chatLogFor?.(forBus) : null;
+    return new AgentMemory(log ?? undefined, { loadFile: (id) => deps.photos.loadFile(id) });
   }
 
-  // A new bus is a new project: a new conversation.
+  // A new bus is another project: its saved conversation, or a new one.
   const offModel = useModelStore.subscribe((s, prev) => {
     if (s.bus === prev.bus || s.bus === bus) return;
+    // The first project to open (storage loads after the status check): keep notes already shown.
+    const kept = bus === null ? get().items.filter((i) => i.kind === 'note') : [];
     bus = s.bus;
     abort?.abort();
     abort = null;
     silence();
-    memory = newMemory();
+    memory = newMemory(bus);
     deps.photos.revokeAll();
-    set({ items: [], running: null, pendingPhotos: [], changingPlan: false, draft: '' });
+    set({ items: [...kept, ...restoredItems(memory)], running: null, pendingPhotos: [], changingPlan: false, draft: '' });
   });
 
   function applyBudget(budget: BudgetStatus) {
