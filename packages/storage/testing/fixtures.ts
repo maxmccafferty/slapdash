@@ -98,3 +98,11 @@ export function allBytes(extra = 0): Uint8Array {
   for (let i = 0; i < out.length; i++) out[i] = i % 256;
   return out;
 }
+
+/** The record with a project location and a design load the person gave (source "user"), set through the commands. */
+export function withSite(rec: ProjectRecord): ProjectRecord {
+  const bus = new CommandBus({ project: rec.project, catalog: SAMPLE_CATALOG, now: fixedClock() });
+  must(bus.execute('set_site_location', { location: { label: 'Bend, OR' } }), 'set_site_location');
+  must(bus.execute('set_design_load', { key: 'groundSnow', value: '50 psf', source: 'user' }), 'set_design_load');
+  return { ...rec, project: bus.project };
+}

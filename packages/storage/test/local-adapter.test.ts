@@ -2,7 +2,7 @@ import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
 import { describe, expect, it } from 'vitest';
 import { createLocalBackend, LOCAL_USER } from '../src/adapters/local/index.ts';
 import { StorageError } from '../src/errors.ts';
-import { describeAuth, describeDeviceState, describeProjectStore, fixedClock, sampleRecord } from '../testing/index.ts';
+import { describeAuth, describeDeviceState, describeProjectStore, fixedClock, sampleRecord, withSite } from '../testing/index.ts';
 
 /** Each test gets its own in-memory IndexedDB; `reopen` opens a new backend on the same one. */
 function localHarness() {
@@ -45,6 +45,16 @@ describeDeviceState('local (IndexedDB)', {
 });
 
 describe('local adapter specifics', () => {
+  it("keeps the person's design loads and location through save and load", async () => {
+    const { store, close } = h.fresh();
+    const rec = withSite(sampleRecord());
+    await store.save(rec);
+    const loaded = await store.load(rec.id);
+    expect(loaded!.project.site).toEqual(rec.project.site);
+    expect(loaded!.project.site.designLoads.groundSnow).toMatchObject({ source: 'user' });
+    close();
+  });
+
   it('needs no sign-in and its user is "This device"', async () => {
     const { auth, close } = h.fresh();
     expect(auth.requiresSignIn).toBe(false);

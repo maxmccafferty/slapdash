@@ -6,7 +6,7 @@ import {
   slapdashFileName,
   type PortableFile,
 } from '../src/format/slapdash-file.ts';
-import { allBytes, sampleRecord } from '../testing/index.ts';
+import { allBytes, sampleRecord, withSite } from '../testing/index.ts';
 
 const clock = () => 1_800_000_000_000;
 
@@ -39,6 +39,15 @@ describe('.slapdash files', () => {
     }
     // export → import → export is byte-identical
     expect(encodeSlapdashFile(decoded.record, decoded.files, { now: clock })).toBe(text);
+  });
+
+  it("keeps the person's design loads and location (source: user) through encode and decode", () => {
+    const rec = withSite(sampleRecord());
+    const decoded = decodeSlapdashFile(encodeSlapdashFile(rec, [], { now: clock }));
+    if (!decoded.ok) throw new Error(decoded.errors.join('\n'));
+    expect(decoded.record.project.site).toEqual(rec.project.site);
+    expect(decoded.record.project.site.designLoads.groundSnow).toMatchObject({ source: 'user' });
+    expect(decoded.record.project.site.location).toMatchObject({ label: 'Bend, OR', source: 'project' });
   });
 
   it('reads a chat saved before chat prefs existed, and keeps prefs when present', () => {
