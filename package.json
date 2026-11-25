@@ -16,6 +16,7 @@
     "smoke": "pnpm --filter @slapdash/core smoke",
     "eval": "pnpm --filter @slapdash/evals eval",
     "check:secrets": "pnpm --filter @slapdash/web check:secrets",
+    "tokens": "pnpm --filter @slapdash/web tokens",
     "test:supabase": "pnpm --filter @slapdash/storage test:supabase",
     "supabase:add-user": "node scripts/supabase-add-user.ts",
     "prepare": "git config core.hooksPath .githooks || true"

@@ -1,5 +1,7 @@
 # Slapdash
 
+[![CI](https://github.com/maxmccafferty/slapdash/actions/workflows/ci.yml/badge.svg)](https://github.com/maxmccafferty/slapdash/actions/workflows/ci.yml)
+
 Design small wood-frame buildings (sheds, pool houses, decks, fences) by talking to Claude.
 You describe what you want; Claude builds it out of real lumber in a 3D model you can turn,
 cut and walk through floor by floor, checks it with a structural solver, and gives you the
@@ -15,6 +17,9 @@ corepack enable          # or install pnpm; the version is pinned in package.jso
 pnpm install
 pnpm dev                 # http://localhost:5173
 ```
+
+Install gitleaks too (`brew install gitleaks`): `pnpm install` turns on a pre-commit hook that
+scans staged changes for secrets, and the hook refuses to run without it.
 
 No key is needed for the 3D builder, drawings, materials and the sample. To talk to Claude,
 copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY` (the dev server's `/api/claude`
@@ -117,12 +122,17 @@ Chrome offers "Install app" the same way.
 ## Tests
 
 ```sh
+pnpm lint                # ESLint over the whole repo (`pnpm lint:fix` fixes what it can)
 pnpm test                # every package (vitest)
 pnpm typecheck
 pnpm check:secrets       # no secret in the browser bundle
 pnpm --filter @slapdash/web e2e   # Playwright (run `pnpm --filter @slapdash/web exec playwright install chromium` once)
 pnpm test:supabase       # the storage adapter against a local Supabase (needs Docker)
 ```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs lint, typecheck, the unit
+tests, the bundle secret check and a gitleaks scan of the full history on every push. The
+e2e, Supabase and eval suites run locally only.
 
 ## Further reading
 
