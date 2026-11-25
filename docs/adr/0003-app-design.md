@@ -87,7 +87,7 @@ All corner buttons are icon-only, 40px keys inside units.
 1. **Stress finds a weak spot.** With Stress on, the most loaded part gets a callout ("Door header, about 90% of its limit"); Claude explains in one or two sentences and offers a fix or leave it.
 2. **Monthly limit** (ADR-0002 §D9). A note in the chat at 80% of the $10 budget; at the cap the chat explains when Claude is back and disables the input, while everything else keeps working.
 3. **Sign in** (hosted copy). Email and password or a passkey on a plain card over the dotted floor; "You'll stay signed in on this device." No sign-up screen.
-4. **Exported PDF.** Two letter pages. Page 1: name and specs, the 2D sheet, the materials list with totals, and the estimate note in the footer. Page 2: the cut list, grouped by board, with a tick box per piece.
+4. **Exported PDF.** Three letter-size sections, each starting on its own page so a long list can run on without disturbing the others. Page 1, drawings: name and specs, then the 2D sheet (plan and four elevations) with dimensions: footprint, wall and ridge heights, wall lengths, door and window openings, roof pitch. Page 2, materials: the list with totals. Page 3, cut list: grouped by board, with a tick box per piece.
 
 ### J. Left out on purpose
 
