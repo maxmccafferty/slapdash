@@ -12,7 +12,7 @@ pnpm --filter @slapdash/web typecheck
 pnpm --filter @slapdash/web build
 pnpm --filter @slapdash/web tokens         # regenerate src/styles/tokens.{css,ts}
 pnpm --filter @slapdash/web exec playwright install chromium   # once
-pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion, the 3D view
+pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion, the 3D view, the 2D sheet
 ```
 
 E2E is not part of `pnpm -r test`, so the workspace tests stay headless. It saves screenshots
@@ -29,7 +29,7 @@ Mobile, MobileViews, MobileFloors, MobileChat).
   (Project popover with Save/Load/Undo/Redo, Materials, Build steps, Floors popover) top right;
   the eye key (view controls popover) bottom left; the orange chat key bottom right, which opens
   the chat as a bottom sheet while the model slides up. No logo.
-- **Not here yet:** the 2D sheet (in 2D the 3D canvas is hidden), the stress overlay, chat
+- **Not here yet:** the stress overlay, chat
   behaviour and voice, the Materials/Steps/Projects modals (only their latched keys), and real spec values.
 
 UI state (view controls, floor, latched panel, phone popovers and sheet) lives in a Zustand
@@ -110,13 +110,60 @@ timeout. Wiring it into the agent's `snapshot` tool is a later ticket.
 ### Debugging and e2e
 
 In dev, or with `?e2e`, `window.__slapdash` exposes `renderSnapshot`, `camera()`,
-`selection()`, `select()`, `frameStats()` and the bus. Playwright runs Chromium with
+`selection()`, `select()`, `frameStats()` and the bus (plus the 2D sheet's keys, merged in by
+`src/debug.ts`). Playwright runs Chromium with
 SwiftShader (`--use-angle=swiftshader`) so WebGL 2 works headless; `e2e/renderer.spec.ts`
 checks drawing, tap versus drag, Inside and Floors, and that snapshots leave the view
 untouched. Snapshot PNGs are saved to `test-results/screens/`.
 
 To check on real devices, run `pnpm --filter @slapdash/web dev --host` and open
 `http://<lan-ip>:5173/?sample=pool-house&perf`.
+
+## The 2D drawing sheet (`src/drawing/`)
+
+**View 2D** swaps the model for a drawing sheet (ADR-0003 §C/§D). It is plain SVG with no
+three.js, so it is in the main chunk and works without WebGL. The 3D canvas stays mounted
+but hidden, so snapshots keep working.
+
+- **Layout.** The plan, cut at 4′ 0″ (the Inside cut height), is in the middle. North is
+  above it, South below, West on the left and East on the right, with a 4′ gap, and a north
+  arrow sits above and to the right of the plan. Everything is on a 1′ dot grid with a 4′
+  margin, snapped to whole feet. An empty build shows "Nothing to draw yet."
+- **Conventions.** Sheet units are model mm. The plan has north up. Elevations are upright
+  and drawn as seen from outside, so the North elevation has east on the left and the East
+  elevation has north on the right.
+- **What is drawn.**
+  - In plan, cut walls are dark bands taken from the wall recipe. Each opening whose rough
+    opening spans the cut leaves a gap with a symbol: glass lines for a window, two panels
+    for a sliding door, a leaf and swing for a door. Other cuttable parts are drawn as their
+    section, the foundation and floors as outlines, and the roof and ridge dashed overhead.
+  - In elevation, each assembly is the convex hull of its parts. They are painted by kind
+    (foundation, floor, walls, roof) and then far to near, and footings are clipped at the
+    ground line. Openings in walls that face the viewer get their rough opening and a
+    symbol.
+- **Dimensions** (the Dimensions control).
+  - Plan: every wall's length outside it, every opening's width, and the footprint under
+    the title.
+  - Elevations: the wall height (right) and the ridge height (left), each opening's
+    "W × H", and a pitch triangle (`6 in 12`) where the slope lies in the view plane.
+  - Labels are `′ ″` with 45° ticks.
+- **Floors** applies, and Look from doesn't. Site context isn't drawn on the sheet yet.
+- **Pan and zoom.** Drag to move. Scroll, trackpad-pinch or two-finger pinch zooms toward
+  the pointer, between 25% and 800% of the fit. When focused, the arrow keys pan, `+`/`-`
+  zoom and `0` fits. The readout shows the zoom, where 100% is the fit. The view
+  (`sheet-view-store.ts`) survives switching to 3D and back, and is refitted only when a
+  project is opened or first gets parts.
+- **One drawing, two outputs.** `buildSheet(project, { floor, dimensions })` (`sheet.ts`)
+  returns the sheet as plain data, memoised per project. `DrawingSheet.tsx` renders it on
+  screen, and `drawingSheetSvg(project)` (`svg.ts`) renders it as a standalone SVG file for
+  page 1 of the exported PDF. The export uses hex colours and sheet-unit sizes, with no
+  `var(--…)`. Sizes and colours are all in `style.ts`. Text is tuned to at least 14 CSS px at
+  the fitted zoom on the 1440 × 900 desktop; on a phone you pinch in.
+- **Debugging.** With `?e2e` or in dev, `window.__slapdash.sheet()`, `sheetView()` and
+  `sheetSvg()` are available. `e2e/sheet.spec.ts` writes `test-results/screens/sheet.svg`.
+
+Builder recipes (wall, opening and roof params) are read defensively in
+`src/model/recipes.ts`, which both the 3D dimensions and the sheet use.
 
 ## Tokens and the raw-value rule
 
