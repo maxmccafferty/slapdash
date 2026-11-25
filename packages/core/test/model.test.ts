@@ -52,6 +52,20 @@ describe('createProject', () => {
   });
 });
 
+describe('assembly builder recipe', () => {
+  it('round-trips the optional builder field, and v1 files without it still load', () => {
+    const p = fixtureProject();
+    const withRecipe = {
+      ...p,
+      assemblies: { ...p.assemblies, W1: { ...p.assemblies.W1!, builder: { name: 'build_wall', params: { height: 2743.2, spacing: '16in' } } } },
+    };
+    expect(migrateProject(JSON.parse(JSON.stringify(withRecipe)))).toEqual({ ok: true, project: withRecipe });
+    const old = JSON.parse(JSON.stringify(p));
+    expect(old.assemblies.W1.builder).toBeUndefined();
+    expect(migrateProject(old).ok).toBe(true);
+  });
+});
+
 describe('ids', () => {
   it('allocates assembly ids per kind', () => {
     let c = empty();

@@ -49,12 +49,25 @@ export const zLevel = z.strictObject({
 });
 export type Level = z.infer<typeof zLevel>;
 
+/**
+ * How a builder tool made an assembly: the builder's name and its fully resolved
+ * input (lengths in mm). Builders that edit an assembly later (e.g. add_opening on a
+ * wall) read their layout rules from here.
+ */
+export const zBuilderRecipe = z.strictObject({
+  name: z.string(),
+  params: z.record(z.string(), z.unknown()),
+});
+export type BuilderRecipe = z.infer<typeof zBuilderRecipe>;
+
 export const zAssembly = z.strictObject({
   id: z.string(),
   name: z.string(),
   kind: zAssemblyKind,
   levelId: z.string(),
   buildStep: zBuildStep.optional(),
+  /** Set by builder tools; absent on hand-made assemblies. Optional, so v1 files without it still load. */
+  builder: zBuilderRecipe.optional(),
 });
 export type Assembly = z.infer<typeof zAssembly>;
 
