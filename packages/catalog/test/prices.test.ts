@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { validatePriceTable, type Material, type PriceUnit } from '@slapdash/core';
-import { CATALOG_VERSION, PRICE_TABLE, TIER1_CATALOG } from '../src/index.ts';
+import { CATALOG_VERSION, PRICE_TABLE, CATALOG } from '../src/index.ts';
 
-const C = TIER1_CATALOG;
+const C = CATALOG;
 const entries = (key: string) => PRICE_TABLE.entries.filter((e) => e.key === key);
 const materialByKey = new Map(C.materials.flatMap((m) => (m.priceKey ? [[m.priceKey, m] as const] : [])));
 const sections = new Map(C.sections.map((s) => [s.id, s]));

@@ -15,9 +15,9 @@ from the catalog. The code is pure TypeScript with no DOM and no Node APIs in `s
 
 ```ts
 import { analyze } from '@slapdash/solver';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 
-const r = analyze(project, TIER1_CATALOG);
+const r = analyze(project, CATALOG);
 r.parts['W1-S03'];   // { utilization: 0.42, governing: { check: 'combined', combo: 'D+0.6W+x' }, … }
 r.joints['J0614'];   // { utilization: 0.31, governing: { check: 'joint-uplift', … }, forces_N, capacity_N }
 r.unstable;          // [{ assemblyId: 'W2', message: 'W2 racks: it needs sheathing or a let-in brace …' }]

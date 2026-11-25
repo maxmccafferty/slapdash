@@ -67,9 +67,9 @@ const catalogResult = validateCatalog({
 if (!catalogResult.ok) invalid('tier-1 catalog', catalogResult.errors);
 
 /** The tier-1 catalog: enough to build a pool-house shell. */
-export const TIER1_CATALOG: Catalog = catalogResult.catalog;
+export const CATALOG: Catalog = catalogResult.catalog;
 
-const priceResult = validatePriceTable(prices, TIER1_CATALOG);
+const priceResult = validatePriceTable(prices, CATALOG);
 if (!priceResult.ok) invalid('price table', priceResult.errors);
 
 /** Low–high US retail prices, researched once on `researchedOn`. Planning estimates, not quotes. */

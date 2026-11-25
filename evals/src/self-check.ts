@@ -12,7 +12,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { scriptedClient, say } from '@slapdash/agent/testing';
-import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
+import { DESIGN_LOAD_TABLE, CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, GROUND, indexCatalog, type Project } from '@slapdash/core';
 import {
   assemblyCount,
@@ -37,7 +37,7 @@ import { scenarioLines, summaryLines, totalsOf } from './report.ts';
 import { POOL_HOUSE_WALLS, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
 import { runSuite } from './suite.ts';
 
-const catalog = indexCatalog(TIER1_CATALOG);
+const catalog = indexCatalog(CATALOG);
 let failures = 0;
 let passes = 0;
 
@@ -63,7 +63,7 @@ const failsCheck = (what: string, f: string | null | readonly string[]) => {
 };
 
 function build(commands: SeedCommands): Project {
-  const bus = new CommandBus({ project: createProject({ name: 'Self-check' }), catalog: TIER1_CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
+  const bus = new CommandBus({ project: createProject({ name: 'Self-check' }), catalog: CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
   for (const [name, input] of commands) {
     const res = bus.execute(name, input);
     if (!res.ok) throw new Error(`${name}: ${formatErrors(res.errors)}`);

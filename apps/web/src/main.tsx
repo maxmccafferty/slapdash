@@ -10,7 +10,7 @@ import { fetchKeyholeStatus } from './agent/keyhole-status.ts';
 import { createPhotoStore, preparePhoto } from './agent/photos.ts';
 import { browserSnapshotProvider } from './agent/snapshot-provider.ts';
 import { debugEnabled, exposeDebug } from './debug.ts';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { siteDefaults } from './model/bootstrap.ts';
 import { createProjectsController } from './projects/projects-controller.ts';
 import { openBackend } from './storage/backend.ts';
@@ -64,7 +64,7 @@ async function boot(): Promise<void> {
   const projects = createProjectsController({
     store: backend.store,
     device: backend.device,
-    catalog: TIER1_CATALOG,
+    catalog: CATALOG,
     // Builders size headers and footings from the same resolved loads the solver checks.
     siteDefaults,
     notify: note,

@@ -4,13 +4,13 @@
  */
 import { describe, expect, it } from 'vitest';
 import { CommandBus, MM_PER_INCH, createProject, formatErrors, takeoff, type MaterialsReport } from '@slapdash/core';
-import { PRICE_TABLE, TIER1_CATALOG } from '../src/index.ts';
+import { PRICE_TABLE, CATALOG } from '../src/index.ts';
 
 const IN = MM_PER_INCH;
 
 function poolHouse(): CommandBus {
   let n = 0;
-  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG, now: () => ++n });
+  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: CATALOG, now: () => ++n });
   const exec = (name: string, input: unknown) => {
     const res = bus.execute(name, input);
     if (!res.ok) throw new Error(`${name}: ${formatErrors(res.errors)}`);
@@ -32,7 +32,7 @@ const rowsOf = (r: MaterialsReport) => r.groups.flatMap((g) => g.rows);
 
 describe('materials for the pool-house shell (tier-1 catalog, real prices)', () => {
   const bus = poolHouse();
-  const report = takeoff(bus.project, TIER1_CATALOG, PRICE_TABLE);
+  const report = takeoff(bus.project, CATALOG, PRICE_TABLE);
   const rows = rowsOf(report);
 
   it('has Slab, Walls and Roof, in that order', () => {
@@ -42,7 +42,7 @@ describe('materials for the pool-house shell (tier-1 catalog, real prices)', () 
   it('every built part is counted once and every stocked member is on one board', () => {
     const built = Object.values(bus.project.parts).map((p) => p.id).sort();
     expect(rows.flatMap((r) => r.partIds).sort()).toEqual(built);
-    const sections = new Map(TIER1_CATALOG.sections.map((s) => [s.id, s]));
+    const sections = new Map(CATALOG.sections.map((s) => [s.id, s]));
     const stocked = Object.values(bus.project.parts).filter((p) => p.sectionId && sections.get(p.sectionId)?.stock);
     expect(report.cutList.flatMap((g) => g.pieces.flatMap((row) => row.pieceIds)).sort()).toEqual(stocked.map((p) => p.id).sort());
   });
@@ -96,13 +96,13 @@ describe('materials for the pool-house shell (tier-1 catalog, real prices)', () 
     const local = poolHouse();
     const res = local.execute('set_price', { material: 'spf-no2', size: '2x4', price: 0.5, per: 'linear-ft' });
     expect(res.ok).toBe(true);
-    const after = takeoff(local.project, TIER1_CATALOG, PRICE_TABLE);
+    const after = takeoff(local.project, CATALOG, PRICE_TABLE);
     const spf = rowsOf(after).filter((r) => r.materialId === 'spf-no2' && r.sectionId === '2x4');
     expect(spf.length).toBeGreaterThan(0);
     for (const r of spf) expect(r.cost).toMatchObject({ user: true, unitLow_usd: 0.5, unitHigh_usd: 0.5 });
     expect(after.totals.low_cents).not.toBe(report.totals.low_cents);
     local.undo();
-    expect(takeoff(local.project, TIER1_CATALOG, PRICE_TABLE).totals).toEqual(report.totals);
+    expect(takeoff(local.project, CATALOG, PRICE_TABLE).totals).toEqual(report.totals);
   });
 
   it('set_price refuses in single plain sentences', () => {

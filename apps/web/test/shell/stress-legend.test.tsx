@@ -1,5 +1,5 @@
 import { act, render, screen, within } from '@testing-library/react';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, indexCatalog } from '@slapdash/core';
 import { analyze } from '@slapdash/solver';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -9,10 +9,10 @@ import { resetModelStore, useModelStore } from '../../src/state/model-store.ts';
 import { useShellStore } from '../../src/state/shell-store.ts';
 import { useSiteStore } from '../../src/state/site-store.ts';
 
-const index = indexCatalog(TIER1_CATALOG);
+const index = indexCatalog(CATALOG);
 
 function bus() {
-  const b = new CommandBus({ project: createProject({ name: 'Shed' }), catalog: TIER1_CATALOG, siteDefaults: () => useSiteStore.getState().siteDefaults });
+  const b = new CommandBus({ project: createProject({ name: 'Shed' }), catalog: CATALOG, siteDefaults: () => useSiteStore.getState().siteDefaults });
   useModelStore.getState().attachBus(b);
   return b;
 }

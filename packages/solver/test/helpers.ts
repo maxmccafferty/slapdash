@@ -2,11 +2,11 @@
  * Project builders for the solver tests: the pool-house shell (the same commands as
  * `apps/web/src/model/sample-shell.ts`), builder-made walls, and tiny hand-made models.
  */
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, indexCatalog, type Assembly, type Joint, type Part, type Project } from '@slapdash/core';
 
-export const CATALOG = TIER1_CATALOG;
-export const INDEX = indexCatalog(TIER1_CATALOG);
+export { CATALOG };
+export const INDEX = indexCatalog(CATALOG);
 
 /** Mirrors SAMPLE_SHELL_COMMANDS in apps/web/src/model/sample-shell.ts. */
 export const POOL_HOUSE_COMMANDS: ReadonlyArray<readonly [string, unknown]> = [
@@ -21,7 +21,7 @@ export const POOL_HOUSE_COMMANDS: ReadonlyArray<readonly [string, unknown]> = [
 ];
 
 export function build(commands: ReadonlyArray<readonly [string, unknown]>, name = 'Test'): Project {
-  const bus = new CommandBus({ project: createProject({ name }), catalog: TIER1_CATALOG });
+  const bus = new CommandBus({ project: createProject({ name }), catalog: CATALOG });
   for (const [cmd, input] of commands) {
     const res = bus.execute(cmd, input);
     if (!res.ok) throw new Error(`${cmd}: ${formatErrors(res.errors)}`);

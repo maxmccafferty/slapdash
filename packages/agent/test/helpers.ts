@@ -1,5 +1,5 @@
 import type { BetaMessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, type Project } from '@slapdash/core';
 import { expect } from 'vitest';
 
@@ -9,7 +9,7 @@ export function fixedClock(start = 1_800_000_000_000) {
 }
 
 export function makeBus(project: Project = createProject({ name: 'Pool house' })): CommandBus {
-  return new CommandBus({ project, catalog: TIER1_CATALOG, now: fixedClock() });
+  return new CommandBus({ project, catalog: CATALOG, now: fixedClock() });
 }
 
 export function exec(bus: CommandBus, name: string, input: unknown) {

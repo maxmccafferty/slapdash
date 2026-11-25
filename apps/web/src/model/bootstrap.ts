@@ -6,7 +6,7 @@
  * house and tree).
  */
 import { CommandBus, createProject } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
 import { useSiteStore } from '../state/site-store.ts';
@@ -43,7 +43,7 @@ export function bootstrapModel(search: string = typeof window === 'undefined' ? 
   const sample = params.get('sample');
   const bus = new CommandBus({
     project: createProject({ name: sample === 'pool-house' ? 'Pool house' : 'New project' }),
-    catalog: TIER1_CATALOG,
+    catalog: CATALOG,
     siteDefaults,
   });
   const result = attach(bus);
@@ -53,7 +53,7 @@ export function bootstrapModel(search: string = typeof window === 'undefined' ? 
 
 /** Open the sample pool house as a new project (the no-key chat offers it). */
 export function openSampleProject(): BootstrapResult {
-  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG, siteDefaults });
+  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: CATALOG, siteDefaults });
   const result = attach(bus);
   buildSample(bus, false);
   return result;

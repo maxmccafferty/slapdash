@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { BUILDER_DEFAULTS, validateCatalog, type Material } from '@slapdash/core';
-import { KNOWN_FLAGS, TEXTURE_SETS, TIER1_CATALOG, isKnownFlag } from '../src/index.ts';
+import { KNOWN_FLAGS, TEXTURE_SETS, CATALOG, isKnownFlag } from '../src/index.ts';
 
-const C = TIER1_CATALOG;
+const C = CATALOG;
 const material = (id: string): Material => {
   const m = C.materials.find((x) => x.id === id);
   if (!m) throw new Error(`no material ${id}`);

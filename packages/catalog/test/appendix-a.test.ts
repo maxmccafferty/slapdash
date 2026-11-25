@@ -3,7 +3,7 @@
  * each item, in the ADR's words, maps to the catalog ids that satisfy it.
  */
 import { describe, expect, it } from 'vitest';
-import { TIER1_CATALOG } from '../src/index.ts';
+import { CATALOG } from '../src/index.ts';
 
 const TIER1: Record<string, Record<string, string[]>> = {
   Lumber: {
@@ -91,7 +91,7 @@ const GROUP_CATEGORIES: Record<string, string[]> = {
   Openings: ['opening'],
 };
 
-const materials = new Map(TIER1_CATALOG.materials.map((m) => [m.id, m]));
+const materials = new Map(CATALOG.materials.map((m) => [m.id, m]));
 const rows = Object.entries(TIER1).flatMap(([group, items]) =>
   Object.entries(items).map(([item, ids]) => [group, item, ids] as const),
 );
@@ -108,7 +108,7 @@ describe('ADR-0001 Appendix A, tier 1', () => {
 
   it('every tier-1 material (bar the generic unit and site context) fulfils an Appendix A item', () => {
     const listed = new Set(rows.flatMap(([, , ids]) => ids));
-    const extra = TIER1_CATALOG.materials
+    const extra = CATALOG.materials
       .filter((m) => !listed.has(m.id) && m.id !== 'opening-unit' && m.category !== 'site')
       .map((m) => m.id);
     expect(extra).toEqual([]);

@@ -2,7 +2,7 @@
  * The solver client against a fake Worker that routes to the real `handleSolverMessage`
  * (in this thread), with control over when replies are delivered.
  */
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, type Project } from '@slapdash/core';
 import { createSolverState, handleSolverMessage, type SolverRequest, type SolverResponse } from '@slapdash/solver/protocol';
 import { describe, expect, it } from 'vitest';
@@ -34,7 +34,7 @@ class FakeWorker implements SolverWorkerLike {
 }
 
 function shed(width: string): Project {
-  const bus = new CommandBus({ project: createProject({ name: 'Shed' }), catalog: TIER1_CATALOG });
+  const bus = new CommandBus({ project: createProject({ name: 'Shed' }), catalog: CATALOG });
   const res = bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: width, z: '8ft' } });
   if (!res.ok) throw new Error('pour_slab failed');
   const wall = bus.execute('build_wall', { start: { x: 0, z: 0 }, end: { x: width, z: 0 }, height: '8ft' });
@@ -45,7 +45,7 @@ function shed(width: string): Project {
 describe('solver client', () => {
   it('sends init with the catalog first, then answers analyze', async () => {
     const w = new FakeWorker();
-    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const client = createSolverClient(CATALOG, () => w);
     const p = client.analyze(shed('8ft'));
     expect(w.sent.map((m) => m.type)).toEqual(['init', 'analyze']);
     await w.flush();
@@ -56,7 +56,7 @@ describe('solver client', () => {
 
   it('the newest request wins: the older promise rejects as stale and its late reply is dropped', async () => {
     const w = new FakeWorker();
-    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const client = createSolverClient(CATALOG, () => w);
     const first = client.analyze(shed('8ft'));
     const firstOutcome = first.then(
       () => 'resolved',
@@ -74,7 +74,7 @@ describe('solver client', () => {
 
   it('channels are independent: the view and Claude never cancel each other', async () => {
     const w = new FakeWorker();
-    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const client = createSolverClient(CATALOG, () => w);
     const view = client.analyze(shed('8ft'), undefined, 'view');
     const claude = client.analyze(shed('12ft'), undefined, 'claude');
     const viewAgain = client.analyze(shed('12ft'), undefined, 'view');
@@ -86,7 +86,7 @@ describe('solver client', () => {
 
   it('analyze and stability are tracked separately', async () => {
     const w = new FakeWorker();
-    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const client = createSolverClient(CATALOG, () => w);
     const a = client.analyze(shed('8ft'));
     const s = client.stability(shed('8ft'), { duration_s: 0.2 });
     await w.flush();
@@ -96,7 +96,7 @@ describe('solver client', () => {
 
   it('a solver error rejects the promise; dispose rejects what is pending and ends the worker', async () => {
     const w = new FakeWorker();
-    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const client = createSolverClient(CATALOG, () => w);
     const bad = client.analyze({ nope: true } as unknown as Project);
     await w.flush();
     await expect(bad).rejects.toThrow();

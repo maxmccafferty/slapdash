@@ -12,9 +12,9 @@ import {
   formatErrors,
   indexCatalog,
 } from '@slapdash/core';
-import { TIER1_CATALOG } from '../src/index.ts';
+import { CATALOG } from '../src/index.ts';
 
-const idx = indexCatalog(TIER1_CATALOG);
+const idx = indexCatalog(CATALOG);
 
 describe('builders on the tier-1 catalog', () => {
   it('has every BUILDER_DEFAULTS material, section and joint type', () => {
@@ -31,7 +31,7 @@ describe('builders on the tier-1 catalog', () => {
 
   describe('the 16 × 20 pool-house shell', () => {
     let n = 0;
-    const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG, now: () => ++n });
+    const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: CATALOG, now: () => ++n });
     const exec = (name: string, input: unknown) => {
       const res = bus.execute(name, input);
       if (!res.ok) throw new Error(`${name}: ${formatErrors(res.errors)}`);

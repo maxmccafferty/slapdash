@@ -7,7 +7,7 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { call, say } from '@slapdash/agent/testing';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { formatErrors, indexCatalog, type CommandBus } from '@slapdash/core';
 import { analyze } from '@slapdash/solver';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -18,7 +18,7 @@ import { useShellStore } from '../../src/state/shell-store.ts';
 import { useSiteStore } from '../../src/state/site-store.ts';
 import { setupChat } from './harness.tsx';
 
-const index = indexCatalog(TIER1_CATALOG);
+const index = indexCatalog(CATALOG);
 const FIX = 'Upsize the sliding door header to 2-2x12';
 
 const headers = (bus: CommandBus) => Object.values(bus.project.parts).filter((p) => p.role === 'header' && p.tags.includes('opening:O1'));

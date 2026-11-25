@@ -4,19 +4,19 @@
  *
  *   pnpm --filter @slapdash/solver bench [runs]
  */
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, indexCatalog } from '@slapdash/core';
 import { analyze } from '../src/index.ts';
 import { POOL_HOUSE_COMMANDS } from '../test/helpers.ts';
 
 const runs = Number(process.argv[2]) || 10;
-const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG });
+const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: CATALOG });
 for (const [cmd, input] of POOL_HOUSE_COMMANDS) {
   const res = bus.execute(cmd, input);
   if (!res.ok) throw new Error(`${cmd}: ${formatErrors(res.errors)}`);
 }
 const project = bus.project;
-const catalog = indexCatalog(TIER1_CATALOG);
+const catalog = indexCatalog(CATALOG);
 
 const first = analyze(project, catalog);
 const times: number[] = [];

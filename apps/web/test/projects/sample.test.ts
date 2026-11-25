@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { buildStepGroups } from '@slapdash/core';
 import { decodeSlapdashFile } from '@slapdash/storage';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +23,7 @@ describe('the shipped sample pool house', () => {
   it('builds in three steps: Slab, Walls, Roof', () => {
     const decoded = decodeSlapdashFile(shipped);
     if (!decoded.ok) throw new Error(decoded.errors.join('\n'));
-    expect(buildStepGroups(decoded.record.project, TIER1_CATALOG).map((g) => g.title)).toEqual(['Slab', 'Walls', 'Roof']);
+    expect(buildStepGroups(decoded.record.project, CATALOG).map((g) => g.title)).toEqual(['Slab', 'Walls', 'Roof']);
   });
 
   it('matches a fresh build byte for byte', () => {
