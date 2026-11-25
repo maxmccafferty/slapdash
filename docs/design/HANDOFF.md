@@ -184,7 +184,7 @@ Do not copy these as data.
 
 - **The scene is a flat drawing**, not 3D. Orbiting, the Top/Front/Side feel and animation are not shown.
 - **Stress shading and "about 90% of its limit"** are made up. Real values come from the solver.
-- **Cut lengths** were worked out by hand for the pool house. Real ones come from the cut-list optimizer.
+- **Cut lengths** were worked out by hand for the pool house. The app's cut list now comes from the cut-list optimizer (`packages/core/src/materials/optimizer.ts`), so its numbers will differ from the mockup's.
 - **Prices** for studs, concrete, rafters and hurricane ties were checked against US retail in November 2026; the others are deliberately blank. The real table is ADR-0001 §11.
 - **Part counts** (103 parts, 84 wall pieces) come from the mockup's own generator, not from real builders.
 - **Chat text** is sample copy showing the voice, not fixed strings.

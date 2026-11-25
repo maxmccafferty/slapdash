@@ -225,6 +225,40 @@ but hidden, so snapshots keep working.
 Builder recipes (wall, opening and roof params) are read defensively in
 `src/model/recipes.ts`, which both the 3D dimensions and the sheet use.
 
+## Materials, cut list and PDF (`src/materials/`, `src/export/`)
+
+The **Materials** key opens a modal (ADR-0003 §F) with two tabs in a track beside the title.
+
+- **Data.** `useMaterials()` runs core's `takeoff(project, catalog, PRICE_TABLE)` once per
+  immutable project (a WeakMap), so the two tabs and the PDF share one result. A
+  `set_price` from Claude changes the project, so the list updates live.
+- **Materials tab.** The total as a range under the title, then one `<table>` per build step
+  (Slab, Walls, Roof…; the step is the `<caption>`, Amount and Cost are column headers), a
+  swatch per row, "no price yet" in grey (the reason is the tooltip), an orange dot on a
+  price the person gave, and a Total row. The footer has Export PDF and the price-table
+  date. Words and numbers are in `format.ts`.
+- **Cut list tab.** One table per stock board ("From 2×4 precut studs, 8′ 8 5/8″ — 59
+  boards"), each row a piece length and count; spliced pieces say so.
+- **The modal rule.** It mounts inside `<main>` (`role="dialog" aria-modal="false"`) and never
+  makes the chat inert. On desktop it sits below the header's keys, so the latched Materials
+  key still closes it; on phone it fills the screen under the Chat key (z 3) and the chat
+  sheet (z 20). Escape and Close return focus to the Materials key. The tab lives in the
+  shell store, so it survives crossing the breakpoint.
+- **Export PDF** (`export-pdf.ts`, loaded on click) builds a US letter PDF and downloads
+  `<project-slug>.pdf`. `layoutPdf` (`pdf-layout.ts`) is pure: page 1 is the name, specs and
+  the 2D sheet as vectors (`pdf-sheet.ts`, no dot grid); page 2 the materials list with the
+  Total, date and caveat; page 3 the cut list in two columns with a tick box per row. Each
+  section starts a new page, a long list carries over with "(continued)" headers, and every
+  page has a footer with "Planning estimate, not a quote" and "Page n of N". `renderPdf`
+  (`pdf-render.ts`) draws it with pdf-lib in its own lazy chunk.
+- **Fonts.** Geist Regular and SemiBold static TTFs are vendored in `src/export/fonts/` (SIL
+  OFL 1.1, `OFL.txt`; from the official `geist` package, v1.9.2) and fetched only on export.
+  Characters the font lacks are swapped for ASCII stand-ins (′ → ', × → x); if the fetch
+  fails, the PDF is set in Helvetica through the same sanitizer.
+- **Checking a PDF by eye.** `SLAPDASH_PDF_OUT=/tmp/pool-house.pdf pnpm --filter @slapdash/web
+  exec vitest run test/export` writes the pool house's PDF. `e2e/materials.spec.ts` downloads
+  it through the real button.
+
 ## Tokens and the raw-value rule
 
 `scripts/build-tokens.ts` reads `docs/design/tokens.json` (validated with zod) and writes
