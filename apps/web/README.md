@@ -11,6 +11,7 @@ pnpm --filter @slapdash/web test           # unit tests (vitest, jsdom)
 pnpm --filter @slapdash/web typecheck
 pnpm --filter @slapdash/web build
 pnpm --filter @slapdash/web tokens         # regenerate src/styles/tokens.{css,ts}
+pnpm --filter @slapdash/web check:secrets  # build with a sentinel API key and scan dist for it
 pnpm --filter @slapdash/web exec playwright install chromium   # once
 pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 14px text, focus, axe, reduced motion, the 3D view, the 2D sheet
 ```
@@ -18,6 +19,11 @@ pnpm --filter @slapdash/web e2e            # Playwright: layout, 44px targets, 1
 E2E is not part of `pnpm -r test`, so the workspace tests stay headless. It saves screenshots
 of each state to `test-results/screens/` for comparison with the handoff artboards (Braun,
 Mobile, MobileViews, MobileFloors, MobileChat).
+
+`vite dev` also serves the Claude keyhole at `/api/claude` (the `slapdash:keyhole` plugin in
+`vite.config.ts`, dev only). It reads the server environment from the repo-root `.env`; only
+`VITE_*` variables ever reach the browser. App code must not import `@slapdash/keyhole` or the
+Anthropic SDK (`test/no-server-imports.test.ts`). See CONTRIBUTING, "Claude server (keyhole)".
 
 ## What the shell is (and isn't)
 
