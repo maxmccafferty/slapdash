@@ -3,9 +3,10 @@
  * (`@slapdash/solver/worker`) so a solve never blocks the UI.
  *
  * `init` goes out once with the catalog; `analyze(project)` and `stability(project)`
- * return promises. For each kind the newest request wins: when a newer one is sent, the
- * older promise rejects with `StaleSolverRequest` and its reply, if it still comes, is
- * dropped. No UI here; the stress view will sit on top of this.
+ * return promises. For each kind and channel the newest request wins: when a newer one is
+ * sent, the older promise rejects with `StaleSolverRequest` and its reply, if it still
+ * comes, is dropped. Channels keep independent callers apart: the stress view's analysis
+ * (`'view'`) and Claude's check_structure (`'claude'`) never cancel each other.
  */
 import type { Catalog, Project } from '@slapdash/core';
 import type { AnalysisOptions, AnalysisResult } from '@slapdash/solver';
@@ -28,8 +29,8 @@ export class StaleSolverRequest extends Error {
 }
 
 export interface SolverClient {
-  analyze(project: Project, options?: AnalysisOptions): Promise<AnalysisResult>;
-  stability(project: Project, options?: StabilityOptions): Promise<StabilityResult>;
+  analyze(project: Project, options?: AnalysisOptions, channel?: string): Promise<AnalysisResult>;
+  stability(project: Project, options?: StabilityOptions, channel?: string): Promise<StabilityResult>;
   dispose(): void;
 }
 
@@ -43,7 +44,8 @@ interface Pending {
 export function createSolverClient(catalog: Catalog, createWorker: () => SolverWorkerLike): SolverClient {
   const worker = createWorker();
   let nextId = 1;
-  const latest = new Map<Kind, Pending>();
+  /** The newest pending request per `kind:channel`. */
+  const latest = new Map<string, Pending>();
 
   worker.onmessage = (event) => {
     const msg = event.data;
@@ -51,27 +53,31 @@ export function createSolverClient(catalog: Catalog, createWorker: () => SolverW
       if (!msg.ok) console.error(`Solver: ${msg.error}`);
       return;
     }
-    const pending = latest.get(msg.type);
-    if (!pending || pending.id !== msg.id) return; // stale: a newer request is in flight
-    latest.delete(msg.type);
+    const entry = [...latest].find(([key, p]) => p.id === msg.id && key.startsWith(`${msg.type}:`));
+    if (!entry) return; // stale: a newer request is in flight
+    const [key, pending] = entry;
+    latest.delete(key);
     if (msg.ok) pending.resolve(msg.result as never);
     else pending.reject(new Error(msg.error));
   };
   worker.postMessage({ type: 'init', id: nextId++, catalog });
 
-  function request<T>(kind: Kind, message: SolverRequest): Promise<T> {
-    latest.get(kind)?.reject(new StaleSolverRequest(kind));
+  function request<T>(kind: Kind, channel: string, message: SolverRequest): Promise<T> {
+    const key = `${kind}:${channel}`;
+    latest.get(key)?.reject(new StaleSolverRequest(kind));
     return new Promise<T>((resolve, reject) => {
-      latest.set(kind, { id: message.id, resolve: resolve as (v: never) => void, reject });
+      latest.set(key, { id: message.id, resolve: resolve as (v: never) => void, reject });
       worker.postMessage(message);
     });
   }
 
   return {
-    analyze: (project, options) => request<AnalysisResult>('analyze', { type: 'analyze', id: nextId++, project, ...(options ? { options } : {}) }),
-    stability: (project, options) => request<StabilityResult>('stability', { type: 'stability', id: nextId++, project, ...(options ? { options } : {}) }),
+    analyze: (project, options, channel = 'default') =>
+      request<AnalysisResult>('analyze', channel, { type: 'analyze', id: nextId++, project, ...(options ? { options } : {}) }),
+    stability: (project, options, channel = 'default') =>
+      request<StabilityResult>('stability', channel, { type: 'stability', id: nextId++, project, ...(options ? { options } : {}) }),
     dispose() {
-      for (const [kind, p] of latest) p.reject(new StaleSolverRequest(kind));
+      for (const [key, p] of latest) p.reject(new StaleSolverRequest(key.split(':')[0]!));
       latest.clear();
       worker.onmessage = null;
       worker.terminate();

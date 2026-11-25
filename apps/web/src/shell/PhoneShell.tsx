@@ -11,6 +11,7 @@ import { ChatPanel } from './ChatPanel.tsx';
 import type { ShellProps } from './DesktopShell.tsx';
 import { ModelArea } from './ModelArea.tsx';
 import { ProjectHeader } from './ProjectHeader.tsx';
+import { StressLegend } from './StressLegend.tsx';
 import { ViewControls } from './ViewControls.tsx';
 import styles from './PhoneShell.module.css';
 
@@ -103,6 +104,10 @@ export function PhoneShell({ project, actions }: ShellProps) {
             </Popover>
           </PopoverAnchor>
         </Unit>
+
+        <div className={styles.legend}>
+          <StressLegend layout="compact" />
+        </div>
 
         <Unit className={styles.views}>
           <PopoverAnchor>

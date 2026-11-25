@@ -21,6 +21,14 @@ export {
   type ValidatedSnapshot,
 } from '@slapdash/agent';
 
+import type { RenderableMode as AgentRenderableMode } from '@slapdash/agent';
+
+/**
+ * What the scene can draw: the snapshot modes plus the user's stress view. Stress stays
+ * renderer-local (snapshots can't show it; Claude reads check_structure instead).
+ */
+export type SceneMode = AgentRenderableMode | 'stress';
+
 export interface SnapshotResult {
   png: Blob;
   width: number;

@@ -3,6 +3,17 @@ import { PartChip } from './PartChip.tsx';
 import styles from './Chat.module.css';
 
 export function UserMessage({ item }: { item: UserItem }) {
+  if (item.trigger === 'stress') {
+    // Not typed by the person: a compact line saying what started the turn.
+    return (
+      <div className={[styles.message, styles.user].join(' ')} data-testid="stress-trigger">
+        <span className={[styles.chip, styles['chip-static'], styles.trigger].join(' ')}>
+          <span className="visually-hidden">Automatic: </span>
+          <span className={styles['chip-label']}>{item.text}</span>
+        </span>
+      </div>
+    );
+  }
   return (
     <div className={[styles.message, styles.user].join(' ')}>
       <span className="visually-hidden">You</span>

@@ -23,11 +23,21 @@ import { sceneMaterials, setCutSide } from './materials.ts';
 import { PartBatch } from './PartBatch.tsx';
 import { TIER_SETTINGS, type QualityTier } from './quality.ts';
 import { SiteContext } from './SiteContext.tsx';
-import type { RenderableMode } from './snapshot/types.ts';
+import type { SceneMode } from './snapshot/types.ts';
+import type { StressBand } from '../analysis/stress.ts';
+import { StressCallout, StressMarks } from './StressCallout.tsx';
 import { cutPlaneFor, isCuttable, isPartVisible, type FloorId, type LookFrom } from './visibility.ts';
 
+/** The stress overlay: each part's band and the callout on the most loaded visible part. */
+export interface StressSpec {
+  bands: ReadonlyMap<string, StressBand>;
+  callout: { partId: string; text: string; over: boolean } | null;
+}
+
 export interface ViewSpec {
-  mode: RenderableMode;
+  mode: SceneMode;
+  /** With mode "stress": the bands and the callout. */
+  stress?: StressSpec | null;
   floor: FloorId;
   lookFrom: LookFrom;
   dimensions: boolean;
@@ -131,6 +141,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
             parts={visibleParts(b)}
             isCuttable={cuttable}
             mode={spec.mode}
+            {...(spec.mode === 'stress' && spec.stress ? { stress: spec.stress.bands } : {})}
             tier={tier}
             cut={cut}
             catalog={catalog}
@@ -139,6 +150,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
         ))}
       </group>
       {spec.mode !== 'textured' &&
+        spec.mode !== 'stress' &&
         batches.map((b) => (
           <BatchEdges
             key={`edges:${b.key}`}
@@ -151,6 +163,14 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
       <SiteContext parts={context} />
       {spec.dimensions && <Dimensions lines={lines} />}
       <Highlights parts={outlinedParts} proposal={spec.proposal} />
+      {spec.mode === 'stress' && spec.stress && (
+        <>
+          <StressMarks project={project} bands={spec.stress.bands} isVisible={isVisible} exclude={spec.stress.callout?.partId ?? null} />
+          {spec.stress.callout && project.parts[spec.stress.callout.partId] && (
+            <StressCallout part={project.parts[spec.stress.callout.partId]!} text={spec.stress.callout.text} over={spec.stress.callout.over} />
+          )}
+        </>
+      )}
     </>
   );
 }

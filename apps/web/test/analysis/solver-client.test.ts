@@ -72,6 +72,18 @@ describe('solver client', () => {
     expect(Object.keys(r.parts).length).not.toBe(Object.keys(shed('8ft').parts).length);
   });
 
+  it('channels are independent: the view and Claude never cancel each other', async () => {
+    const w = new FakeWorker();
+    const client = createSolverClient(TIER1_CATALOG, () => w);
+    const view = client.analyze(shed('8ft'), undefined, 'view');
+    const claude = client.analyze(shed('12ft'), undefined, 'claude');
+    const viewAgain = client.analyze(shed('12ft'), undefined, 'view');
+    await expect(view).rejects.toBeInstanceOf(StaleSolverRequest);
+    await w.flush();
+    expect(Object.keys((await claude).parts).length).toBe(Object.keys(shed('12ft').parts).length);
+    expect((await viewAgain).status).toBe('ok');
+  });
+
   it('analyze and stability are tracked separately', async () => {
     const w = new FakeWorker();
     const client = createSolverClient(TIER1_CATALOG, () => w);

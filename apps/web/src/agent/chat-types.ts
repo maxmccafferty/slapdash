@@ -23,6 +23,8 @@ export interface UserItem {
   text: string;
   pointer?: PointerChip;
   photos: ChatPhoto[];
+  /** Sent by the app, not typed: "stress" is the automatic turn when Stress is switched on. */
+  trigger?: 'stress';
 }
 
 export type UndoState = 'available' | 'undone';

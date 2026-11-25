@@ -38,7 +38,10 @@ describe('validateSnapshotRequest', () => {
 
   it('refuses stress and exploded in plain language', () => {
     const stress = validateSnapshotRequest({ mode: 'stress' }, project);
-    expect(stress.ok ? '' : stress.errors[0]!.message).toBe("Stress view isn't available yet.");
+    expect(stress.ok ? null : stress.errors[0]).toMatchObject({
+      message: "Snapshots can't show the stress view.",
+      hint: 'Call check_structure for the most loaded parts and their % of limit.',
+    });
     const exploded = validateSnapshotRequest({ mode: 'exploded' }, project);
     expect(exploded.ok ? '' : exploded.errors[0]!.message).toBe('Exploded view was replaced by build steps.');
   });

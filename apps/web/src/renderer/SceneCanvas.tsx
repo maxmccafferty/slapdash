@@ -20,7 +20,9 @@ import { useRendererStore } from './renderer-store.ts';
 import { SceneContent, type ViewSpec } from './SceneContent.tsx';
 import { SnapshotHost } from './snapshot/SnapshotHost.tsx';
 import { useRendererDebug } from './useRendererDebug.ts';
-import { cutPlaneFor } from './visibility.ts';
+import { cutPlaneFor, isPartVisible } from './visibility.ts';
+import { useStressStore } from '../analysis/stress-store.ts';
+import { stressSpec } from './stress-spec.ts';
 import { REDUCED_MOTION_QUERY, ViewControls3D } from './ViewControls3D.tsx';
 
 /** Labels keep their pixel size as the camera moves. */
@@ -56,6 +58,8 @@ function UserScene() {
   const lookFrom = useShellStore((s) => s.lookFrom);
   const dimensions = useShellStore((s) => s.dimensions);
   const view = useShellStore((s) => s.view);
+  const stressOn = useShellStore((s) => s.stress);
+  const stressResult = useStressStore((s) => s.result);
   const tier = useRendererStore((s) => s.tier);
   const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
   const cut = useMemo(() => createCutUniforms(), []);
@@ -66,9 +70,20 @@ function UserScene() {
     if (selected) ids.add(selected);
     return [...ids];
   }, [inProgress, selected]);
+  // Stress shows in 3D only, once there is a result (the last one stays while a new one runs).
+  const stress = useMemo(
+    () =>
+      stressOn && view === '3d' && stressResult && project
+        ? stressSpec(project, stressResult, (id) => {
+            const part = project.parts[id];
+            return part ? isPartVisible(part, project.assemblies[part.assemblyId], { floor, lookFrom }) : false;
+          })
+        : null,
+    [stressOn, view, stressResult, project, floor, lookFrom],
+  );
   const spec = useMemo<ViewSpec>(
-    () => ({ mode: 'textured', floor, lookFrom, dimensions, outlined, proposal }),
-    [floor, lookFrom, dimensions, outlined, proposal],
+    () => ({ mode: stress ? 'stress' : 'textured', stress, floor, lookFrom, dimensions, outlined, proposal }),
+    [stress, floor, lookFrom, dimensions, outlined, proposal],
   );
 
   const cutMm = project ? cutPlaneFor(lookFrom, project.levels) : null;

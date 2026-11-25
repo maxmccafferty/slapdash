@@ -16,13 +16,15 @@ import {
   type ChatLogLike,
   type KeyholeClient,
   type KeyholeStatus,
+  type AnalysisProvider,
   type SnapshotProvider,
   type StoredBlock,
+  type StressContext,
   type TurnCaps,
   type TurnResult,
   type UserInput,
 } from '@slapdash/agent';
-import type { CommandBus } from '@slapdash/core';
+import type { CommandBus, SiteDefaults } from '@slapdash/core';
 import { useModelStore } from '../state/model-store.ts';
 import { addNote, answerPending, finishTurn, updateClaude, useChatStore, type ChatState } from '../state/chat-store.ts';
 import { emptyClaudeItem, type ChatItem, type PointerChip } from './chat-types.ts';
@@ -40,6 +42,10 @@ export interface ChatControllerDeps {
   photos: PhotoStore;
   preparePhoto: (file: File) => Promise<PreparedPhoto>;
   snapshot?: SnapshotProvider;
+  /** Runs the structural check for Claude's check_structure. */
+  analysis?: AnalysisProvider;
+  /** The app's site defaults (default location, loads table), for the `<project>` summary. */
+  siteDefaults?: () => SiteDefaults | undefined;
   /** Opens the sample pool house (a new bus). */
   openSample?: () => void;
   /** Where the chat log is saved once project storage is wired in. */
@@ -54,12 +60,19 @@ export interface SendOptions {
   approvePlan?: boolean;
   /** The message was spoken: Claude's reply is read aloud. */
   spoken?: boolean;
+  /** The automatic stress turn: what the stress view shows. */
+  stress?: StressContext;
 }
 
 export interface ChatController {
   start(): Promise<void>;
   send(text: string, opts?: SendOptions): Promise<TurnResult | null>;
   approvePlan(): Promise<TurnResult | null>;
+  /**
+   * The automatic turn when Stress is switched on and shows something worth a word: Claude
+   * calls check_structure, explains, and offers the fix. Only when connected and idle.
+   */
+  explainStress(ctx: StressContext): Promise<TurnResult | null>;
   changePlan(): void;
   chooseOption(itemId: string, text: string): Promise<TurnResult | null>;
   undoTurn(itemId: string): void;
@@ -109,6 +122,9 @@ function topEntryId(bus: CommandBus): number | null {
   const live = bus.listHistory(Number.MAX_SAFE_INTEGER).filter((i) => !i.isUndone);
   return live.at(-1)?.id ?? null;
 }
+
+/** The user line for the automatic stress turn, shown as a compact chip. */
+export const STRESS_TRIGGER_TEXT = 'Stress view on';
 
 export const NOTHING_HEARD = "Didn't catch that. Hold Talk while you speak.";
 
@@ -180,7 +196,11 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     });
   }
 
+  /** True once the keyhole has said Claude is configured. Unprompted turns need it; a typed send doesn't. */
+  let keyholeConfirmed = false;
+
   function applyStatus(status: KeyholeStatus | null) {
+    keyholeConfirmed = status?.configured === true;
     if (!status) {
       set({ connection: 'ready' });
       return;
@@ -214,12 +234,19 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
 
     const turnBus = bus;
     const turnMemory = memory;
-    const pointedAt = pointer();
+    const pointedAt = opts.stress ? null : pointer();
     const photos = s.pendingPhotos;
     const approvePlan = opts.approvePlan ?? (s.changingPlan ? false : undefined);
     const planAnswer = approvePlan === false ? 'changing' : 'approved';
 
-    const userItem: ChatItem = { kind: 'user', id: nextId('user'), text, photos, ...(pointedAt ? { pointer: pointedAt } : {}) };
+    const userItem: ChatItem = {
+      kind: 'user',
+      id: nextId('user'),
+      text,
+      photos,
+      ...(pointedAt ? { pointer: pointedAt } : {}),
+      ...(opts.stress ? { trigger: 'stress' as const } : {}),
+    };
     const claudeId = nextId('claude');
     set((st) => ({
       items: [...answerPending(st.items, planAnswer), userItem, emptyClaudeItem(claudeId)],
@@ -301,6 +328,8 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     const input: UserInput = { text, ...(approvePlan !== undefined ? { approvePlan } : {}) };
     if (photos.length > 0) input.photos = photos.map((p) => ({ fileId: p.fileId, mimeType: p.mimeType }));
     if (pointedAt) input.pointedAt = { id: pointedAt.id, label: pointedAt.label };
+    if (opts.stress) input.stress = opts.stress;
+    const siteDefaults = deps.siteDefaults?.();
 
     let result: TurnResult | null = null;
     try {
@@ -312,6 +341,8 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
           signal: controller.signal,
           onEvent,
           ...(deps.snapshot ? { snapshot: deps.snapshot } : {}),
+          ...(deps.analysis ? { analysis: deps.analysis } : {}),
+          ...(siteDefaults ? { siteDefaults } : {}),
           ...(deps.caps ? { caps: deps.caps } : {}),
           ...(deps.newTurnId ? { newTurnId: deps.newTurnId } : {}),
         },
@@ -432,6 +463,14 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
 
     approvePlan() {
       return send('Build it', { approvePlan: true });
+    },
+
+    explainStress(ctx) {
+      const s = get();
+      // Never an unprompted paid turn without a confirmed keyhole (a static preview has none).
+      if (!keyholeConfirmed || s.running || s.connection !== 'ready' || talking) return Promise.resolve(null);
+      // A pointer chip would make "this" mean the tapped part; the stress turn is about the view.
+      return send(STRESS_TRIGGER_TEXT, { stress: ctx });
     },
 
     changePlan() {

@@ -4,6 +4,7 @@ import { SheetView } from '../drawing/SheetView.tsx';
 import { frameStats, useRendererStore } from '../renderer/renderer-store.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
+import { useStressAnalysis } from '../analysis/useStressAnalysis.ts';
 import styles from './ModelArea.module.css';
 
 const LazySceneCanvas = lazy(() => import('../renderer/SceneCanvas.tsx'));
@@ -75,6 +76,8 @@ export function ModelArea({ zoomPercent, readout = true }: { zoomPercent: number
   const selectedLabel = useModelStore((s) => s.selectedPartLabel);
   const view = useShellStore((s) => s.view);
   const perf = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('perf');
+  // The stress view's analysis runs here, once, whichever shell is showing.
+  useStressAnalysis();
 
   return (
     <div className={styles.area}>

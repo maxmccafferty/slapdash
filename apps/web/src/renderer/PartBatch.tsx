@@ -3,16 +3,22 @@
  * their matrix rewritten: the project is structurally shared, so `prev[i] !== part` is the
  * whole diff. Hidden parts are not in `parts` at all (compacted), so the instance count is
  * right and a raycast can never hit a hidden part.
+ *
+ * In stress mode each instance also gets a fill colour (`instanceColor`) and a hatch flag
+ * (`aHatch`) from the band map. They are rewritten whenever the map changes, not only when
+ * parts do: a new analysis recolours the same parts.
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { BoxGeometry, InstancedBufferAttribute, InstancedMesh, Matrix4 } from 'three';
+import { BoxGeometry, Color, InstancedBufferAttribute, InstancedMesh, Matrix4 } from 'three';
 import type { CatalogIndex, Part } from '@slapdash/core';
 import { partMatrix, partVariation, type Batch } from './batches.ts';
 import type { CutUniforms } from './CutFaces.ts';
 import { getPartMaterials } from './materials.ts';
 import type { QualityTier } from './quality.ts';
-import type { RenderableMode } from './snapshot/types.ts';
+import type { SceneMode } from './snapshot/types.ts';
+import type { StressBand } from '../analysis/stress.ts';
+import { SCENE_COLORS } from '../styles/tokens.ts';
 
 export const DROP_MS = 250;
 export const DROP_HEIGHT_M = 0.3;
@@ -22,7 +28,9 @@ export interface PartBatchProps {
   /** The batch's visible members, in batch order. */
   parts: readonly Part[];
   isCuttable: (part: Part) => boolean;
-  mode: RenderableMode;
+  mode: SceneMode;
+  /** Stress mode: each part's band. Parts missing from it draw as not checked. */
+  stress?: ReadonlyMap<string, StressBand>;
   tier: QualityTier;
   cut: CutUniforms;
   catalog: CatalogIndex | null;
@@ -37,12 +45,24 @@ function makeGeometry(capacity: number): BoxGeometry {
   const g = new BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
   g.setAttribute('aVariation', new InstancedBufferAttribute(new Float32Array(capacity * 2), 2));
   g.setAttribute('aCuttable', new InstancedBufferAttribute(new Float32Array(capacity), 1));
+  g.setAttribute('aHatch', new InstancedBufferAttribute(new Float32Array(capacity), 1));
   return g;
 }
 
+/** The fill for each stress band (tokens stress-1…5; over is ink, hatched with paper). */
+export const STRESS_FILL: Record<StressBand, string> = {
+  0: SCENE_COLORS.stress1,
+  1: SCENE_COLORS.stress2,
+  2: SCENE_COLORS.stress3,
+  3: SCENE_COLORS.stress4,
+  4: SCENE_COLORS.stress5,
+  over: SCENE_COLORS.ink,
+  unchecked: SCENE_COLORS.paper,
+};
+
 const easeOut = (t: number) => 1 - (1 - t) ** 3;
 
-export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mode, tier, cut, catalog, animateNew }: PartBatchProps) {
+export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mode, stress, tier, cut, catalog, animateNew }: PartBatchProps) {
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
   const capacity = nextPow2(batch.parts.length);
@@ -57,6 +77,8 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
     m.receiveShadow = mode === 'textured';
     m.renderOrder = mats.transparent ? 1 : 0;
     m.name = `batch:${batch.key}`;
+    // The program needs instance colours from the start, so make the buffer now.
+    if (mode === 'stress') m.instanceColor = new InstancedBufferAttribute(new Float32Array(capacity * 3).fill(1), 3);
     return m;
   }, [geometry, mats, capacity, mode, batch.key]);
   mesh.customDepthMaterial = mats.depthMaterial;
@@ -110,6 +132,21 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
     }
     slots.current = { mesh, parts: [...parts], cuttable: isCuttable };
   }, [mesh, parts, isCuttable, geometry, invalidate]);
+
+  // Stress fills: rewritten when the bands change, not only when parts do.
+  useLayoutEffect(() => {
+    if (mode !== 'stress' || !mesh.instanceColor) return;
+    const hatch = geometry.getAttribute('aHatch') as InstancedBufferAttribute;
+    const c = new Color();
+    for (let i = 0; i < parts.length; i++) {
+      const band = stress?.get(parts[i]!.id) ?? 'unchecked';
+      mesh.setColorAt(i, c.set(STRESS_FILL[band]));
+      hatch.setX(i, band === 'over' ? 1 : 0);
+    }
+    mesh.instanceColor.needsUpdate = true;
+    hatch.needsUpdate = true;
+    invalidate();
+  }, [mode, mesh, parts, stress, geometry, invalidate]);
 
   useFrame((state) => {
     if (drops.current.size === 0) return;

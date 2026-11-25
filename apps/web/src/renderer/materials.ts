@@ -13,6 +13,12 @@
  * - **The Inside cut** (see `CutFaces.ts`).
  *
  * Blueprint and x-ray are snapshot-only modes (ADR-0003 §J removes them from the UI).
+ *
+ * **Stress** (the user's view only, ADR-0003 §C): materials the solver can check (with
+ * `structural` or `shearPanel` properties) draw a flat fill per instance from three's
+ * `instanceColor`, lit so the shapes read; an `aHatch` instance attribute draws paper
+ * stripes over the ink of an over-limit part, at a constant width in world mm. Everything
+ * else (roofing, siding, door units) is a pale translucent ghost so the framing shows.
  */
 import {
   Color,
@@ -38,9 +44,29 @@ import type { CutUniforms } from './CutFaces.ts';
 import type { QualityTier } from './quality.ts';
 import { TIER_SETTINGS } from './quality.ts';
 import { loadTexture, textureSet } from './textures.ts';
-import type { RenderableMode } from './snapshot/types.ts';
+import type { SceneMode } from './snapshot/types.ts';
 
 const PATCH_VERSION = 'slapdash-part-v1';
+
+/** Stripe period and paper share of the over-limit hatching, in mm. */
+export const HATCH_PERIOD_MM = 60;
+const HATCH_PAPER = 0.4;
+
+const STRESS_VERTEX_PARS = /* glsl */ `
+attribute float aHatch;
+varying float vHatch;
+`;
+const STRESS_VERTEX_MAIN = /* glsl */ `
+  vHatch = aHatch;
+`;
+const STRESS_FRAGMENT_PARS = /* glsl */ `
+varying float vHatch;
+uniform vec3 uHatchColor;
+`;
+/** Diagonal paper stripes over the ink fill; vBoxUv is in mm (tile size 1). */
+const STRESS_FRAGMENT_HATCH = /* glsl */ `
+  if (vHatch > 0.5 && fract((vBoxUv.x + vBoxUv.y) / ${HATCH_PERIOD_MM.toFixed(1)}) < ${HATCH_PAPER.toFixed(2)}) diffuseColor.rgb = uHatchColor;
+`;
 
 const VERTEX_PARS = /* glsl */ `
 attribute vec2 aVariation;
@@ -154,6 +180,17 @@ const PACKED_RG_FORMATS: ReadonlySet<number> = new Set<number>([
 /** A normal map that isn't a packed RG format came through as RGBA: read X from red, Y from alpha. */
 export function needsRaNormals(format: number): boolean {
   return !PACKED_RG_FORMATS.has(format);
+}
+
+function patchStress(shader: WebGLProgramParametersWithUniforms, opts: PatchOptions) {
+  patch(shader, opts);
+  shader.uniforms.uHatchColor = { value: new Color(SCENE_COLORS.paper) };
+  shader.vertexShader = shader.vertexShader
+    .replace('#include <common>', `#include <common>\n${STRESS_VERTEX_PARS}`)
+    .replace('#include <project_vertex>', `#include <project_vertex>\n${STRESS_VERTEX_MAIN}`);
+  shader.fragmentShader = shader.fragmentShader
+    .replace('#include <common>', `#include <common>\n${STRESS_FRAGMENT_PARS}\nvarying vec2 vBoxUv;`)
+    .replace('#include <color_fragment>', `#include <color_fragment>\n${STRESS_FRAGMENT_HATCH}`);
 }
 
 function patch(shader: WebGLProgramParametersWithUniforms, opts: PatchOptions) {
@@ -281,6 +318,39 @@ function createXray(cut: CutUniforms, material: Material | undefined) {
   return { material: m, transparent: true };
 }
 
+/** Whether the solver can check parts of this material (it has structural or shear-panel values). */
+export function isStressChecked(material: Material | undefined): boolean {
+  return material?.structural !== undefined || material?.shearPanel !== undefined;
+}
+
+/** Stress fill: white base so the per-instance colour shows as is; hatching for over-limit parts. */
+function createStress(cut: CutUniforms) {
+  const m = new MeshStandardMaterial({ color: new Color(1, 1, 1), roughness: 0.9, metalness: 0 });
+  const opts: PatchOptions = { cut, tint: false, cutFaces: true, tileSize: [1, 1] };
+  m.onBeforeCompile = (shader) => patchStress(shader, opts);
+  m.customProgramCacheKey = () => `${PATCH_VERSION}-stress`;
+  return { material: m, transparent: false };
+}
+
+/** Opacity of the "not checked" ghost. */
+export const UNCHECKED_OPACITY = 0.25;
+
+/** Parts the solver doesn't check: paper at 25%, so the framing shows through. */
+function createUnchecked(cut: CutUniforms, material: Material | undefined) {
+  const m = new MeshStandardMaterial({
+    color: new Color(SCENE_COLORS.paper),
+    roughness: 1,
+    metalness: 0,
+    transparent: true,
+    opacity: UNCHECKED_OPACITY,
+    depthWrite: false,
+  });
+  const opts = baseOpts(cut, material, false, false);
+  m.onBeforeCompile = (shader) => patch(shader, opts);
+  m.customProgramCacheKey = () => PATCH_VERSION;
+  return { material: m, transparent: true };
+}
+
 /**
  * Materials are cached per scene (its `CutUniforms`), per material id, mode and tier. Both
  * scenes share the programs and textures; only the uniforms differ.
@@ -289,7 +359,7 @@ const caches = new WeakMap<CutUniforms, Map<string, PartMaterials>>();
 
 export interface MaterialRequest {
   materialId: string;
-  mode: RenderableMode;
+  mode: SceneMode;
   tier: QualityTier;
   cut: CutUniforms;
   catalog: CatalogIndex | null;
@@ -306,7 +376,11 @@ export function getPartMaterials(req: MaterialRequest): PartMaterials {
   if (hit) return hit;
   const material = req.catalog?.materials.get(req.materialId);
   const made =
-    req.mode === 'blueprint'
+    req.mode === 'stress'
+      ? isStressChecked(material)
+        ? createStress(req.cut)
+        : createUnchecked(req.cut, material)
+      : req.mode === 'blueprint'
       ? createBlueprint(req.cut, material)
       : req.mode === 'xray'
         ? createXray(req.cut, material)
