@@ -2,7 +2,7 @@
 
 A 3D building planner you talk to. You say what you want built, Claude lays out every stud, joist and rafter, and you look around the model as it goes. This system is the look of the app on laptop, iPad and phone.
 
-The design is monochrome Braun: a plain white world, grey control units like the housing of a Braun radio, black type, and one colour that means something. Geist is the only typeface.
+The design is monochrome Braun: a plain white world, grey control units like the housing of a Braun radio, black type, and one colour that means something. Geist is the only typeface. No text is smaller than 14px (`key` and `label` were raised from 13px/12px to 14px for LOC-104 accessibility).
 
 ## Principles
 
@@ -31,7 +31,7 @@ The design is monochrome Braun: a plain white world, grey control units like the
 - Materials, Projects and Build steps open as modals over the model only. The chat stays usable beside them.
 - Materials has two tabs, Materials and Cut list, in a two-option track beside the title. One Export PDF covers both: drawings on page 1, materials on page 2, the cut list on page 3.
 
-**Phone (390 × 844).** All corner buttons are icon-only, 40px keys in a unit.
+**Phone (390 × 844).** All corner buttons are icon-only, 44px keys in a unit (raised from 40px for LOC-104 accessibility: 44px minimum touch target).
 - Top left: the project name and specs.
 - Top right: one vertical unit with project (save, load, undo, redo), materials, build steps and a stack icon for floors.
 - Bottom left: an eye icon for the view controls.

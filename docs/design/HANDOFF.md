@@ -77,7 +77,7 @@ Each section starts on its own page, so a long list can overflow onto more pages
 - Bottom right of the model: "scroll to zoom" and the zoom percentage, as plain text.
 - Modals (Materials, Projects) cover the model area only. **The chat stays usable beside them.**
 
-**Phone.** Corner buttons are icon-only, 40px keys inside units.
+**Phone.** Corner buttons are icon-only, 44px keys inside units (raised from 40px for LOC-104 accessibility: every key on every screen is at least 44 × 44).
 
 - Top left: project name and specs.
 - Top right: one vertical unit: project (Save, Load, Undo, Redo in a popover), materials, build steps, floors. Popovers open to its left.
@@ -140,7 +140,7 @@ Full set in `docs/design/tokens.json`. Generate the app's CSS variables from tha
 | `signal` | `#E8590C` | Selected / being worked on; the Talk key |
 | `dot` | `#BFC5CD` | Floor dot grid, stippled site |
 
-- **Type:** Geist only. 56 / 44 / 32 for titles (weight 400, tight tracking), 15 for chat, 14 lists, 13 keys, 12 labels.
+- **Type:** Geist only. 56 / 44 / 32 for titles (weight 400, tight tracking), 15 for chat, 14 lists, 14 keys, 14 labels. (Keys and labels were raised from 13 / 12 to 14 for LOC-104 accessibility: no text below 14px.)
 - **Radius:** 7 keys, 10 fields and Talk, 12 small units, 16 panels, 24 chat panel and modals.
 - **Spacing:** 4 between keys, 8 between units, 16 from the screen edge.
 - **Text on orange is dark** (`ink`), not white.
