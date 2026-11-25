@@ -27,6 +27,8 @@ import {
   jointsValid,
   noClashes,
   noClashesWith,
+  pergolaPolycarbonate,
+  poolFence,
   slabFootprint,
   soundBuild,
 } from './checks.ts';
@@ -34,7 +36,7 @@ import { questionNoChange } from './cases/question-no-change.ts';
 import { SCENARIOS } from './cases/index.ts';
 import { budgetStatus, inProcessKeyhole } from './harness.ts';
 import { scenarioLines, summaryLines, totalsOf } from './report.ts';
-import { POOL_HOUSE_WALLS, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
+import { POOL_HOUSE_WALLS, POOL_IN_YARD, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
 import { runSuite } from './suite.ts';
 
 const catalog = indexCatalog(CATALOG);
@@ -57,7 +59,7 @@ const passesCheck = (what: string, f: string | null | ReadonlyArray<string | nul
 };
 
 /** Expect a check to fail. */
-const failsCheck = (what: string, f: string | null | readonly string[]) => {
+const failsCheck = (what: string, f: string | null | ReadonlyArray<string | null>) => {
   const list = Array.isArray(f) ? f : [f];
   check(`${what} should be caught`, list.some((x) => x !== null));
 };
@@ -92,6 +94,7 @@ const goodModels = section('Checks pass on correct builder output', () => {
     ['POOL_HOUSE_WALLS', POOL_HOUSE_WALLS],
     ['SHED_WALLS_8x10', SHED_WALLS_8x10],
     ['TREE_ON_LINE', TREE_ON_LINE],
+    ['POOL_IN_YARD', POOL_IN_YARD],
   ] as const) {
     passesCheck(`seed ${name} is sound`, soundBuild(build(seed), catalog));
   }
@@ -121,6 +124,29 @@ const goodModels = section('Checks pass on correct builder output', () => {
   const shed = build([...SHED_WALLS_8x10, ['build_roof', { type: 'shed', from: { x: 0, z: 0 }, to: { x: '10ft', z: '8ft' }, pitch: '3 in 12', lowSide: 'north' }]]);
   passesCheck('shed roof is sound', soundBuild(shed, catalog));
   passesCheck('8ft walls have 91 1/2in studs', commonStudLength(build([...SHED_WALLS_8x10.slice(0, 2)]), 91.5));
+
+  // pergola-polycarbonate (LOC-117)
+  const pergola = build([['build_pergola', { from: { x: 0, z: 0 }, to: { x: '16ft', z: '12ft' }, roofing: 'polycarbonate' }]]);
+  passesCheck('polycarbonate pergola is sound', soundBuild(pergola, catalog));
+  passesCheck('polycarbonate pergola passes its checks', pergolaPolycarbonate(pergola));
+  failsCheck('an open pergola (no polycarbonate roof)', pergolaPolycarbonate(build([['build_pergola', { from: { x: 0, z: 0 }, to: { x: '16ft', z: '12ft' } }]])));
+
+  // pool-fence (LOC-117): around the seeded pool with the gate on the north (house) side.
+  const poolPath = [
+    { x: '6ft', z: '4ft' },
+    { x: '34ft', z: '4ft' },
+    { x: '34ft', z: '48ft' },
+    { x: '6ft', z: '48ft' },
+    { x: '6ft', z: '4ft' },
+  ];
+  for (const style of ['aluminum', 'picket', 'chain-link', 'glass'] as const) {
+    const fenced = build([...POOL_IN_YARD, ['build_fence', { path: poolPath, style, height: '4ft', poolBarrier: true, gates: [{ centerAt: '14ft' }] }]]);
+    passesCheck(`${style} pool fence is sound`, soundBuild(fenced, catalog));
+    passesCheck(`${style} pool fence passes its checks`, poolFence(fenced));
+  }
+  const bad = build([...POOL_IN_YARD, ['build_fence', { path: poolPath, style: 'chain-link', height: '3ft', gates: [{ centerAt: '14ft' }] }]]);
+  failsCheck('a 36in 2in-mesh chain-link fence (not a pool barrier)', poolFence(bad));
+  failsCheck('a pool barrier along one side only', poolFence(build([...POOL_IN_YARD, ['build_fence', { path: poolPath.slice(0, 2), style: 'aluminum', height: '4ft', poolBarrier: true, gates: [{ centerAt: '14ft' }] }]])));
 
   // plan-revision
   const floor = build([['frame_floor', { from: { x: 0, z: 0 }, to: { x: '14ft', z: '10ft' }, support: 'piers' }]]);

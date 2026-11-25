@@ -4,8 +4,10 @@ import { clashAvoidance } from './clash-avoidance.ts';
 import { fence } from './fence.ts';
 import { gableRoof } from './gable-roof.ts';
 import { justDoIt } from './just-do-it.ts';
+import { pergolaPolycarbonateScenario } from './pergola-polycarbonate.ts';
 import { planRevision } from './plan-revision.ts';
 import { poolHouse } from './pool-house.ts';
+import { poolFenceScenario } from './pool-fence.ts';
 import { poolHouseSlidingDoor } from './pool-house-sliding-door.ts';
 import { questionNoChange } from './question-no-change.ts';
 import { refuseImpossibleSpan } from './refuse-impossible-span.ts';
@@ -19,6 +21,8 @@ export const SCENARIOS: readonly Scenario[] = [
   fence,
   shedRoof,
   gableRoof,
+  pergolaPolycarbonateScenario,
+  poolFenceScenario,
   refuseImpossibleSpan,
   undo,
   smallChangeNoPlan,
