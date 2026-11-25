@@ -13,7 +13,9 @@ pnpm --filter @slapdash/core test        # core only (vitest, node environment)
 pnpm --filter @slapdash/core typecheck   # core src without DOM or Node types, then tests/scripts
 pnpm --filter @slapdash/catalog test     # the tier-1 catalog, prices and textures
 pnpm smoke                               # node packages/core/scripts/smoke.ts
-pnpm dev                                 # the web app (apps/web, Vite)
+pnpm dev                                 # the web app (apps/web, Vite) plus /api/claude
+pnpm check:secrets                       # build the web app and prove no API key reaches it
+pnpm build:api                           # bundle the Claude keyhole for Vercel
 ```
 
 Architecture decisions live in `docs/adr/`. `packages/core` is pure TypeScript with no DOM,
@@ -341,3 +343,86 @@ The 3D view lives in `apps/web/src/renderer` (see the web app's README for its a
   plain modules with vitest tests in `apps/web/test/renderer/`; `scene.test.tsx` covers the
   scene graph with `@react-three/test-renderer`. Real WebGL is covered by
   `apps/web/e2e/renderer.spec.ts`.
+
+## Claude server (keyhole)
+
+The browser runs the agent loop; the server is a stateless keyhole (ADR-0002 §A6). It holds
+the Anthropic API key, the system prompt, the tool list and the model choice, enforces the
+per-user rate limit and the monthly budget (§D9), and streams Claude's reply. It stores
+counters only, never anything about the project.
+
+- **`packages/agent`** (browser and server): the system prompt (`src/system-prompt.ts`), the
+  tool list (`src/tools.ts`, generated from the command schemas with `eager_input_streaming`)
+  and the wire protocol (`src/protocol.ts`). Both prompt and tools are prompt-cached, so keep
+  them byte-stable: no dates, no generated values, a fixed order. New tools (snapshot,
+  queries) are appended in `tools.ts`.
+- **`packages/keyhole`** (server only): config, pricing, budget, rate limit, usage stores and
+  the `Request → Response` handler. `apps/web/src` must never import it or the Anthropic SDK;
+  `apps/web/test/no-server-imports.test.ts` enforces that.
+- **`api/claude.js`**: the Vercel function. It re-exports `packages/keyhole/dist/vercel.js`,
+  which `pnpm build:api` bundles from `packages/keyhole/src/vercel-entry.ts` during the Vercel
+  build (`vercel.json`'s `buildCommand`). The bundle is needed because Vercel's Node builder
+  renames workspace `.ts` files to `.js` but leaves the `.ts` import specifiers, so the raw
+  sources fail at runtime. The stub is tracked because Vercel finds functions before the
+  build runs.
+
+### Running it locally
+
+- **`pnpm dev`**: the Vite dev server mounts the same handler at `/api/claude` (the
+  `slapdash:keyhole` plugin in `apps/web/vite.config.ts`). It reads the repo-root `.env`
+  with `loadEnv`, never into `define`. Counters go to `.data/usage.json` (gitignored), so a
+  restart doesn't reset the month.
+- **`vercel dev`** (after `vercel link`): runs the real function. Run `pnpm build:api`
+  first and again after changing the keyhole.
+
+Copy `.env.example` to `.env` and set `ANTHROPIC_API_KEY`. The other variables are optional
+and documented there: model, effort, max tokens, refusal fallback, monthly budget, rate
+limits, allowed origins, the usage file and Upstash. Invalid numbers stop the server with a
+plain message. Set the same monthly cap as the spending limit in the Anthropic Console; it is
+the hard backstop.
+
+### States the chat shows
+
+| State | How the keyhole reports it |
+| --- | --- |
+| No API key | `GET` → `configured: false`; `POST` → 503 `{ error: 'not_configured' }` |
+| Budget below 80% | `budget.state: 'ok'` |
+| Budget at 80% or more | `budget.state: 'warning'` (GET, and the first stream event) |
+| Budget at the cap | `POST` → 402 `{ error: 'budget_capped', budget }` with `resetsAt` (first of next month, 00:00 UTC). Claude is not called. |
+| Rate limited | 429 `{ error: 'rate_limited', retryAfterSeconds }` and `Retry-After` |
+| Claude failed mid-stream | an `error` event `{ error: 'upstream', message, retryable }` |
+
+Spend is counted in integer micro-dollars from each reply's usage (`src/pricing.ts`; check
+the table against the pricing page when prices change). Unknown models are priced at the most
+expensive row. Spend is recorded when a reply ends, so concurrent requests can overshoot the
+cap slightly; the Console limit covers that. A reply cut off before its final usage is
+recorded with an estimate of its output tokens.
+
+Counters live in a `UsageStore`: a JSON file in local dev, Upstash Redis when
+`KV_REST_API_URL`/`KV_REST_API_TOKEN` are set, and memory (with a warning) on a deployment
+without Upstash, where they reset on cold starts. Users are identified by a hash of their IP
+until sign-in exists.
+
+### Wire protocol
+
+`GET /api/claude` returns `{ configured, model, budget }`. `POST /api/claude` takes
+`{ messages }` only (a strict schema: the client cannot set the model, system prompt, tools
+or limits) and returns `text/event-stream`:
+
+```
+event: budget     data: BudgetStatus               (first)
+event: anthropic  data: BetaRawMessageStreamEvent  (passed through unchanged)
+event: done       data: { budget, costUsd, model, stopReason }
+event: error      data: { error: 'upstream', message, retryable }
+```
+
+Other errors are JSON: 400 `bad_request`, 403 `forbidden_origin` (an `Origin` that is neither
+the app's host nor in `SLAPDASH_ALLOWED_ORIGINS`), 405, 413 `too_large`, and 500 `internal`
+when the usage store fails. `parseKeyholeEvents()` in `@slapdash/agent` reads the stream.
+
+### Keeping the key out of the browser
+
+`pnpm check:secrets` builds the web app with a sentinel `ANTHROPIC_API_KEY` in both
+`process.env` and a `.env` file, then scans every emitted file for the sentinel, the variable
+name, `x-api-key`, `api.anthropic.com` and `@anthropic-ai/sdk`. It fails and names the file
+on any hit. Run it after touching the Vite config or anything that reads the environment.
