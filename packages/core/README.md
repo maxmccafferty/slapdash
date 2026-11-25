@@ -127,6 +127,13 @@ one `researchedOn` date and a `source` note per entry. The real tier-1 data live
 `@slapdash/catalog` (`packages/catalog`). `SAMPLE_CATALOG` is placeholder test data used by
 core's tests and the smoke script, not design values.
 
+Structural values in the catalog are inputs to `@slapdash/solver`. `structural` holds
+unadjusted NDS reference values, and the solver applies the adjustment factors. A joint
+type's `behaviour` (`pinned` or `fixed`) and `capacity` drive both the frame solver and
+the stability sim. A sheet material's optional `shearPanel` block (SDPWS apparent shear
+stiffness and allowable unit shear) is what lets a `brace:panel` sheet brace a wall or a
+roof. A new sheathing material needs it to act as bracing.
+
 A project can carry the person's own prices in `project.prices` (keyed `materialId` or
 `materialId|size`), set with `set_price` and removed with `clear_price`. They replace the
 table's range for that project only; undo restores the whole map through the internal

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateCatalog, type Material } from '@slapdash/core';
+import { BUILDER_DEFAULTS, validateCatalog, type Material } from '@slapdash/core';
 import { KNOWN_FLAGS, TEXTURE_SETS, TIER1_CATALOG, isKnownFlag } from '../src/index.ts';
 
 const C = TIER1_CATALOG;
@@ -119,6 +119,25 @@ describe('tier-1 catalog', () => {
     for (const j of C.jointTypes) expect(j.capacity.shear_N, j.id).toBeGreaterThan(0);
     // NDS 2018 Table 12N, 16d common (0.162in), 1 1/2in side member, G = 0.42: Z = 120 lbf.
     expect(C.jointTypes.find((j) => j.id === 'nailed-16d')!.capacity.shear_N).toBeCloseTo(120 * LBF, -1);
+  });
+
+  it('uplift capacities are the published 160% values (the solver scales them by CD / 1.6)', () => {
+    const withUplift = C.jointTypes.filter((j) => j.capacity.uplift_N !== undefined);
+    expect(withUplift.length).toBeGreaterThan(0);
+    for (const j of withUplift) expect(j.source, j.id).toMatch(/160%/);
+  });
+
+  it('the default wall, roof and floor sheets brace: they carry shear-panel values (SDPWS Table 4.3A)', () => {
+    const { sheathing, subfloor } = BUILDER_DEFAULTS.materials;
+    for (const id of [sheathing, subfloor]) {
+      const sp = material(id).shearPanel;
+      expect(sp, id).toBeDefined();
+      expect(sp!.source, id).toMatch(/SDPWS/);
+    }
+    // 7/16in OSB, 8d at 6in edges: Ga = 16 kips/in; vw = 715 plf, ÷ 2.0 for ASD.
+    const osb = material('osb-7-16').shearPanel!;
+    expect(osb.Ga_N_per_mm).toBeCloseTo(16 * 175.127, 0);
+    expect(osb.vAllowable_N_per_mm).toBeCloseTo((715 / 2) * 0.0145939, 2);
   });
 
   it('every joint type is accepted by some material', () => {

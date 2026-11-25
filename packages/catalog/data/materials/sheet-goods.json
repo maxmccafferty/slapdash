@@ -5,6 +5,12 @@
     "description": "Softwood plywood, C/D faces, exposure 1: subfloor and sheathing. Sold as 1/2in, 5/8in and 23/32in (\"3/4\") 4x8 sheets. Panels act as diaphragms and braces, so there are no beam values.",
     "category": "sheet",
     "density_kg_m3": 577,
+    "shearPanel": {
+      "Ga_N_per_mm": 1926,
+      "vAllowable_N_per_mm": 5.728,
+      "nailing": "8d common (0.131 x 2 1/2in) at 6in edges, 12in field, blocked",
+      "source": "AWC SDPWS 2021 Table 4.3A, wood structural panels – sheathing, 15/32in (the thinnest CDX sold), 8d at 6in edges: Ga (PLY) = 11 kips/in; vw = 785 plf nominal, ÷ 2.0 ASD reduction (SDPWS 4.3.3) = 392.5 plf"
+    },
     "textureSet": "plywood",
     "swatch": {
       "color": "#d4b17d",
@@ -25,6 +31,12 @@
     "description": "Oriented strand board, 7/16in, 4x8: the usual wall and roof sheathing.",
     "category": "sheet",
     "density_kg_m3": 609,
+    "shearPanel": {
+      "Ga_N_per_mm": 2802,
+      "vAllowable_N_per_mm": 5.217,
+      "nailing": "8d common (0.131 x 2 1/2in) at 6in edges, 12in field, blocked",
+      "source": "AWC SDPWS 2021 Table 4.3A, wood structural panels – sheathing, 7/16in, 8d at 6in edges: Ga (OSB) = 16 kips/in; vw = 715 plf nominal, ÷ 2.0 ASD reduction (SDPWS 4.3.3) = 357.5 plf"
+    },
     "textureSet": "osb",
     "swatch": {
       "color": "#c99f62",

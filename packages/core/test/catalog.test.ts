@@ -69,6 +69,25 @@ describe('catalog', () => {
     expect(validateCatalog(c).ok).toBe(true);
   });
 
+  it('accepts an optional shearPanel block and rejects a bad one', () => {
+    const c = clone();
+    const sheet = c.materials.find((m) => m.category === 'sheet')!;
+    sheet.shearPanel = {
+      Ga_N_per_mm: 2802,
+      vAllowable_N_per_mm: 5.22,
+      nailing: '8d common at 6in edges, 12in field',
+      source: 'AWC SDPWS 2021 Table 4.3A',
+    };
+    expect(validateCatalog(c).ok).toBe(true);
+
+    sheet.shearPanel = { Ga_N_per_mm: -1, vAllowable_N_per_mm: 5.22, nailing: 'x', source: 'y' };
+    expect(validateCatalog(c).ok).toBe(false);
+    sheet.shearPanel = { Ga_N_per_mm: 2802, nailing: 'x', source: 'y' } as never;
+    expect(validateCatalog(c).ok).toBe(false);
+    sheet.shearPanel = { Ga_N_per_mm: 2802, vAllowable_N_per_mm: 5.22, nailing: 'x', source: 'y', extra: 1 } as never;
+    expect(validateCatalog(c).ok).toBe(false);
+  });
+
   it('a swatch colour must be lower-case #rrggbb', () => {
     const c = clone();
     c.materials[0]!.swatch = { color: 'tan' };
