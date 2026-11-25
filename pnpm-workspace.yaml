@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
   - "apps/*"
+  - "evals"
 minimumReleaseAgeExclude:
   - "@anthropic-ai/sdk@1.14.0"
 allowBuilds:

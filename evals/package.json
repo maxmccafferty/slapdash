@@ -1,0 +1,21 @@
+{
+  "name": "@slapdash/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Headless evals: run the agent loop in Node against the real Claude API through an in-process keyhole. On demand only (costs money); deliberately no test script, so pnpm -r test never calls the API.",
+  "scripts": {
+    "eval": "node --env-file-if-exists=../.env src/run.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@slapdash/agent": "workspace:*",
+    "@slapdash/catalog": "workspace:*",
+    "@slapdash/core": "workspace:*",
+    "@slapdash/keyhole": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3"
+  }
+}
