@@ -1,0 +1,14 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Dependencies & builds
+node_modules/
+dist/
+.next/
+.vercel/
+
+# OS / editor
+.DS_Store
+*.log
