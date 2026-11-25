@@ -215,6 +215,9 @@ importers:
       '@slapdash/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@slapdash/solver':
+        specifier: workspace:*
+        version: link:../../packages/solver
       lucide-react:
         specifier: ^1.79.0
         version: 1.79.0(@types/react@19.3.0)(react@19.3.1)
@@ -392,6 +395,28 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
+      '@types/node':
+        specifier: ^22.20.5
+        version: 22.20.5
+      typescript:
+        specifier: ~5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^5.1.1
+        version: 5.1.1(@opentelemetry/api@1.10.0)(@types/node@22.20.5)(jsdom@31.0.1)(vite@8.3.8(@types/node@22.20.5)(esbuild@0.28.2))
+
+  packages/solver:
+    dependencies:
+      '@dimforge/rapier3d-compat':
+        specifier: 0.12.0
+        version: 0.12.0
+      '@slapdash/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@slapdash/catalog':
+        specifier: workspace:*
+        version: link:../catalog
       '@types/node':
         specifier: ^22.20.5
         version: 22.20.5

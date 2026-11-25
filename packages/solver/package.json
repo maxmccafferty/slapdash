@@ -1,0 +1,28 @@
+{
+  "name": "@slapdash/solver",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slapdash structural checks: a linear 3D frame solver with NDS member, joint and shear-panel checks, and an on-demand Rapier stability sim. Pure TypeScript; runs in a Web Worker or Node.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./stability": "./src/stability/index.ts",
+    "./worker": "./src/worker.ts",
+    "./protocol": "./src/protocol.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "bench": "node scripts/bench.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "0.12.0",
+    "@slapdash/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@slapdash/catalog": "workspace:*",
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}
