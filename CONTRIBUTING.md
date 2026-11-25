@@ -392,6 +392,8 @@ the hard backstop.
 | Budget at the cap | `POST` → 402 `{ error: 'budget_capped', budget }` with `resetsAt` (first of next month, 00:00 UTC). Claude is not called. | "Claude is back on December 1. Everything else keeps working." The field and Talk are disabled; the rest of the app works. |
 | Rate limited | 429 `{ error: 'rate_limited', retryAfterSeconds }` and `Retry-After` | A note: "Too many messages. Try again in N seconds." |
 | Claude failed mid-stream | an `error` event `{ error: 'upstream', message, retryable }` | A note asking to try again. The field stays usable. |
+| Browser can't recognise speech | (browser, not the keyhole) no `SpeechRecognition`, not a secure context, or `service-not-allowed` at runtime | Talk is hidden; typing works as usual. The runtime case adds "Talking isn't available here. Type instead." once. |
+| Microphone blocked | (browser) recognition error `not-allowed` | A note: "Slapdash can't use the microphone. Allow it in your browser's settings, or type instead." Talk stays. |
 
 Modals cover the model area only; never make the chat inert. They mount inside `<main>`,
 and on the phone the chat sheet stacks above them (see `apps/web/README.md`, Chat).

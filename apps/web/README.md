@@ -79,6 +79,28 @@ bus the model store follows.
   `aria-hidden`. `test/chat/chat.test.tsx` checks this with each panel open.
 - **Persistence.** `onChatChanged(memory.toChatLog())` runs after every turn. It is a no-op
   until `ProjectSession` is wired in, and that is where `session.replaceChat` goes.
+- **Voice** (ADR-0001 §8, ADR-0002 §E4). Speech goes through the `VoiceProvider` interface in
+  `src/voice/voice-provider.ts`; `src/voice/web-speech.ts` implements it with the browser's
+  `SpeechRecognition` and `speechSynthesis`, so another provider can slot in later. Holding Talk
+  calls `controller.startTalking()`: the field gives way to a waveform and "Listening", and a
+  live bubble shows confirmed words in ink and unconfirmed ones in grey. Letting go sends what
+  was heard through `send(text, { spoken: true })`, with the pointed-part chip and photos like a
+  typed message; nothing heard adds "Didn't catch that…" and leaves the draft alone. Only a
+  spoken message gets a spoken reply: each finished assistant message and a plan's text are
+  queued, after `speechText()` (`src/voice/speech-text.ts`) turns `9′ 0″` into "9 feet" and
+  `16×20` into "16 by 20". Speech stops on Stop (the Send key reads Stop while Claude speaks),
+  holding Talk again, sending anything, opening another project and the page being hidden.
+  Talk is disabled while a turn runs.
+  - **Support.** Talk is hidden unless the page is a secure context with `SpeechRecognition`
+    or `webkitSpeechRecognition`. A runtime `service-not-allowed` (Safari with Siri and
+    Dictation off, possibly home-screen mode) hides it for the session with "Talking isn't
+    available here. Type instead." No `speechSynthesis` just means replies aren't spoken.
+  - **The iOS gesture rule.** `recognition.start()` and the silent priming utterance must run
+    synchronously inside the pointer or key event, so nothing on the path
+    `TalkKey.onHoldStart → startTalking → provider.listen` may `await`.
+  - **Tests.** Unit tests inject `test/voice/fake-voice.ts`; jsdom has no Web Speech. Headless
+    Chromium's recognition can't hear, so the e2e specs install fake globals with
+    `e2e/fake-voice.ts` (`page.addInitScript`) and drive them through `window.__fakeVoice`.
 
 ## The 3D renderer (`src/renderer/`)
 
