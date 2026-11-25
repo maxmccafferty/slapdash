@@ -107,6 +107,22 @@ describe('desktop shell (1440)', () => {
   });
 });
 
+describe('2D', () => {
+  it('shows the drawing sheet in place of the model, even without WebGL, and 3D hides it', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    expect(screen.queryByRole('img', { name: /2D drawing/ })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: '2D' }));
+    const sheet = screen.getByRole('img', { name: /2D drawing/ });
+    expect(sheet.querySelector('svg')).not.toBeNull();
+    expect(screen.queryByRole('img', { name: /3D isn't available/ })).not.toBeInTheDocument();
+    expect(screen.getByTestId('zoom-readout')).toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: '3D' }));
+    expect(screen.queryByRole('img', { name: /2D drawing/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /3D isn't available/ })).toBeInTheDocument();
+  });
+});
+
 describe('phone shell (390)', () => {
   it('shows icon-only keys, no logo and no chat aside', () => {
     setViewportWidth(390);

@@ -1,0 +1,24 @@
+/* The 2D drawing sheet fills the model area. No browser gestures on it: drag pans, pinch zooms. */
+.sheet {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  background: var(--color-paper);
+}
+
+.sheet:active {
+  cursor: grabbing;
+}
+
+.sheet:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-ink);
+  outline-offset: calc(-1 * var(--size-focus-ring));
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
