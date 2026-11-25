@@ -4,7 +4,7 @@
  * in pieces), then done. It records every message list it was sent.
  */
 import type { BetaMessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
-import type { BudgetStatus, KeyholeClient, KeyholeEvent } from '../../src/index.ts';
+import type { BudgetStatus, KeyholeClient, KeyholeEvent } from '../src/index.ts';
 
 export const BUDGET: BudgetStatus = { state: 'ok', spentUsd: 1, capUsd: 10, fraction: 0.1, month: '2026-11', resetsAt: '2026-12-01T00:00:00.000Z' };
 

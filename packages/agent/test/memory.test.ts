@@ -117,6 +117,22 @@ describe('agent memory', () => {
     expect(blocks(msgs[0]!).map((b) => b.text)).toEqual([PROJECT_STUB, PHOTO_WRAPPER, PHOTO_STUB, 'Here is my yard']);
   });
 
+  it('sends a tapped part as a <pointing_at> line, escaped, and keeps it after images age out', async () => {
+    const mem = new AgentMemory();
+    mem.beginTurn('t1', [
+      { type: 'slapdash_project', text: '<project>\nt1\n</project>' },
+      { type: 'slapdash_pointer', partId: 'W3-H01', label: 'Header, South wall <2x10>' },
+      { type: 'text', text: 'make this taller' },
+    ]);
+    mem.append('assistant', [{ type: 'text', text: 'Done.' }]);
+    mem.endTurn({ asked: 'make this taller', changeSummaries: [], plan: null });
+    turn(mem, 't2', 'next');
+    turn(mem, 't3', 'later');
+    const msgs = await mem.toApiMessages();
+    expectValidMessages(msgs);
+    expect(blocks(msgs[0]!).map((b) => b.text)).toEqual([PROJECT_STUB, '<pointing_at part="W3-H01">Header, South wall &#60;2x10&#62;</pointing_at>', 'make this taller']);
+  });
+
   it('stubs project summaries older than the image window, and never rewrites recent ones', async () => {
     const mem = new AgentMemory();
     turn(mem, 't1', 'a');

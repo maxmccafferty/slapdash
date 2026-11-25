@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { accumulateMessage, INVALID_JSON_KEY, KeyholeStreamFailure, type KeyholeEvent } from '../src/index.ts';
-import { BUDGET, replyEvents } from './fixtures/scripted-client.ts';
+import { BUDGET, replyEvents } from '../testing/scripted-client.ts';
 
 async function* from(events: KeyholeEvent[]): AsyncGenerator<KeyholeEvent> {
   for (const e of events) yield e;

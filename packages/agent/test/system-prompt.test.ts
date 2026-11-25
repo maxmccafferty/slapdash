@@ -39,6 +39,7 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toMatch(/builder friend/i);
     expect(SYSTEM_PROMPT).toMatch(/in numbers, without hedging/);
     expect(SYSTEM_PROMPT).toMatch(/two alternatives/);
+    expect(SYSTEM_PROMPT).toContain('offer_options');
     expect(SYSTEM_PROMPT).toContain('Nothing has changed yet.');
     expect(SYSTEM_PROMPT).toMatch(/costs as a range/i);
   });
@@ -50,9 +51,13 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toContain('request_photo');
   });
 
+  it('explains what a tapped part means', () => {
+    expect(SYSTEM_PROMPT).toContain('<pointing_at>');
+  });
+
   it('names only tools that exist', () => {
     const names = new Set(agentTools().map((t) => t.name));
-    const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation');
+    const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation' && m !== 'pointing_at');
     expect(mentioned.length).toBeGreaterThan(20);
     for (const m of mentioned) expect(names.has(m), m).toBe(true);
   });

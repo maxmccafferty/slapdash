@@ -27,21 +27,23 @@ keyhole refuses (budget, rate limit) or the turn is cancelled; any tool call lef
 result gets a "Stopped" result so the history stays valid. The caller saves
 `memory.toChatLog()` afterwards (`ProjectSession.replaceChat`).
 
-Wiring it in the browser (the chat UI ticket does this):
+Wiring it in the browser (`apps/web/src/agent/chat-controller.ts` does this):
 
 ```ts
 const client = fetchKeyholeClient({ fetch: globalThis.fetch.bind(globalThis) });
 const memory = new AgentMemory(session.chat, { loadFile: (id) => /* the photo as base64 */ });
 const result = await runTurn(
   { bus: session.bus, client, memory, snapshot: browserSnapshotProvider, signal, onEvent },
-  { text, photos, approvePlan },
+  { text, photos, approvePlan, pointedAt: { id: 'W3-H01', label: 'Header, South wall' } },
 );
 session.replaceChat(memory.toChatLog());
 ```
 
 `browserSnapshotProvider` is in `apps/web/src/agent/snapshot-provider.ts`. Send `plan` events
 to `useModelStore.setProposal` (the footprint is in millimetres) and show Build it / Change
-something; send `photo_request` events to the camera.
+something; send `photo_request` events to the camera; show `options` events as tappable keys
+whose text is sent as the next message. `pointedAt` is the part the person tapped; Claude reads
+it as `<pointing_at part="W3-H01">Header, South wall</pointing_at>` before their text.
 
 ## Tools
 
@@ -57,6 +59,7 @@ After the commands and history tools come the agent tools, in this order:
 | `propose_plan` | Shows a one-line plan with Build it / Change something. |
 | `request_photo` | Asks the person for a photo. |
 | `set_preferences` | `confirmBigChanges: false` is "just do it" for this project. |
+| `offer_options` | Two or three one-line choices when Claude can't do what was asked; the chat shows them as keys. |
 
 To add one: give it a strict Zod schema and description in `src/tools/schemas.ts` (append to
 `agentToolDefs`; the order is prompt-cached), run it in `src/dispatch.ts`, and add it to the

@@ -74,6 +74,21 @@ export const zSetPreferences = z.strictObject({
   confirmBigChanges: z.boolean().describe('false: skip plans for this project ("just do it"). true: show plans again.'),
 });
 
+export const zOfferOptions = z.strictObject({
+  options: z
+    .array(
+      z
+        .string()
+        .trim()
+        .min(1)
+        .max(80)
+        .refine((s) => !s.includes('\n'), 'should be one line'),
+    )
+    .min(2)
+    .max(3)
+    .describe('Two (at most three) one-line choices, phrased as the person would say them, e.g. "Use a beam with a post in the middle".'),
+});
+
 export interface AgentToolDef {
   name: string;
   description: string;
@@ -129,6 +144,12 @@ export const agentToolDefs = [
     description:
       "Call with false when the person says 'just do it' (skip plans for this project); true when they want plans back.",
     schema: zSetPreferences,
+  },
+  {
+    name: 'offer_options',
+    description:
+      "When you can't do what was asked, offer two ways that would work as tappable choices. Phrase each as the person would say it. Then stop.",
+    schema: zOfferOptions,
   },
 ] as const satisfies readonly AgentToolDef[];
 

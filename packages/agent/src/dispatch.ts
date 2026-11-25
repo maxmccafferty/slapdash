@@ -1,6 +1,6 @@
 /**
  * Runs one tool call and returns its result for Claude. Order: agent tools (snapshot, plan,
- * photo, preferences), queries, history, then bus commands. Every input is validated with
+ * photo, options, preferences), queries, history, then bus commands. Every input is validated with
  * Zod; errors come back as plain sentences with `is_error`. No tool throws into the loop.
  */
 import {
@@ -15,7 +15,7 @@ import { clip } from './format.ts';
 import type { AgentMemory, StoredBlock } from './memory.ts';
 import { INVALID_JSON_KEY } from './stream.ts';
 import { QUERY_TOOLS } from './tools/queries.ts';
-import { zProposePlan, zRequestPhoto, zSetPreferences } from './tools/schemas.ts';
+import { zOfferOptions, zProposePlan, zRequestPhoto, zSetPreferences } from './tools/schemas.ts';
 import { SnapshotError, snapshotLabel, validateSnapshotRequest, type SnapshotProvider } from './tools/snapshot.ts';
 
 export interface ToolCall {
@@ -41,6 +41,8 @@ export interface ToolEffects {
   plan?: PlanEvent;
   photoRequest?: string;
   prefs?: { confirmBigChanges: boolean };
+  /** Choices for the person, shown as tappable keys. */
+  options?: string[];
 }
 
 export interface ToolOutcome {
@@ -157,6 +159,11 @@ async function run(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {
       return ok(`The person has been asked for a photo of ${p.data.what}. Stop here and wait; it will come with their next message.`, {
         photoRequest: p.data.what,
       });
+    }
+    case 'offer_options': {
+      const p = parse(zOfferOptions, input);
+      if (!p.ok) return p.out;
+      return ok('The choices are on screen. End your turn; their pick comes as the next message.', { options: p.data.options });
     }
     case 'set_preferences': {
       const p = parse(zSetPreferences, input);
