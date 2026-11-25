@@ -90,10 +90,11 @@ function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
 function siteLine(project: Project, defaults: SiteDefaults | undefined): string {
   const site = resolveDesignLoads(project, defaults);
   const bits: string[] = [];
-  bits.push(site.location ? `${site.location.label} (${site.location.source})` : 'location not set');
+  const missing = site.location && defaults?.table && !site.locationInTable ? ', not in loads table' : '';
+  bits.push(site.location ? `${site.location.label} (${site.location.source}${missing})` : 'location not set');
   for (const key of DESIGN_LOAD_KEYS) {
     const v = site.loads[key];
-    bits.push(v ? `${LOAD_WORDS[key]} ${formatLoad(key, v.value)} (${v.overridden ? 'project' : v.source})` : `${LOAD_WORDS[key]} not set`);
+    bits.push(v ? `${LOAD_WORDS[key]} ${formatLoad(key, v.value)} (${v.origin === 'project' ? `yours: ${v.source}` : v.source})` : `${LOAD_WORDS[key]} not set`);
   }
   return `Site: ${bits.join(' · ')}`;
 }

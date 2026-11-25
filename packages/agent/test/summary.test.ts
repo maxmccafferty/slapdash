@@ -27,10 +27,21 @@ describe('project summary', () => {
     exec(bus, 'set_site_location', { location: { label: 'Austin, TX' } });
     exec(bus, 'set_design_load', { key: 'frostDepth', value: '12in', source: 'county' });
     const s = projectSummary(bus.project, { siteDefaults: { loads: { groundSnow: { value: 0.2394, unit: 'kPa', source: 'default table' } } } });
-    expect(s).toContain('Site: Austin, TX (project) · snow 5 psf (default table) · wind not set · frost 1\' 0" (project)');
+    expect(s).toContain('Site: Austin, TX (project) · snow 5 psf (default table) · wind not set · frost 1\' 0" (yours: county)');
     expect(s).toContain('Bounds: nothing built yet');
     expect(s).toContain('Assemblies: none');
     expect(s).toContain('Big-change check: on');
+  });
+
+  it('marks table values with their source, and a location missing from the table', () => {
+    const table = { 'bend, or': { label: 'Bend, OR', loads: { groundSnow: { value: 25 * 0.04788025898, unit: 'kPa' as const, source: 'ASCE 7-22 Hazard Tool' } } } };
+    const bus = makeBus();
+    const inTable = projectSummary(bus.project, { siteDefaults: { location: { label: 'Bend, OR' }, table } });
+    expect(inTable).toContain('Site: Bend, OR (default) · snow 25 psf (ASCE 7-22 Hazard Tool) · wind not set · frost not set');
+    exec(bus, 'set_site_location', { location: { label: 'Nowhere, ZZ' } });
+    exec(bus, 'set_design_load', { key: 'groundSnow', value: '50 psf', source: 'county' });
+    const missing = projectSummary(bus.project, { siteDefaults: { location: { label: 'Bend, OR' }, table } });
+    expect(missing).toContain('Site: Nowhere, ZZ (project, not in loads table) · snow 50 psf (yours: county)');
   });
 
   it('caps the assembly lines', () => {

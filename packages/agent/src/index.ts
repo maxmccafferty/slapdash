@@ -39,6 +39,7 @@ export {
   PHOTO_STUB,
   PHOTO_WRAPPER,
   PROJECT_STUB,
+  STRESS_STUB,
   pointerText,
   snapshotStub,
   type ChatLogLike,
@@ -61,7 +62,7 @@ export {
   type TurnCaps,
   type TurnState,
 } from './guard.ts';
-export { dispatchTool, NO_SNAPSHOT_MESSAGE, type DispatchContext, type PlanEvent, type ToolCall, type ToolEffects, type ToolOutcome } from './dispatch.ts';
+export { dispatchTool, NO_ANALYSIS_MESSAGE, NO_SNAPSHOT_MESSAGE, type DispatchContext, type PlanEvent, type ToolCall, type ToolEffects, type ToolOutcome } from './dispatch.ts';
 export { projectSummary, type SummaryOptions } from './summary.ts';
 
 // Tools that are not bus commands
@@ -79,6 +80,18 @@ export {
   type AgentToolName,
   type PlanProposal,
 } from './tools/schemas.ts';
+export {
+  STRUCTURE_DISCLAIMER,
+  formatStructureReport,
+  percent,
+  stressContextOf,
+  stressViewText,
+  zCheckStructure,
+  type AnalysisProvider,
+  type CheckStructureInput,
+  type StressContext,
+  type StructureReportOptions,
+} from './tools/structure.ts';
 export { QUERY_TOOLS, findParts, getPartInfo, listMaterials, measure, type QueryResult } from './tools/queries.ts';
 export {
   SNAPSHOT_ANGLES,

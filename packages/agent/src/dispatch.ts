@@ -6,6 +6,7 @@
 import {
   formatErrors,
   historyToolDefs,
+  notFound,
   zodIssuesToErrors,
   type CommandBus,
   type CommandError,
@@ -17,6 +18,7 @@ import { INVALID_JSON_KEY } from './stream.ts';
 import { QUERY_TOOLS } from './tools/queries.ts';
 import { zOfferOptions, zProposePlan, zRequestPhoto, zSetPreferences } from './tools/schemas.ts';
 import { SnapshotError, snapshotLabel, validateSnapshotRequest, type SnapshotProvider } from './tools/snapshot.ts';
+import { formatStructureReport, zCheckStructure, type AnalysisProvider } from './tools/structure.ts';
 
 export interface ToolCall {
   id: string;
@@ -55,9 +57,12 @@ export interface DispatchContext {
   bus: CommandBus;
   memory: AgentMemory;
   snapshot?: SnapshotProvider;
+  /** Runs the structural check; absent where there is no solver. */
+  analysis?: AnalysisProvider;
 }
 
 export const NO_SNAPSHOT_MESSAGE = "Snapshots aren't available here; use measure and find_parts.";
+export const NO_ANALYSIS_MESSAGE = "Structural checks aren't available here.";
 const MAX_CREATED_LISTED = 40;
 
 const ok = (content: string | StoredBlock[], effects: ToolEffects = {}): ToolOutcome => ({ content, isError: false, effects });
@@ -132,6 +137,22 @@ async function runSnapshot(input: unknown, ctx: DispatchContext): Promise<ToolOu
   }
 }
 
+async function runCheckStructure(input: unknown, ctx: DispatchContext): Promise<ToolOutcome> {
+  const p = parse(zCheckStructure, input);
+  if (!p.ok) return p.out;
+  const project = ctx.bus.project;
+  if (p.data.assembly !== undefined && !Object.hasOwn(project.assemblies, p.data.assembly)) {
+    return fail([notFound('assembly', p.data.assembly, Object.keys(project.assemblies), 'assembly')]);
+  }
+  if (!ctx.analysis) return fail(NO_ANALYSIS_MESSAGE);
+  try {
+    const result = await ctx.analysis(project);
+    return ok(formatStructureReport(project, result, { ...(p.data.assembly ? { assembly: p.data.assembly } : {}), limit: p.data.limit }));
+  } catch (e) {
+    return fail(`The structural check failed: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
 async function run(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {
   const { name, input } = call;
   if (input !== null && typeof input === 'object' && INVALID_JSON_KEY in input) {
@@ -142,6 +163,8 @@ async function run(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {
   switch (name) {
     case 'snapshot':
       return runSnapshot(input, ctx);
+    case 'check_structure':
+      return runCheckStructure(input, ctx);
     case 'propose_plan': {
       const p = parse(zProposePlan, input);
       if (!p.ok) return p.out;

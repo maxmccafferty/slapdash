@@ -19,12 +19,15 @@ import type { AgentMemory, StoredBlock } from './memory.ts';
 import { accumulateMessage } from './stream.ts';
 import { projectSummary } from './summary.ts';
 import type { SnapshotProvider } from './tools/snapshot.ts';
+import { stressViewText, type AnalysisProvider, type StressContext } from './tools/structure.ts';
 
 export interface AgentDeps {
   bus: CommandBus;
   client: KeyholeClient;
   memory: AgentMemory;
   snapshot?: SnapshotProvider;
+  /** Runs the structural check for check_structure. */
+  analysis?: AnalysisProvider;
   siteDefaults?: SiteDefaults;
   caps?: Partial<TurnCaps>;
   newTurnId?: () => string;
@@ -43,6 +46,8 @@ export interface UserInput {
   approvePlan?: boolean;
   /** The part the person tapped in the view before sending, so "this" can mean it. */
   pointedAt?: { id: string; label: string };
+  /** Set on the automatic turn when the person turns the stress view on: what it shows. */
+  stress?: StressContext;
 }
 
 export type AgentEvent =
@@ -109,6 +114,7 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
   });
   const userContent: StoredBlock[] = [{ type: 'slapdash_project', text: summary }];
   for (const photo of input.photos ?? []) userContent.push({ type: 'slapdash_file', fileId: photo.fileId, mimeType: photo.mimeType, kind: 'photo' });
+  if (input.stress) userContent.push({ type: 'slapdash_stress', text: stressViewText(input.stress) });
   if (input.pointedAt) userContent.push({ type: 'slapdash_pointer', partId: input.pointedAt.id, label: input.pointedAt.label });
   userContent.push({ type: 'text', text: input.text.trim() === '' ? '(no text)' : input.text });
   memory.beginTurn(turnId, userContent);
@@ -180,7 +186,12 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
         if (refusal) {
           outcome = { content: refusal.hint ? `${refusal.message} ${refusal.hint}` : refusal.message, isError: true, effects: {} };
         } else {
-          outcome = await dispatchTool(call, { bus, memory, ...(deps.snapshot ? { snapshot: deps.snapshot } : {}) });
+          outcome = await dispatchTool(call, {
+            bus,
+            memory,
+            ...(deps.snapshot ? { snapshot: deps.snapshot } : {}),
+            ...(deps.analysis ? { analysis: deps.analysis } : {}),
+          });
           const fx = outcome.effects;
           if (fx.created) state.createdParts += fx.created.filter((id) => id.includes('-')).length;
           if (fx.changeSummary) changes.push(fx.changeSummary);

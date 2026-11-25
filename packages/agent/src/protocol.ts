@@ -34,6 +34,8 @@ export interface KeyholeStatus {
   configured: boolean;
   model: string;
   budget: BudgetStatus;
+  /** `SLAPDASH_DEFAULT_LOCATION` ("City, ST"), when the server sets one: the default location for design loads. */
+  defaultLocation?: string;
 }
 
 /** POST /api/claude body. The client cannot choose the model, system prompt, tools or limits. */

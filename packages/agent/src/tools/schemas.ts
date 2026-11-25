@@ -7,6 +7,7 @@
 import { LENGTH_DESCRIPTION, PART_ROLES, zLength, zPositiveLength } from '@slapdash/core';
 import { z } from 'zod';
 import { zSnapshotRequest } from './snapshot.ts';
+import { zCheckStructure } from './structure.ts';
 
 /** A point in project space; y (height) is optional and defaults to the ground. */
 export const zQueryPoint = z
@@ -128,6 +129,12 @@ export const agentToolDefs = [
     schema: zSnapshotRequest,
   },
   {
+    name: 'check_structure',
+    description:
+      'Run the structural check (planning estimate) and list the most loaded parts and joints with % of limit, governing check and the design loads with their sources. Use it when the stress view is on, before suggesting a fix, and after a fix to confirm it clears.',
+    schema: zCheckStructure,
+  },
+  {
     name: 'propose_plan',
     description:
       'Show the person a one-line plan with Build it / Change something before a big change (a new structure, a roof, or about 50+ parts). Give the footprint and height when you know them. Then stop and wait for their answer.',
@@ -148,7 +155,7 @@ export const agentToolDefs = [
   {
     name: 'offer_options',
     description:
-      "When you can't do what was asked, offer two ways that would work as tappable choices. Phrase each as the person would say it. Then stop.",
+      "When you can't do what was asked, offer two ways that would work as tappable choices. Also after explaining a weak spot found by the stress check: the fix and Leave it, fix first when it is over the limit. Phrase each as the person would say it. Then stop.",
     schema: zOfferOptions,
   },
 ] as const satisfies readonly AgentToolDef[];

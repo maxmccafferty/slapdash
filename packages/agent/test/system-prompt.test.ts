@@ -61,7 +61,7 @@ describe('system prompt', () => {
 
   it('names only tools that exist', () => {
     const names = new Set(agentTools().map((t) => t.name));
-    const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation' && m !== 'pointing_at');
+    const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation' && m !== 'pointing_at' && m !== 'stress_view');
     expect(mentioned.length).toBeGreaterThan(20);
     for (const m of mentioned) expect(names.has(m), m).toBe(true);
   });

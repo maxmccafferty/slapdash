@@ -11,7 +11,10 @@ import {
   type UserInput,
 } from '../src/index.ts';
 import { call, say, scriptedClient, type ScriptStep } from '../testing/scripted-client.ts';
-import { SHELL, expectValidMessages, makeBus } from './helpers.ts';
+import { SHELL, expectValidMessages, makeBus, poolHouseBus } from './helpers.ts';
+import { TIER1_CATALOG } from '@slapdash/catalog';
+import { indexCatalog } from '@slapdash/core';
+import { analyze } from '@slapdash/solver';
 
 type ToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: unknown; is_error?: boolean };
 
@@ -350,5 +353,51 @@ describe('when things go wrong', () => {
     expect(deps.memory.unansweredToolUses()).toEqual([]);
     const results = deps.memory.messages.at(-1)!.content as ToolResultBlock[];
     expect(results[1]).toMatchObject({ is_error: true, content: expect.stringMatching(/^Stopped: the person cancelled/) });
+  });
+});
+
+describe('the automatic stress turn', () => {
+  it('reads the <stress_view> note, calls check_structure, then offers the fix first', async () => {
+    const stress = {
+      worst: { id: 'W3-H02', label: 'Header, South wall', utilization: 1.4, check: 'shear', combo: 'D+S' },
+      overCount: 1,
+      unstable: [],
+    };
+    const index = indexCatalog(TIER1_CATALOG);
+    let analysed = 0;
+    const { deps, script, events } = setup(
+      [
+        call(['check_structure', { assembly: 'W3', limit: 3 }]),
+        call(['offer_options', { options: ['Upsize the sliding door header to 2-2x10', 'Leave it'] }]),
+        say('The sliding door header is at about 140% of its limit in shear under snow. Planning estimate, not an engineering check.'),
+        say('Done.'),
+        say('Done.'),
+      ],
+      {
+        bus: poolHouseBus(),
+        analysis: async (p) => {
+          analysed++;
+          return analyze(p, index);
+        },
+      },
+    );
+    const t = await turn(deps, { text: 'Stress view on', stress });
+    const first = JSON.stringify(script.sent[0]!.at(-1)!.content);
+    expect(first).toContain('<stress_view>The person just turned on the stress view. Most loaded: Header, South wall (W3-H02) at 140% of its limit (shear under D+S). 1 part is over the limit.');
+    expect(analysed).toBe(1);
+    const report = lastResults(script.sent.slice(0, 2))[0]!;
+    expect(report.is_error).toBeUndefined();
+    expect(resultText(report)).toMatch(/^Planning estimate, not an engineering check/);
+    expect(resultText(report)).toContain('Scope: W3');
+    const toolStarts = events.filter((e) => e.type === 'tool_start').map((e) => (e as { name: string }).name);
+    expect(toolStarts).toEqual(['check_structure', 'offer_options']);
+    expect(t.options).toEqual(['Upsize the sliding door header to 2-2x10', 'Leave it']);
+
+    // Two turns later the note has aged out, like the <project> block.
+    await turn(deps, 'ok');
+    await turn(deps, 'ok');
+    const later = JSON.stringify(script.sent.at(-1));
+    expect(later).not.toContain('<stress_view>');
+    expect(later).toContain('[stress view note omitted');
   });
 });

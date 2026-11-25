@@ -312,6 +312,9 @@ importers:
       '@slapdash/keyhole':
         specifier: workspace:*
         version: link:../packages/keyhole
+      '@slapdash/solver':
+        specifier: workspace:*
+        version: link:../packages/solver
     devDependencies:
       '@types/node':
         specifier: ^22.20.5
@@ -328,6 +331,9 @@ importers:
       '@slapdash/core':
         specifier: workspace:*
         version: link:../core
+      '@slapdash/solver':
+        specifier: workspace:*
+        version: link:../solver
       zod:
         specifier: ^4.6.7
         version: 4.6.7
