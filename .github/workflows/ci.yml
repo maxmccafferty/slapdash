@@ -1,0 +1,45 @@
+# Lint, type check, unit tests, the bundle secret check and a gitleaks scan on
+# every push (ADR-0002 "Docs and contributor basics", ADR-0001 §9).
+# Playwright e2e, test:supabase (needs Docker) and eval (costs money) stay local.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm check:secrets
+
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # Personal-account repo: no GITLEAKS_LICENSE needed. Reads .gitleaks.toml.
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # .gitleaks.toml uses `targetRules`, which the action's default version predates.
+          GITLEAKS_VERSION: 8.30.1
