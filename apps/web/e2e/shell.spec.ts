@@ -11,7 +11,7 @@ async function targetSizes(page: Page) {
     for (const node of nodes) {
       const el = node.matches('input[type="radio"]') ? (node.closest('label') as HTMLElement) : node;
       const style = getComputedStyle(node);
-      if (node.matches('button[tabindex="-1"]') || style.visibility === 'hidden') continue;
+      if (node.matches('button[tabindex="-1"], input[type="file"]') || style.visibility === 'hidden') continue;
       const box = el.getBoundingClientRect();
       out.push({
         name: node.getAttribute('aria-label') ?? el.textContent ?? node.tagName,
