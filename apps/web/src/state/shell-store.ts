@@ -16,7 +16,7 @@ export interface ShellState {
   /** The latched panel key (Materials or Steps). Mutually exclusive. */
   panel: Panel | null;
   phone: { popover: PhonePopover | null; chatOpen: boolean };
-  /** Readout only until the renderer lands. */
+  /** The zoom readout, written by the 3D view (100% = the initial fit). There is no zoom control. */
   zoomPercent: number;
 }
 
@@ -34,6 +34,7 @@ export interface ShellActions {
   setChatOpen: (open: boolean) => void;
   /** Close everything that only exists on the phone layout. */
   resetPhone: () => void;
+  setZoomPercent: (percent: number) => void;
 }
 
 export const initialShellState: ShellState = {
@@ -61,6 +62,7 @@ export const useShellStore = create<ShellState & ShellActions>()((set) => ({
   closePopover: () => set((s) => ({ phone: { ...s.phone, popover: null } })),
   setChatOpen: (chatOpen) => set((s) => ({ phone: { popover: chatOpen ? null : s.phone.popover, chatOpen } })),
   resetPhone: () => set({ phone: { popover: null, chatOpen: false } }),
+  setZoomPercent: (zoomPercent) => set({ zoomPercent }),
 }));
 
 /** Back to the initial state (tests). */
