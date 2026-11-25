@@ -58,6 +58,17 @@ describe('desktop shell (1440)', () => {
     expect(steps).toHaveAttribute('aria-pressed', 'false');
   });
 
+  it('closing the Materials modal unlatches its key', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const materials = screen.getByRole('button', { name: 'Materials' });
+    await user.click(materials);
+    expect(screen.getByRole('dialog', { name: 'Materials' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Close materials' }));
+    expect(materials).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByRole('dialog', { name: 'Materials' })).not.toBeInTheDocument();
+  });
+
   it('calls the action callbacks', async () => {
     const user = userEvent.setup();
     const actions = { onSave: vi.fn(), onLoad: vi.fn(), onUndo: vi.fn(), onRedo: vi.fn() };

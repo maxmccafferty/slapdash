@@ -1,7 +1,9 @@
+import { useRef } from 'react';
 import { FloorSlider } from '../components/FloorSlider.tsx';
 import { Key } from '../components/Key.tsx';
 import { Logo } from '../components/Logo.tsx';
 import { Unit } from '../components/Unit.tsx';
+import { MaterialsPanel } from '../materials/MaterialsPanel.tsx';
 import { useFloorStops } from '../model/floor-stops.ts';
 import type { ProjectSummary } from '../placeholder.ts';
 import { useShellStore } from '../state/shell-store.ts';
@@ -25,6 +27,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
   const setFloor = useShellStore((s) => s.setFloor);
   const floors = useFloorStops();
   const zoomPercent = useShellStore((s) => s.zoomPercent);
+  const materialsRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div className={styles.shell} data-shell="desktop">
@@ -40,7 +43,13 @@ export function DesktopShell({ project, actions }: ShellProps) {
             <Key label="Redo" icon="redo" onClick={actions.onRedo} />
           </Unit>
           <Unit role="group" aria-label="Panels">
-            <Key label="Materials" icon="materials" latched={panel === 'materials'} onClick={() => togglePanel('materials')} />
+            <Key
+              ref={materialsRef}
+              label="Materials"
+              icon="materials"
+              latched={panel === 'materials'}
+              onClick={() => togglePanel('materials')}
+            />
             <Key label="Steps" icon="steps" latched={panel === 'steps'} onClick={() => togglePanel('steps')} />
           </Unit>
         </div>
@@ -58,6 +67,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
         <div className={styles.views}>
           <ViewControls />
         </div>
+        {panel === 'materials' && <MaterialsPanel variant="desktop" triggerRef={materialsRef} />}
       </main>
       <ChatPanel className={styles.chat} />
     </div>

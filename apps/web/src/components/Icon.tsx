@@ -3,6 +3,7 @@ import {
   Camera,
   Download,
   Eye,
+  FileDown,
   Folder,
   FolderOpen,
   Image,
@@ -35,6 +36,7 @@ const ICONS = {
   camera: Camera,
   image: Image,
   stop: Square,
+  pdf: FileDown,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

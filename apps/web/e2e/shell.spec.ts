@@ -135,7 +135,10 @@ test.describe('desktop 1440 × 900', () => {
 
   test('has no axe violations', async ({ page }) => {
     await expectNoAxeViolations(page);
-    await page.getByRole('button', { name: 'Materials' }).click();
+    await page.getByRole('button', { name: 'Materials', exact: true }).click();
+    await expectNoAxeViolations(page);
+    // The Materials modal covers the view controls; close it to reach 2D.
+    await page.keyboard.press('Escape');
     await page.getByText('2D', { exact: true }).click();
     await expectNoAxeViolations(page);
   });

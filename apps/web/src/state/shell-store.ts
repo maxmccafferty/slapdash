@@ -5,6 +5,7 @@ export type LookFrom = 'outside' | 'inside';
 export type FloorId = 'roof' | 'floor-1' | 'foundation';
 export type Panel = 'materials' | 'steps';
 export type PhonePopover = 'project' | 'floors' | 'views';
+export type MaterialsTab = 'materials' | 'cutlist';
 
 /** UI state for the app shell only. Project data never lives here. */
 export interface ShellState {
@@ -15,6 +16,8 @@ export interface ShellState {
   floor: FloorId;
   /** The latched panel key (Materials or Steps). Mutually exclusive. */
   panel: Panel | null;
+  /** The Materials modal's tab. Kept here so it survives crossing the breakpoint. */
+  materialsTab: MaterialsTab;
   phone: { popover: PhonePopover | null; chatOpen: boolean };
   /** The zoom readout, written by the 3D view (100% = the initial fit). There is no zoom control. */
   zoomPercent: number;
@@ -29,6 +32,8 @@ export interface ShellActions {
   toggleStress: () => void;
   setFloor: (floor: FloorId) => void;
   togglePanel: (panel: Panel) => void;
+  closePanel: () => void;
+  setMaterialsTab: (tab: MaterialsTab) => void;
   openPopover: (popover: PhonePopover) => void;
   closePopover: () => void;
   setChatOpen: (open: boolean) => void;
@@ -44,6 +49,7 @@ export const initialShellState: ShellState = {
   stress: false,
   floor: 'roof',
   panel: null,
+  materialsTab: 'materials',
   phone: { popover: null, chatOpen: false },
   zoomPercent: 100,
 };
@@ -58,6 +64,8 @@ export const useShellStore = create<ShellState & ShellActions>()((set) => ({
   toggleStress: () => set((s) => ({ stress: !s.stress })),
   setFloor: (floor) => set({ floor }),
   togglePanel: (panel) => set((s) => ({ panel: s.panel === panel ? null : panel })),
+  closePanel: () => set({ panel: null }),
+  setMaterialsTab: (materialsTab) => set({ materialsTab }),
   openPopover: (popover) => set((s) => ({ phone: { ...s.phone, popover } })),
   closePopover: () => set((s) => ({ phone: { ...s.phone, popover: null } })),
   setChatOpen: (chatOpen) => set((s) => ({ phone: { popover: chatOpen ? null : s.phone.popover, chatOpen } })),

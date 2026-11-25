@@ -44,6 +44,8 @@
 
 .chat-key {
   position: absolute;
+  /* Above the Materials modal (z 2), below the chat sheet (z 20). */
+  z-index: 3;
   right: calc(var(--space-4) + env(safe-area-inset-right));
   bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
