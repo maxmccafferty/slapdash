@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useMediaQuery } from './hooks/useMediaQuery.ts';
-import { PLACEHOLDER_PROJECT } from './placeholder.ts';
+import { useProjectSummary } from './model/floor-stops.ts';
 import { NOOP_ACTIONS, type ShellActions } from './shell/actions.ts';
 import { DesktopShell } from './shell/DesktopShell.tsx';
 import { PhoneShell } from './shell/PhoneShell.tsx';
@@ -18,12 +18,13 @@ export const PHONE_QUERY = `(max-width: ${PHONE_BREAKPOINT_PX - 0.02}px)`;
 export function App({ actions = NOOP_ACTIONS }: { actions?: ShellActions }) {
   const isPhone = useMediaQuery(PHONE_QUERY);
   const resetPhone = useShellStore((s) => s.resetPhone);
+  const project = useProjectSummary();
   useEffect(() => {
     if (!isPhone) resetPhone();
   }, [isPhone, resetPhone]);
   return isPhone ? (
-    <PhoneShell project={PLACEHOLDER_PROJECT} actions={actions} />
+    <PhoneShell project={project} actions={actions} />
   ) : (
-    <DesktopShell project={PLACEHOLDER_PROJECT} actions={actions} />
+    <DesktopShell project={project} actions={actions} />
   );
 }

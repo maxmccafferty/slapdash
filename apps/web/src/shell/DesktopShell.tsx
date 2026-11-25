@@ -2,7 +2,8 @@ import { FloorSlider } from '../components/FloorSlider.tsx';
 import { Key } from '../components/Key.tsx';
 import { Logo } from '../components/Logo.tsx';
 import { Unit } from '../components/Unit.tsx';
-import { PLACEHOLDER_FLOORS, type ProjectSummary } from '../placeholder.ts';
+import { useFloorStops } from '../model/floor-stops.ts';
+import type { ProjectSummary } from '../placeholder.ts';
 import { useShellStore } from '../state/shell-store.ts';
 import type { ShellActions } from './actions.ts';
 import { ChatPanel } from './ChatPanel.tsx';
@@ -22,6 +23,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
   const togglePanel = useShellStore((s) => s.togglePanel);
   const floor = useShellStore((s) => s.floor);
   const setFloor = useShellStore((s) => s.setFloor);
+  const floors = useFloorStops();
   const zoomPercent = useShellStore((s) => s.zoomPercent);
 
   return (
@@ -49,7 +51,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
       <main className={styles.model} aria-label="Model">
         <ModelArea zoomPercent={zoomPercent} />
         <div className={styles.floors}>
-          <FloorSlider floors={PLACEHOLDER_FLOORS} value={floor} onChange={setFloor} />
+          <FloorSlider floors={floors} value={floor} onChange={setFloor} />
         </div>
         <div className={styles.views}>
           <ViewControls />
