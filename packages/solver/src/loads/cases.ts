@@ -11,7 +11,7 @@
  * - An assembly with no sheathing gets its area loads straight on its rafters, joists
  *   or studs over a tributary width: the builder's spacing, or 16 in.
  */
-import { KPA_PER_PSF, MM_PER_INCH, type Part } from '@slapdash/core';
+import { KPA_PER_PSF, MM_PER_INCH, type CatalogIndex, type Part, type Section } from '@slapdash/core';
 import type { V3 } from '../fem/element.ts';
 import type { FemLoadCase } from '../fem/solve.ts';
 import type { AnalyticalModel } from '../model/build.ts';
@@ -61,8 +61,37 @@ export function spacingOf(params: Record<string, unknown> | undefined): number |
   return undefined;
 }
 
-function partVolume(p: Part): number {
-  return p.size.length * p.size.width * p.size.height;
+/**
+ * Cross-section area of a hollow or shaped section (pipe, tube, steel shapes), mm², or
+ * undefined for solid rectangles and sheets, which fill their box.
+ */
+export function shapedSectionArea(section: Section | undefined): number | undefined {
+  if (!section) return undefined;
+  const { width: b, depth: d, thickness: tf, wall: t } = section.dims_mm;
+  switch (section.shape) {
+    case 'round': {
+      const r = Math.max(b, d) / 2;
+      return t !== undefined && t < r ? Math.PI * (r * r - (r - t) ** 2) : Math.PI * r * r;
+    }
+    case 'tube':
+      return t !== undefined && 2 * t < Math.min(b, d) ? b * d - (b - 2 * t) * (d - 2 * t) : undefined;
+    case 'i-beam':
+      return tf !== undefined && t !== undefined ? 2 * b * tf + (d - 2 * tf) * t : undefined;
+    case 'angle': {
+      const leg = tf ?? t;
+      return leg !== undefined ? leg * (b + d - leg) : undefined;
+    }
+    case 'channel':
+      return t !== undefined ? t * (d + 2 * b - 2 * t) : undefined;
+    default:
+      return undefined;
+  }
+}
+
+/** Material volume of a part: its box, or its section area × length for pipe, tube and steel shapes. */
+function partVolume(p: Part, catalog: CatalogIndex): number {
+  const A = shapedSectionArea(p.sectionId ? catalog.sections.get(p.sectionId) : undefined);
+  return A !== undefined ? A * p.size.length : p.size.length * p.size.width * p.size.height;
 }
 
 /** The largest face, mm²: what an areal mass applies to. */
@@ -199,7 +228,7 @@ export function buildLoadCases(model: AnalyticalModel, options: AnalysisOptions 
       if (role !== 'panel' && role !== 'mass-only') continue;
       const m = catalog.materials.get(p.materialId);
       const W = m?.density_kg_m3
-        ? m.density_kg_m3 * WEIGHT_DENSITY * partVolume(p)
+        ? m.density_kg_m3 * WEIGHT_DENSITY * partVolume(p, catalog)
         : m?.arealMass_kg_m2
           ? m.arealMass_kg_m2 * WEIGHT_AREAL * partFaceArea(p)
           : 0;
