@@ -144,6 +144,36 @@ export function tapUsage(client: KeyholeClient, sink: (usage: RequestUsage) => v
   };
 }
 
+// ── Tool errors ─────────────────────────────────────────────────────────────
+
+/**
+ * Why a tool call was rejected:
+ * - `invalid_input`: Claude's input couldn't be parsed — schema validation (a missing field, the
+ *   wrong type, an unknown enum value or field), a length or pitch that couldn't be read, a
+ *   number with no unit, or malformed JSON. Always a wasted round trip.
+ * - `refusal`: the input was understood and refused on its merits (a clash, a span past any
+ *   header, a slab too big…). Some scenarios expect these.
+ *
+ * The agent only passes the message text through, so this matches the messages the parsers write
+ * (`zodIssuesToErrors`, `parseLength`, `parsePitch`, design loads, dispatch's JSON check). Range
+ * checks ("must be at least…") count as refusals: the input was read.
+ */
+export type ToolErrorKind = 'invalid_input' | 'refusal';
+
+const INPUT_PARSE_PATTERNS: readonly RegExp[] = [
+  /Couldn't read ".*" as an? /, // length, pitch, thickness, design load
+  /has no unit\b/,
+  /wasn't valid JSON/,
+  /"[^"]*" is required\b/,
+  /should be [^,]+, but got /,
+  /must be one of .*\(you gave /,
+  /^Unknown fields? "/m,
+];
+
+export function classifyToolError(content: string): ToolErrorKind {
+  return INPUT_PARSE_PATTERNS.some((re) => re.test(content)) ? 'invalid_input' : 'refusal';
+}
+
 // ── Sessions ────────────────────────────────────────────────────────────────
 
 /** One turn, as recorded for the report and the results file. */
@@ -161,6 +191,8 @@ export interface TurnRecord {
   toolCalls: string[];
   /** Error results from tools or the guard, shortened. */
   toolErrors: string[];
+  /** The `invalid_input` subset of `toolErrors`: calls rejected because their input couldn't be parsed. */
+  badInput: string[];
   refusals: number;
   plan: boolean;
   options: string[] | null;
@@ -204,6 +236,7 @@ export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}
   const tapped = tapUsage(client, (u) => usage.push(u));
   let toolCalls: string[] = [];
   let toolErrors: string[] = [];
+  let badInput: string[] = [];
   const onEvent = (e: AgentEvent) => {
     if (e.type === 'tool_start') {
       toolCalls.push(e.name);
@@ -211,8 +244,10 @@ export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}
     }
     if (e.type === 'tool_result' && e.isError) {
       const msg = typeof e.content === 'string' ? e.content.slice(0, 200) : '(blocks)';
+      const kind = typeof e.content === 'string' ? classifyToolError(e.content) : 'refusal';
       toolErrors.push(`${e.name}: ${msg}`);
-      log(`      ✗ ${msg}`);
+      if (kind === 'invalid_input') badInput.push(`${e.name}: ${msg}`);
+      log(`      ✗ ${kind === 'invalid_input' ? '(bad input) ' : ''}${msg}`);
     }
   };
 
@@ -226,6 +261,7 @@ export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}
       usage = [];
       toolCalls = [];
       toolErrors = [];
+      badInput = [];
       const result = await runTurn({ bus, memory, client: tapped, onEvent, analysis, siteDefaults, newTurnId: () => `eval-${++n}` }, ui);
       const record: TurnRecord = {
         prompt: ui.text,
@@ -237,6 +273,7 @@ export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}
         thinking: usage.reduce((a, u) => a + u.thinkingBlocks, 0),
         toolCalls,
         toolErrors,
+        badInput,
         refusals: result.refusals,
         plan: result.plan !== null,
         options: result.options,

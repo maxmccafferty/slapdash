@@ -4,6 +4,7 @@
  * scenario reads as a list of what should be true.
  */
 import type { ChatPrefs, KeyholeClient, TurnResult, UserInput } from '@slapdash/agent';
+import { noBadInput } from './checks.ts';
 import { evalSession, type EvalSession, type TurnRecord } from './harness.ts';
 import type { SeedCommands } from './seeds.ts';
 
@@ -40,6 +41,11 @@ export interface Scenario {
   typical?: boolean;
   /** A full build from nothing: its cost is quoted in the cap check. */
   fullBuild?: boolean;
+  /**
+   * Turns off the default "no input-parse rejections" check, for scenarios that deliberately feed
+   * bad input. The rejections are still counted in the report and the run's summary.
+   */
+  allowBadInput?: boolean;
   run(ctx: ScenarioContext): Promise<void>;
 }
 
@@ -118,6 +124,7 @@ export async function runScenario(scenario: Scenario, client: KeyholeClient, opt
         const { result, record } = turn;
         turns.push(record);
         log(`    Claude: ${record.text.replace(/\s+/g, ' ').slice(0, 400)}`);
+        if (!scenario.allowBadInput) ctx.expect(noBadInput(record, `T${turns.length}`));
         return { ...result, record };
       },
     };

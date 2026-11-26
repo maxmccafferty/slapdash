@@ -7,13 +7,15 @@
  * 2. the checks catch known-bad models (a clash, a broken joint, a loose stud, no slab);
  * 3. the runner, usage tap, spend guard and report work end to end with a scripted client;
  * 4. an upstream error on any turn ends a scenario as an error, never a pass;
- * 5. the in-process keyhole ignores Supabase sign-in.
+ * 5. input-parse rejections (e.g. a length sent as "\"9ft\"") fail the default check, while
+ *    legitimate refusals (a clash) don't;
+ * 6. the in-process keyhole ignores Supabase sign-in.
  */
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { KeyholeRequestError, type KeyholeClient } from '@slapdash/agent';
-import { BUDGET, scriptedClient, say } from '@slapdash/agent/testing';
+import { BUDGET, call, scriptedClient, say } from '@slapdash/agent/testing';
 import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, GROUND, indexCatalog, type Project } from '@slapdash/core';
 import {
@@ -36,8 +38,8 @@ import {
 } from './checks.ts';
 import { questionNoChange } from './cases/question-no-change.ts';
 import { SCENARIOS } from './cases/index.ts';
-import { budgetStatus, inProcessKeyhole } from './harness.ts';
-import { scenarioLines, summaryLines, totalsOf } from './report.ts';
+import { budgetStatus, classifyToolError, inProcessKeyhole } from './harness.ts';
+import { scenarioLines, summaryLines, totalsOf, turnLine } from './report.ts';
 import { POOL_HOUSE_WALLS, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
 import { defineScenario } from './scenario.ts';
 import { runSuite } from './suite.ts';
@@ -312,7 +314,83 @@ const feetText = section('Feet marks and upstream errors', async () => {
   check('a cut-off reply fails', (await runSuite([twoTurns], cut.client, { maxUsd: 1 })).results[0]?.status === 'fail');
 });
 
-// ── 5. Sign-in bypass ───────────────────────────────────────────────────────
+// ── 5. Input-parse rejections ───────────────────────────────────────────────
+
+const badInput = section('Input-parse rejections are told apart from refusals', async () => {
+  // Messages as the parsers and builders write them.
+  for (const msg of [
+    `"height": Couldn't read ""9ft"" as a length. Try "9ft", "8' 6\"" or "2400mm".`,
+    `"height": "0" has no unit. Add a unit, e.g. 0ft, 0in or 0mm.`,
+    `"pitch": Couldn't read "steep" as a roof pitch.`,
+    `"plan" is required.`,
+    `"footprint" should be an object, but got text ("16x20").`,
+    `"type" must be one of "gable", "shed" (you gave "hip").`,
+    `Unknown field "colour".`,
+    `Your input for build_wall wasn't valid JSON: {"start": Nothing has changed.`,
+  ]) check(`"${msg.slice(0, 50)}" is invalid_input`, classifyToolError(msg) === 'invalid_input');
+  for (const msg of [
+    'The fence would run through T1 (tree trunk). Route it around, or move the tree.',
+    'A 20\' 0" opening needs a header longer than any built-up 2x header; use an engineered beam.',
+    `"length" must be more than zero (you gave -610 mm (-2' 0")).`,
+  ]) check(`"${msg.slice(0, 50)}" is a refusal`, classifyToolError(msg) === 'refusal');
+
+  // Real refusals from the bus are refusals.
+  for (const [what, seed, cmd] of [
+    ['a fence through the tree', TREE_ON_LINE, ['build_fence', { path: [{ x: 0, z: 0 }, { x: '30ft', z: 0 }], height: '4ft', style: 'picket' }]],
+    ['a 20ft opening', POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W3', kind: 'door', centerAt: '10ft', width: '20ft' }]],
+  ] as const) {
+    const bus = new CommandBus({ project: build(seed), catalog: TIER1_CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
+    const res = bus.execute(cmd[0], cmd[1]);
+    check(`${what} is refused by the bus`, !res.ok);
+    if (!res.ok) check(`${what} is classed a refusal, not bad input`, classifyToolError(formatErrors(res.errors)) === 'refusal', formatErrors(res.errors));
+  }
+
+  const plan = (extra: Record<string, unknown>) => call(['propose_plan', { plan: "I'll build a 16×20 shell with 9ft walls.", ...extra }]);
+  const oneTurn = (over: Partial<Parameters<typeof defineScenario>[0]> = {}) =>
+    defineScenario({
+      name: 'one-turn',
+      description: 'self-check only',
+      async run(ctx) {
+        ctx.expect(answered(await ctx.turn('Build a pool house'), 'the turn'));
+      },
+      ...over,
+    });
+
+  // Claude wraps the length in quote marks, is told so, and retries: the turn still answers.
+  const quoted = scriptedClient([plan({ height: '"9ft"' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  const q = (await runSuite([oneTurn()], quoted.client, { maxUsd: 1 })).results[0]!;
+  check('the script was used up', quoted.remaining() === 0, quoted.remaining());
+  check('a turn with a "\\"9ft\\"" length fails the bad-input check', q.status === 'fail' && q.failures.some((f) => /couldn't be parsed/.test(f)), q);
+  check('the rejection is recorded as bad input', q.turns[0]?.badInput.length === 1 && q.turns[0]?.toolErrors.length === 1, q.turns[0]);
+  check('the turn line shows "1 bad input"', q.turns[0] !== undefined && turnLine(q.turns[0], 0).includes('1 bad input'), q.turns[0] && turnLine(q.turns[0], 0));
+
+  const unitless = scriptedClient([plan({ height: '0' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  const u = (await runSuite([oneTurn()], unitless.client, { maxUsd: 1 })).results[0]!;
+  check('a turn with a unitless "0" fails the bad-input check', u.status === 'fail' && u.turns[0]?.badInput.length === 1, u);
+
+  // A clash refusal is a legitimate outcome, not bad input.
+  const clashing = scriptedClient([
+    call(['build_fence', { path: [{ x: 0, z: 0 }, { x: '30ft', z: 0 }], height: '4ft', style: 'picket' }]),
+    say('A straight fence would run through the tree. Shall I route it around, or stop short of it?'),
+  ]);
+  const c = (await runSuite([oneTurn({ seed: TREE_ON_LINE })], clashing.client, { maxUsd: 1 })).results[0]!;
+  check('a clash refusal passes the bad-input check', c.status === 'pass', c);
+  check('the clash is recorded as a refusal, not bad input', c.turns[0]?.refusals === 1 && c.turns[0]?.badInput.length === 0, c.turns[0]);
+
+  // A scenario can opt out; the run's summary still counts the rejection.
+  const optOut = scriptedClient([plan({ height: '"9ft"' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  const o = (await runSuite([oneTurn({ allowBadInput: true })], optOut.client, { maxUsd: 1 })).results[0]!;
+  check('allowBadInput turns the check off', o.status === 'pass', o);
+  const all = [q, c, o];
+  const totals = totalsOf(all, null);
+  check('totals count bad input across scenarios, opted out or not', totals.badInput === 2 && totals.badInputTurns === 2, totals);
+  const summary = summaryLines(all, totals);
+  check('the summary shows the total', summary.some((l) => l.startsWith('Bad input: 2 tool calls rejected')), summary);
+  const clean = totalsOf([c], null);
+  check('a clean run says so', summaryLines([c], clean).some((l) => l.startsWith('Bad input: no tool calls')));
+});
+
+// ── 6. Sign-in bypass ───────────────────────────────────────────────────────
 
 const signIn = section('The in-process keyhole skips Supabase sign-in', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'slapdash-evals-'));
@@ -333,6 +411,6 @@ const signIn = section('The in-process keyhole skips Supabase sign-in', async ()
   check('the budget can be read', typeof budget.capUsd === 'number' && budget.capUsd > 0, budget);
 });
 
-for (const run of [goodModels, badModels, runner, feetText, signIn]) await run();
+for (const run of [goodModels, badModels, runner, feetText, badInput, signIn]) await run();
 console.log(`\n${failures === 0 ? 'PASS' : 'FAIL'} self-check: ${passes} checks passed, ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

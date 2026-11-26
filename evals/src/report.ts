@@ -24,6 +24,7 @@ export function turnLine(t: TurnRecord, i: number): string {
     t.thinking > 0 ? 'thinking' : null,
     `${t.toolCalls.length} tools`,
     t.refusals > 0 ? `${t.refusals} refused` : null,
+    t.badInput.length > 0 ? `${t.badInput.length} bad input` : null,
     `${kTokens(t.tokens.input)} in / ${kTokens(t.tokens.output)} out / ${kTokens(t.tokens.cacheRead)} cache-read`,
     usd(t.costUsd),
     t.capped ? `capped: ${t.capped}` : null,
@@ -54,6 +55,10 @@ export interface Totals {
   errored: number;
   skipped: number;
   turns: number;
+  /** Tool calls rejected because their input couldn't be parsed, across every scenario that ran (opted out or not). */
+  badInput: number;
+  /** Turns with at least one such rejection. */
+  badInputTurns: number;
   costUsd: number;
   tokens: TokenTotals;
   avgTurnUsd: number | null;
@@ -80,6 +85,8 @@ export function totalsOf(results: readonly ScenarioResult[], budget: BudgetStatu
     errored: results.filter((r) => r.status === 'error').length,
     skipped: results.filter((r) => r.status === 'skip').length,
     turns: turns.length,
+    badInput: turns.reduce((a, t) => a + t.badInput.length, 0),
+    badInputTurns: turns.filter((t) => t.badInput.length > 0).length,
     costUsd,
     tokens: turns.reduce((a, t) => addTokens(a, t.tokens), zeroTokens()),
     avgTurnUsd: mean(turns.map((t) => t.costUsd)),
@@ -115,6 +122,11 @@ export function summaryLines(results: readonly ScenarioResult[], totals: Totals)
   out.push('');
   out.push(
     `${totals.passed}/${totals.scenarios} passed${totals.failed ? ` · ${totals.failed} failed` : ''}${totals.errored ? ` · ${totals.errored} errored` : ''}${totals.skipped ? ` · ${totals.skipped} skipped` : ''} · total ${usd(totals.costUsd)} · tokens ${kTokens(t.input)} in / ${kTokens(t.output)} out / ${kTokens(t.cacheWrite)} cache-write / ${kTokens(t.cacheRead)} cache-read`,
+  );
+  out.push(
+    totals.badInput === 0
+      ? 'Bad input: no tool calls rejected for unparseable input'
+      : `Bad input: ${totals.badInput} tool call${totals.badInput === 1 ? '' : 's'} rejected for unparseable input, in ${totals.badInputTurns} of ${totals.turns} turns`,
   );
   out.push('', 'Cap check');
   out.push(`  average turn: ${totals.avgTurnUsd === null ? 'n/a' : usd(totals.avgTurnUsd)} over ${totals.turns} turns`);

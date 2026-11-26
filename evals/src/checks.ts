@@ -48,6 +48,17 @@ const near = (a: number, b: number, tol = TOL) => Math.abs(a - b) <= tol;
 
 // ── Turn shape ──────────────────────────────────────────────────────────────
 
+/**
+ * No tool call this turn was rejected because its input couldn't be parsed (see
+ * `classifyToolError`). Claude retries, so a scenario still passes without this; it catches the
+ * wasted round trips. On for every turn unless the scenario sets `allowBadInput`.
+ */
+export function noBadInput(t: Pick<TurnRecord, 'badInput'>, which = 'this turn'): Fail {
+  const n = t.badInput.length;
+  if (n === 0) return null;
+  return `${which} had ${n} tool call${n === 1 ? '' : 's'} rejected for input that couldn't be parsed (first: ${t.badInput[0]!.slice(0, 160)})`;
+}
+
 export const planShown = (t: TurnLike, which = 'this turn'): Fail => (t.plan !== null ? null : `${which} should end with a plan (propose_plan)`);
 
 export const noPlan = (t: TurnLike, which = 'this turn'): Fail => (t.plan === null ? null : `${which} should not ask for a plan (got "${t.plan.text.slice(0, 80)}")`);

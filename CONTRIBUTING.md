@@ -499,6 +499,16 @@ known-bad models, and runs the runner, usage tap, spend guard and report with a 
 client, so a `FAIL` in `pnpm eval` points at the model rather than the check. Run it after
 changing a check, a seed or a builder.
 
+Every turn of every scenario also checks that **no tool call was rejected for bad input**: input
+that couldn't be parsed, such as a length wrapped in quote marks (`"\"9ft\""`), a number with no
+unit, a missing or unknown field, the wrong type or an unknown option. Claude retries after these,
+so the scenario would pass anyway; this check catches the wasted round trips. Legitimate refusals,
+such as a clash or a span no header can carry, are counted separately (`N refused`), and some
+scenarios expect them. `classifyToolError` in `evals/src/harness.ts` tells the two apart by the
+messages the parsers write. A scenario that deliberately sends bad input sets
+`allowBadInput: true`. Its rejections still show in the turn line (`2 bad input`) and in the
+summary's `Bad input:` total, so a regression stays visible.
+
 Each turn prints its tools, whether Claude thought, tokens (input, output, cache read) and cost;
 each scenario prints `PASS`/`FAIL`/`ERROR`/`SKIP` with plain reasons, and the tool log on
 failure. A turn that ends in an error from Claude or the keyhole makes the scenario `ERROR`
