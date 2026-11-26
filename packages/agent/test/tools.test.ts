@@ -52,6 +52,19 @@ describe('agent tools', () => {
     expect(JSON.stringify(measure.input_schema)).toContain('16ft 6in');
   });
 
+  it('show id examples without quote marks, so Claude does not copy them into ids', () => {
+    const descriptions = (node: unknown): string[] =>
+      node && typeof node === 'object'
+        ? Object.entries(node).flatMap(([k, v]) => (k === 'description' && typeof v === 'string' ? [v] : descriptions(v)))
+        : [];
+    for (const name of AGENT_TOOL_NAMES) {
+      const ids = descriptions(tools.find((t) => t.name === name)!.input_schema).filter((d) => /\bids?\b|assembly/i.test(d));
+      for (const d of ids) expect(d, name).not.toMatch(/(e\.g\.|\() *["“]/);
+    }
+    const measure = JSON.stringify(tools.find((t) => t.name === 'measure')!.input_schema);
+    expect(measure).toContain('e.g. W1-S03 or W1.');
+  });
+
   it('have unique names', () => {
     const names = tools.map((t) => t.name);
     expect(new Set(names).size).toBe(names.length);
