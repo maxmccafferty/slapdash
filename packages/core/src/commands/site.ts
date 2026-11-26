@@ -56,9 +56,9 @@ export const setSiteLocation = defineCommand({
 });
 
 const zLoadValue = z
-  .union([z.number(), z.string()], { error: 'should be a number (SI) or text with a unit like "30 psf"' })
+  .union([z.number(), z.string()], { error: 'should be a number (SI) or a string with a unit, e.g. 30 psf' })
   .describe(
-    'The value. Text with a unit: snow "30 psf" or "1.44 kPa"; wind "115 mph" or "51 m/s"; frost depth "36in" or "915mm". A bare number is SI (kPa, m/s, mm).',
+    'The value. A string with a unit: snow e.g. 30 psf or 1.44 kPa; wind e.g. 115 mph or 51 m/s; frost depth e.g. 36in or 915mm. Write the value itself without extra quote marks. A bare number is SI (kPa, m/s, mm).',
   );
 
 export const setDesignLoad = defineCommand({
