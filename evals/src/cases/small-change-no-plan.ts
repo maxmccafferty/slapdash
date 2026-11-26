@@ -1,4 +1,4 @@
-import { distanceFromWallEnd, fi, FT, headerOverOpening, hasOpening, noPlan } from '../checks.ts';
+import { distanceFromWallEnd, fi, FT, headerOverOpening, hasOpening, noPlan, STANDARD_DOOR } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_HOUSE_WALLS } from '../seeds.ts';
 import { expectSoundStep } from './common.ts';
@@ -14,7 +14,8 @@ export const smallChangeNoPlan = defineScenario({
     const p = ctx.session.bus.project;
     ctx.expect(noPlan(t));
     expectSoundStep(ctx, t);
-    const { fail, opening } = hasOpening(p, { kind: 'door', wall: 'west', widthIn: 38 });
+    // The prompt gives no width, so any standard exterior door (2' 8" to 3' 2") will do.
+    const { fail, opening } = hasOpening(p, { kind: 'door', wall: 'west', ...STANDARD_DOOR });
     ctx.expect(fail);
     ctx.expect(headerOverOpening(p, opening));
     if (opening) {

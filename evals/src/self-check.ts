@@ -32,6 +32,7 @@ import {
   framingConnected,
   headerOverOpening,
   hasOpening,
+  STANDARD_DOOR,
   heightAboveGrade,
   isSiteContext,
   jointsValid,
@@ -148,6 +149,12 @@ const goodModels = section('Checks pass on correct builder output', () => {
   passesCheck('header over the door', headerOverOpening(door, d.opening));
   // W4 runs south → north, 16ft long: centre 12ft from its start is 4ft from the north corner.
   check('door centre is 4ft from the north corner', d.opening !== null && Math.abs(distanceFromWallEnd(door, d.opening, 'north') - 4 * FT) < 1);
+  const door36 = build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W4', kind: 'door', centerAt: '12ft', width: '36in' }]]);
+  passesCheck('36in door counts as a standard door', hasOpening(door36, { kind: 'door', wall: 'west', ...STANDARD_DOOR }).fail);
+  passesCheck('the default 38in door counts as a standard door', hasOpening(door, { kind: 'door', wall: 'west', ...STANDARD_DOOR }).fail);
+  const door48 = build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W4', kind: 'door', centerAt: '12ft', width: '48in' }]]);
+  failsCheck('48in door is wider than a standard door', hasOpening(door48, { kind: 'door', wall: 'west', ...STANDARD_DOOR }).fail);
+  failsCheck('36in door fails an exact 38in width', hasOpening(door36, { kind: 'door', wall: 'west', widthIn: 38 }).fail);
   failsCheck('a door looked for on the wrong wall', hasOpening(door, { kind: 'door', wall: 'east' }).fail);
 
   // follow-ups-after-build: T4 asks for a window on a span the build left clear.
