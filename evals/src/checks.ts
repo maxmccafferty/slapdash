@@ -262,7 +262,10 @@ export function openings(p: Project): OpeningInfo[] {
 }
 
 /** Exactly one opening of this kind on this wall (side or wall id), and returns it for further checks. */
-export function hasOpening(p: Project, want: { kind?: string; wall: Side | string; minWidthIn?: number; widthIn?: number }): { fail: Fail; opening: OpeningInfo | null } {
+/** Width bounds for a door whose prompt names no width: any standard exterior door, 32in to 38in. */
+export const STANDARD_DOOR = { minWidthIn: 32, maxWidthIn: 38 } as const;
+
+export function hasOpening(p: Project, want: { kind?: string; wall: Side | string; minWidthIn?: number; maxWidthIn?: number; widthIn?: number }): { fail: Fail; opening: OpeningInfo | null } {
   const isSide = ['north', 'south', 'east', 'west'].includes(want.wall);
   const all = openings(p);
   const on = all.filter((o) => (isSide ? o.side === want.wall : o.wallId === want.wall) && (!want.kind || o.kind === want.kind));
@@ -274,6 +277,9 @@ export function hasOpening(p: Project, want: { kind?: string; wall: Side | strin
   const o = on[0]!;
   if (want.minWidthIn !== undefined && o.roWidth < want.minWidthIn * IN - TOL) {
     return { fail: `the ${desc} should be at least ${fi(want.minWidthIn * IN)} wide (got ${fi(o.roWidth)})`, opening: o };
+  }
+  if (want.maxWidthIn !== undefined && o.roWidth > want.maxWidthIn * IN + TOL) {
+    return { fail: `the ${desc} should be at most ${fi(want.maxWidthIn * IN)} wide (got ${fi(o.roWidth)})`, opening: o };
   }
   if (want.widthIn !== undefined && !near(o.roWidth, want.widthIn * IN)) {
     return { fail: `the ${desc} should be ${fi(want.widthIn * IN)} wide ±1in (got ${fi(o.roWidth)})`, opening: o };
