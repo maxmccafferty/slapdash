@@ -114,7 +114,7 @@ describe('materials for the pool-house shell (tier-1 catalog, real prices)', () 
     };
     expect(errors({ material: 'oak-board', price: 1, per: 'linear-ft' })).toEqual(['There\'s no material "oak-board".']);
     expect(errors({ material: 'spf-no2', size: '2x4', price: 6, per: 'each' })).toEqual([
-      'A price per board needs the board length, e.g. length: "8ft".',
+      'A price per board needs the board length, e.g. length: 8ft.',
     ]);
     expect(errors({ material: 'osb-7-16', price: 1, per: 'linear-ft' })).toEqual([
       "7/16in OSB sheathing can't be priced per linear foot; price it per sheet or square foot.",
