@@ -6,6 +6,7 @@
  */
 import { LENGTH_DESCRIPTION, PART_ROLES, zLength, zPositiveLength } from '@slapdash/core';
 import { z } from 'zod';
+import { zId } from './ids.ts';
 import { zSnapshotRequest } from './snapshot.ts';
 
 /** A point in project space; y (height) is optional and defaults to the ground. */
@@ -19,7 +20,7 @@ export const zQueryPoint = z
 export type QueryPoint = { x: number; y?: number | undefined; z: number };
 
 const zTarget = z
-  .union([z.string().min(1).describe('A part or assembly id, e.g. "W1-S03" or "W1".'), zQueryPoint])
+  .union([zId('A part or assembly id, e.g. W1-S03 or W1.'), zQueryPoint])
   .describe('A part or assembly id, or a point.');
 
 const zPlanXZ = z.strictObject({
@@ -28,9 +29,9 @@ const zPlanXZ = z.strictObject({
 });
 
 export const zFindParts = z.strictObject({
-  assembly: z.string().min(1).optional().describe('Only parts in this assembly, e.g. "W1".'),
+  assembly: zId('Only parts in this assembly, e.g. W1.').optional(),
   role: z.enum(PART_ROLES).optional().describe('Only parts with this role, e.g. "stud".'),
-  material: z.string().min(1).optional().describe('Only parts of this material id, e.g. "spf-no2" (a part of the id matches too).'),
+  material: zId('Only parts of this material id, e.g. spf-no2 (a part of the id matches too).').optional(),
   tag: z.string().min(1).optional().describe('Only parts with this tag, e.g. "king" or "corner-backer".'),
   near: zQueryPoint.optional().describe('Only parts near this point, nearest first.'),
   within: zPositiveLength.optional().describe(`With "near": how close a part must be. Default 1ft. ${LENGTH_DESCRIPTION}`),
@@ -38,7 +39,7 @@ export const zFindParts = z.strictObject({
 });
 
 export const zGetPart = z.strictObject({
-  id: z.string().min(1).describe('A part id ("W1-S03") or an assembly id ("W1").'),
+  id: zId('A part id (W1-S03) or an assembly id (W1).'),
 });
 
 export const zMeasure = z.strictObject({
@@ -47,7 +48,7 @@ export const zMeasure = z.strictObject({
 });
 
 export const zListMaterials = z.strictObject({
-  assembly: z.string().min(1).optional().describe('Only this assembly, e.g. "W1". Default: the whole project.'),
+  assembly: zId('Only this assembly, e.g. W1. Default: the whole project.').optional(),
 });
 
 export const zProposePlan = z.strictObject({
