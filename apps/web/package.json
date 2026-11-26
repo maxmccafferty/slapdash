@@ -23,6 +23,7 @@
     "@slapdash/agent": "workspace:*",
     "@slapdash/catalog": "workspace:*",
     "@slapdash/core": "workspace:*",
+    "@slapdash/solver": "workspace:*",
     "lucide-react": "^1.79.0",
     "pdf-lib": "^1.17.1",
     "postprocessing": "^6.39.6",

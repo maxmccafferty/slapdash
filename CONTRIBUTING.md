@@ -12,6 +12,8 @@ pnpm -r typecheck                        # every package's typecheck
 pnpm --filter @slapdash/core test        # core only (vitest, node environment)
 pnpm --filter @slapdash/core typecheck   # core src without DOM or Node types, then tests/scripts
 pnpm --filter @slapdash/catalog test     # the tier-1 catalog, prices and textures
+pnpm --filter @slapdash/solver test      # the structural solver and stability sim
+pnpm --filter @slapdash/solver bench     # time analyze() on the pool-house shell
 pnpm smoke                               # node packages/core/scripts/smoke.ts
 pnpm dev                                 # the web app (apps/web, Vite) plus /api/claude
 pnpm check:secrets                       # build the web app and prove no API key reaches it
@@ -19,7 +21,9 @@ pnpm build:api                           # bundle the Claude keyhole for Vercel
 ```
 
 Architecture decisions live in `docs/adr/`. `packages/core` is pure TypeScript with no DOM,
-React, Three.js or Node APIs in `src/` (`test/no-dom.test.ts` enforces it).
+React, Three.js or Node APIs in `src/` (`test/no-dom.test.ts` enforces it). So is
+`packages/solver` (the frame solver and the Rapier stability sim, run in a Web Worker by
+the web app; see its README), whose only exception is the worker entry `src/worker.ts`.
 
 ## How to add a command
 
@@ -132,6 +136,11 @@ kg/m², RSI per mm, N.
      Supplement **reference** values, unadjusted (psi × 0.00689476).
    - `strength` (`compressive_MPa`, `E_MPa`, `yield_MPa`, `tensile_MPa`) for concrete
      (f'c), masonry (f'm) and rebar (fy).
+   - `shearPanel` (`Ga_N_per_mm`, `vAllowable_N_per_mm`, `nailing`, `source`) for sheet
+     goods that brace walls or act as roof and floor diaphragms: SDPWS Table 4.3A apparent
+     shear stiffness (kips/in × 175.127) and the ASD wind allowable (vw ÷ 2.0, plf ×
+     0.0145939) for one nailing schedule. Without it the solver treats a `brace:panel`
+     sheet as weight only and warns that it braces nothing.
    - `density_kg_m3` (NDS specific gravity or manufacturer data), `arealMass_kg_m2` for
      products whose thickness isn't modelled (shingles, siding, membranes; psf ×
      4.88243), `rValuePerMm` for insulation (labelled R × 0.17611 ÷ thickness in mm, or R

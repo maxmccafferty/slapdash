@@ -81,6 +81,24 @@ export const zStrength = z
   .refine((s) => Object.values(s).some((v) => v !== undefined), 'should give at least one value');
 export type Strength = z.infer<typeof zStrength>;
 
+/**
+ * How a sheet acts as a shear panel (a braced wall or a diaphragm), for one nailing
+ * schedule. The solver turns each `brace:panel` sheet into an equivalent pair of
+ * diagonals with this stiffness and checks its unit shear against this allowable value.
+ * A sheet material without it carries load but braces nothing.
+ */
+export const zShearPanel = z.strictObject({
+  /** Apparent shear stiffness Ga, N/mm (kips/in × 175.127). */
+  Ga_N_per_mm: z.number().positive(),
+  /** ASD allowable unit shear for wind, N/mm (plf × 0.0145939); SDPWS vw ÷ 2.0. */
+  vAllowable_N_per_mm: z.number().positive(),
+  /** The nailing the numbers are for, e.g. "8d common at 6in edges, 12in field". */
+  nailing: z.string().min(1),
+  /** Citation, e.g. "AWC SDPWS 2021 Table 4.3A, 7/16in OSB". */
+  source: z.string().min(1),
+});
+export type ShearPanel = z.infer<typeof zShearPanel>;
+
 export const zMaterial = z.strictObject({
   id: kebabId,
   name: z.string().min(1),
@@ -93,6 +111,8 @@ export const zMaterial = z.strictObject({
   structural: zStructuralProperties.optional(),
   /** Non-beam strength: concrete, masonry, rebar. */
   strength: zStrength.optional(),
+  /** Shear-panel values for sheet goods that brace walls and roofs. */
+  shearPanel: zShearPanel.optional(),
   density_kg_m3: z.number().positive().optional(),
   /** Dead load of sheet products whose thickness isn't modelled (shingles, membranes, siding). */
   arealMass_kg_m2: z.number().positive().optional(),

@@ -28,6 +28,8 @@ import { WALL_BUILDER, type WallParams } from './wall-state.ts';
 
 const IN = MM_PER_INCH;
 const T = BUILDER_DEFAULTS.twoBy;
+/** Toenails from an end rafter tie into a gable wall's cap plate, one pair per this length. */
+const GABLE_TIE_NAIL_SPACING = 48 * IN;
 const GAP = 0.75 * IN;
 export const ROOF_BUILDER = 'build_roof';
 
@@ -304,6 +306,11 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
     return caps.filter(({ box }) => box.w0 < b! - 1 && a! < box.w1 - 1).map((c) => c.part);
   });
   const overlapsU = (a: FrameBox, u0: number, u1: number) => a.u0 < u1 - 1 && u0 < a.u1 - 1;
+  /** Middle of where a cap plate meets a bearing strip (a gable wall's plate only touches it at the corner). */
+  const bearingW = (pb: FrameBox, side: 0 | 1) => {
+    const [a, b] = strip(side);
+    return (Math.max(pb.w0, a!) + Math.min(pb.w1, b!)) / 2;
+  };
   const bearings = input.type === 'gable' ? [[0, 0] as const, [1, 1] as const] : [[0, 0] as const, [0, 1] as const];
   for (const rf of rafters) {
     if (rf.fly) continue;
@@ -312,7 +319,7 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
       for (const plate of capsBySide[wallSide]!) {
         const pb = boxInFrame(frame, plate);
         if (!overlapsU(pb, rf.u0, rf.u0 + T)) continue;
-        const where = at({ u: rf.u0 + T / 2, v: pb.v1, w: (pb.w0 + pb.w1) / 2 });
+        const where = at({ u: rf.u0 + T / 2, v: pb.v1, w: bearingW(pb, wallSide) });
         joints.push({ a: rf.key, b: plate.id, jointTypeId: J.hurricaneTie, at: where, fastenerCount: 1 });
         joints.push({ a: rf.key, b: plate.id, jointTypeId: J.nail16d, at: where, fastenerCount: RAFTER_NAILS, note: 'toenail' });
       }
@@ -346,7 +353,23 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
         for (const plate of capsBySide[side]!) {
           const pb = boxInFrame(frame, plate);
           if (!overlapsU(pb, u0, u0 + T)) continue;
-          joints.push({ a: tie, b: plate.id, jointTypeId: J.nail16d, at: at({ u: u0 + T / 2, v: yb, w: (pb.w0 + pb.w1) / 2 }), fastenerCount: 2, note: 'toenail' });
+          joints.push({ a: tie, b: plate.id, jointTypeId: J.nail16d, at: at({ u: u0 + T / 2, v: yb, w: bearingW(pb, side) }), fastenerCount: 2, note: 'toenail' });
+        }
+      }
+      // An end tie lying on a gable wall's cap plate is toenailed to it along its length,
+      // which holds the top of the gable wall (the structural check relies on it).
+      // Only the stretch between the bearing strips counts: a gable wall's plate that runs
+      // through the corners already has the bearing toenails there.
+      for (const plate of caps) {
+        const pb = plate.box;
+        if (!overlapsU(pb, u0, u0 + T) || Math.abs(pb.v1 - yb) > 1) continue;
+        const w0 = Math.max(pb.w0, strip(0)[1]!);
+        const w1 = Math.min(pb.w1, strip(1)[0]!);
+        if (w1 - w0 < 2 * T) continue;
+        const n = Math.ceil((w1 - w0) / GABLE_TIE_NAIL_SPACING);
+        for (let k = 0; k < n; k++) {
+          const w = w0 + ((k + 0.5) * (w1 - w0)) / n;
+          joints.push({ a: tie, b: plate.part.id, jointTypeId: J.nail16d, at: at({ u: u0 + T / 2, v: yb, w }), fastenerCount: 2, note: 'toenail to gable wall' });
         }
       }
     }
