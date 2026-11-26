@@ -9,7 +9,8 @@
  *
  * Labels are feet and inches with primes (`20′ 0″`), like the rest of the shell.
  */
-import { MM_PER_FOOT, formatFeetInches, type Aabb, type Assembly, type Part, type Project, type Vec3 } from '@slapdash/core';
+import { MM_PER_FOOT, formatFeetInches, type Aabb, type Part, type Project, type Vec3 } from '@slapdash/core';
+import { readOpening, readWall, wallFrame } from '../model/recipes.ts';
 import { isContextPart, partAabb, unionAabb } from './bounds.ts';
 import { toPrimes } from './units.ts';
 
@@ -31,21 +32,6 @@ const OPENING_OFFSET_MM = 1 * MM_PER_FOOT;
 
 export function dimensionLabel(mm: number): string {
   return toPrimes(formatFeetInches(mm, { precision: 8 }));
-}
-
-interface WallParams {
-  start: { x: number; z: number };
-  end: { x: number; z: number };
-  exterior?: 'left' | 'right';
-}
-
-function wallParams(assembly: Assembly | undefined): WallParams | null {
-  const p = assembly?.builder?.name === 'build_wall' ? assembly.builder.params : null;
-  if (!p) return null;
-  const start = p.start as WallParams['start'] | undefined;
-  const end = p.end as WallParams['end'] | undefined;
-  if (!start || !end || typeof start.x !== 'number' || typeof end.x !== 'number') return null;
-  return { start, end, exterior: p.exterior === 'right' ? 'right' : 'left' };
 }
 
 /**
@@ -112,29 +98,22 @@ export function dimensionSet(project: Project, isVisible: (part: Part) => boolea
   const visibleAssemblies = new Set(parts.map((p) => p.assemblyId));
   for (const assembly of Object.values(project.assemblies)) {
     if (assembly.kind !== 'opening' || !visibleAssemblies.has(assembly.id)) continue;
-    const params = assembly.builder?.name === 'add_opening' ? assembly.builder.params : null;
-    if (!params || typeof params.at !== 'number' || typeof params.width !== 'number') continue;
-    const wall = wallParams(project.assemblies[String(params.wallId)]);
-    if (!wall) continue;
-    const dx = wall.end.x - wall.start.x;
-    const dz = wall.end.z - wall.start.z;
-    const len = Math.hypot(dx, dz);
-    if (len === 0) continue;
-    const ux = dx / len;
-    const uz = dz / len;
-    // Left of the wall direction, seen from above (y up), is (uz, -ux).
-    const side = wall.exterior === 'right' ? -1 : 1;
-    const nx = uz * side;
-    const nz = -ux * side;
-    const a = params.at;
-    const b = params.at + params.width;
+    const opening = readOpening(assembly);
+    if (!opening) continue;
+    const wall = readWall(project.assemblies[opening.wallId]);
+    const frame = wall && wallFrame(wall);
+    if (!wall || !frame) continue;
+    const { x: ux, z: uz } = frame.u;
+    const { x: nx, z: nz } = frame.n;
+    const a = opening.at;
+    const b = opening.at + opening.width;
     lines.push({
       id: `opening-${assembly.id}`,
       kind: 'opening',
       from: { x: wall.start.x + ux * a, y: 0, z: wall.start.z + uz * a },
       to: { x: wall.start.x + ux * b, y: 0, z: wall.start.z + uz * b },
       offset: { x: nx * OPENING_OFFSET_MM, y: 0, z: nz * OPENING_OFFSET_MM },
-      label: dimensionLabel(params.width),
+      label: dimensionLabel(opening.width),
     });
   }
   return lines;

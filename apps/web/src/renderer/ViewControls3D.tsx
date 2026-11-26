@@ -8,7 +8,7 @@
  */
 import { OrbitControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { useCallback, useLayoutEffect, useRef, type ComponentRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, type ComponentRef } from 'react';
 import { TOUCH, type PerspectiveCamera } from 'three';
 import { useMediaQuery } from '../hooks/useMediaQuery.ts';
 import { useModelStore } from '../state/model-store.ts';
@@ -78,6 +78,11 @@ export function ViewControls3D({ enabled }: { enabled: boolean }) {
     const pct = zoomPercent(camera.position.distanceTo(c.target), fitDistance);
     if (useShellStore.getState().zoomPercent !== pct) setZoomPercent(pct);
   }, [camera, fitDistance, setZoomPercent]);
+
+  // Back from 2D: the readout shows the 3D zoom again, not the sheet's.
+  useEffect(() => {
+    if (enabled) onChange();
+  }, [enabled, onChange]);
 
   return (
     <OrbitControls

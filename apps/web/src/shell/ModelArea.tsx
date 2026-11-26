@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Project } from '@slapdash/core';
+import { SheetView } from '../drawing/SheetView.tsx';
 import { frameStats, useRendererStore } from '../renderer/renderer-store.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
@@ -64,8 +65,9 @@ function CssFloor({ label }: { label?: string }) {
 
 /**
  * The model: the 3D view where WebGL 2 is available (lazy-loaded, its own chunk), with the
- * flat CSS floor as the loading fallback and the no-WebGL view. In 2D the canvas is hidden
- * but stays mounted, so snapshots keep working.
+ * flat CSS floor as the loading fallback and the no-WebGL view. In 2D the drawing sheet
+ * shows instead; the canvas is hidden but stays mounted, so snapshots keep working. The
+ * sheet is plain SVG, so 2D works without WebGL too.
  */
 export function ModelArea({ zoomPercent, readout = true }: { zoomPercent: number; readout?: boolean }) {
   const [webgl] = useState(supportsWebGL2);
@@ -88,8 +90,9 @@ export function ModelArea({ zoomPercent, readout = true }: { zoomPercent: number
           </Suspense>
         </div>
       ) : (
-        <CssFloor label="Build floor. 3D isn't available in this browser." />
+        view === '3d' && <CssFloor label="Build floor. 3D isn't available in this browser." />
       )}
+      {view === '2d' && <SheetView />}
       {readout && (
         <p className={styles.readout} data-testid="zoom-readout">
           <span>scroll to zoom</span>
