@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Slapdash agent: Claude's system prompt, the tool list and the keyhole wire protocol. Runs in the browser and on the server.",
+  "description": "Slapdash agent: Claude's system prompt, the tool list, the keyhole wire protocol and the agent loop (tools, memory, guard). Runs in the browser and in Node.",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -17,6 +17,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@slapdash/catalog": "workspace:*",
+    "@slapdash/storage": "workspace:*",
     "@types/node": "^22.20.5",
     "typescript": "~5.9.3",
     "vitest": "^5.1.1"

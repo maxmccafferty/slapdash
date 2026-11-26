@@ -352,10 +352,11 @@ per-user rate limit and the monthly budget (§D9), and streams Claude's reply. I
 counters only, never anything about the project.
 
 - **`packages/agent`** (browser and server): the system prompt (`src/system-prompt.ts`), the
-  tool list (`src/tools.ts`, generated from the command schemas with `eager_input_streaming`)
-  and the wire protocol (`src/protocol.ts`). Both prompt and tools are prompt-cached, so keep
-  them byte-stable: no dates, no generated values, a fixed order. New tools (snapshot,
-  queries) are appended in `tools.ts`.
+  tool list (`src/tools.ts`, generated from the command schemas with `eager_input_streaming`,
+  then the agent tools from `src/tools/schemas.ts`), the wire protocol (`src/protocol.ts`) and
+  the agent loop (`src/loop.ts`, with its memory, guard and dispatch). Both prompt and tools
+  are prompt-cached, so keep them byte-stable: no dates, no generated values, a fixed order.
+  See `packages/agent/README.md` for the loop, the tools and how to add one.
 - **`packages/keyhole`** (server only): config, pricing, budget, rate limit, usage stores and
   the `Request → Response` handler. `apps/web/src` must never import it or the Anthropic SDK;
   `apps/web/test/no-server-imports.test.ts` enforces that.
@@ -419,6 +420,20 @@ event: error      data: { error: 'upstream', message, retryable }
 Other errors are JSON: 400 `bad_request`, 403 `forbidden_origin` (an `Origin` that is neither
 the app's host nor in `SLAPDASH_ALLOWED_ORIGINS`), 405, 413 `too_large`, and 500 `internal`
 when the usage store fails. `parseKeyholeEvents()` in `@slapdash/agent` reads the stream.
+
+### Evals
+
+`pnpm eval` runs the agent loop headless in Node against the real Claude API, through an
+in-process keyhole (`evals/src/harness.ts`), so it needs no browser and no server. It reads
+`ANTHROPIC_API_KEY` from the repo-root `.env` (or the environment), counts towards the same
+monthly budget as `pnpm dev`, and costs real money, so run it before a release or after
+changing the system prompt or tools, not in CI. `evals` has no `test` script on purpose:
+`pnpm test` never calls the API.
+
+Each case prints the cost of each turn and fails with plain reasons. `pool-house` asks for a
+16×20 pool house on a slab with 9ft walls, expects a plan and no change, then says "Build it"
+and expects one undo step with a slab, four walls with 103 1/2in studs, a 16×20 footprint and
+no clashes. Add a case in `evals/src/cases/` and list it in `evals/src/run.ts`.
 
 ### Keeping the key out of the browser
 

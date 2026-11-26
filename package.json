@@ -12,6 +12,7 @@
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "smoke": "pnpm --filter @slapdash/core smoke",
+    "eval": "pnpm --filter @slapdash/evals eval",
     "check:secrets": "pnpm --filter @slapdash/web check:secrets"
   },
   "devDependencies": {

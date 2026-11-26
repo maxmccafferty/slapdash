@@ -7,7 +7,7 @@
  * retries. The app should call `flush()` on `pagehide`/`visibilitychange`.
  */
 import { CommandBus, createProject, formatErrors, type Catalog, type CatalogIndex, type Project } from '@slapdash/core';
-import { emptyChatLog, zChatMessage, type ChatLog, type ChatMessage, type JsonValue } from './chat.ts';
+import { emptyChatLog, zChatLog, zChatMessage, type ChatLog, type ChatMessage, type JsonValue } from './chat.ts';
 import { describeError, StorageError } from './errors.ts';
 import {
   decodeSlapdashFile,
@@ -257,9 +257,21 @@ export class ProjectSession {
    */
   setChatSummary(summary: string | null, keep?: number): void {
     const next: ChatLog = { version: this.#chat.version, messages: this.#chat.messages };
+    if (this.#chat.prefs) next.prefs = this.#chat.prefs;
     if (summary !== null) next.summary = summary;
     if (keep !== undefined) next.messages = keep <= 0 ? [] : this.#chat.messages.slice(-keep);
     this.#chat = next;
+    this.#markDirty();
+  }
+
+  /**
+   * Replace the whole saved chat, e.g. with `AgentMemory.toChatLog()` after a Claude turn.
+   * Throws StorageError('invalid') if it isn't a valid chat log.
+   */
+  replaceChat(log: ChatLog): void {
+    const parsed = zChatLog.safeParse(log);
+    if (!parsed.success) throw new StorageError('invalid', "That chat can't be saved: it isn't a valid chat log.");
+    this.#chat = parsed.data;
     this.#markDirty();
   }
 

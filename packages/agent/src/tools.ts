@@ -1,11 +1,11 @@
 /**
- * The tool list Claude sees (ADR-0002 §A3, §A5). It is generated from the command schemas,
- * so the tools and the bus's validation can never drift apart. The list is prompt-cached,
- * so it must be byte-stable: fixed order, no generated values.
- *
- * Later tickets (snapshot, find_parts, get_part, measure) append their tools here.
+ * The tool list Claude sees (ADR-0002 §A3, §A5): every exposed command and the history
+ * tools (generated from the command schemas, so the tools and the bus's validation can never
+ * drift apart), then the agent tools (queries, snapshot, plan, photo, preferences). The list
+ * is prompt-cached, so it must be byte-stable: fixed order, no generated values.
  */
-import { commandJsonSchemas } from '@slapdash/core';
+import { commandJsonSchemas, toInputJsonSchema } from '@slapdash/core';
+import { agentToolDefs } from './tools/schemas.ts';
 
 export interface AgentTool {
   readonly name: string;
@@ -13,7 +13,7 @@ export interface AgentTool {
   readonly input_schema: Readonly<Record<string, unknown>>;
   /**
    * Stream tool input as it is generated. The API then no longer validates the input,
-   * which is fine: the browser bus validates every tool input with Zod before running it.
+   * which is fine: the loop validates every tool input with Zod before running it.
    */
   readonly eager_input_streaming: true;
 }
@@ -28,7 +28,8 @@ function deepFreeze<T>(value: T): T {
 
 /** Builds a fresh tool list. Use `agentTools()`; this exists so tests can check stability. */
 export function buildAgentTools(): readonly AgentTool[] {
-  return commandJsonSchemas().map((t) => ({
+  const agent = agentToolDefs.map((d) => ({ name: d.name, description: d.description, input_schema: toInputJsonSchema(d.schema) }));
+  return [...commandJsonSchemas(), ...agent].map((t) => ({
     name: t.name,
     description: t.description,
     input_schema: t.input_schema,

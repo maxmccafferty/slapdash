@@ -52,6 +52,44 @@ describe('CommandBus.execute', () => {
   });
 });
 
+describe('CommandBus.dryRun', () => {
+  it('reports what execute would do without changing the project, history or listeners', () => {
+    const bus = makeBus();
+    const heard = vi.fn();
+    bus.subscribe(heard);
+    const before = bus.project;
+    const dry = bus.dryRun('add_assembly', wall);
+    expect(dry).toEqual({ ok: true, summary: 'Added wall W1 "South wall".', created: ['W1'] });
+    expect(bus.project).toBe(before);
+    expect(bus.canUndo).toBe(false);
+    expect(bus.listHistory()).toEqual([]);
+    expect(heard).not.toHaveBeenCalled();
+    expect(bus.execute('add_assembly', wall)).toEqual(dry);
+  });
+
+  it('does not record into an open group', () => {
+    const bus = makeBus();
+    bus.beginGroup({ label: 'Turn', source: 'claude', turnId: 't1' });
+    expect(bus.dryRun('add_assembly', wall).ok).toBe(true);
+    expect(bus.endGroup()).toBeNull();
+    expect(bus.project.assemblies).toEqual({});
+  });
+
+  it('reports the parts a builder would create', () => {
+    const bus = makeBus();
+    const dry = bus.dryRun('pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
+    expect(dry.ok && dry.created).toEqual(['FD1', 'FD1-SB01', 'FD1-FT01', 'FD1-FT02', 'FD1-FT03', 'FD1-FT04']);
+    expect(bus.project.parts).toEqual({});
+  });
+
+  it('returns the same errors as execute', () => {
+    const bus = makeBus();
+    expect(bus.dryRun('add_prt', {})).toEqual(bus.execute('add_prt', {}));
+    expect(bus.dryRun('replace_project', {}).ok).toBe(false);
+    expect(bus.dryRun('add_part', stud())).toEqual(bus.execute('add_part', stud()));
+  });
+});
+
 describe('groups', () => {
   it('records N commands as one entry and undoes them in one step', () => {
     const bus = makeBus();

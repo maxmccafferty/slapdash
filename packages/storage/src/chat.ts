@@ -25,6 +25,11 @@ export const zChatLog = z.strictObject({
   version: z.literal(CHAT_LOG_VERSION),
   /** A summary of older turns that were dropped from `messages`. */
   summary: z.string().optional(),
+  /**
+   * Per-project chat preferences. `confirmBigChanges: false` is the person's "just do it":
+   * Claude skips the plan-first check. Optional, so logs without it still load (version 1).
+   */
+  prefs: z.strictObject({ confirmBigChanges: z.boolean() }).optional(),
   messages: z.array(zChatMessage),
 });
 export type ChatLog = z.infer<typeof zChatLog>;
