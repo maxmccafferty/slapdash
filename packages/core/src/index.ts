@@ -31,6 +31,7 @@ export {
   type CommandError,
   type CommandErrorCode,
 } from './commands/errors.ts';
+export { checkJoint, type JointFields } from './commands/joints.ts';
 export type { AnyCommandDef, AppliedCommand, ApplyResult, CommandContext, CommandDef } from './commands/types.ts';
 export { commandRegistry, exposedCommands } from './commands/registry.ts';
 export { zId } from './commands/common.ts';

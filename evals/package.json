@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Headless evals: run the agent loop in Node against the real Claude API through an in-process keyhole. On demand only (costs money); deliberately no test script, so pnpm -r test never calls the API.",
+  "description": "Eval suite for Claude builds: scripted scenarios run through the real agent loop in Node against the real Claude API (in-process keyhole), checking the model that comes out (counts, dimensions, openings, joints, clashes) and recording tokens and cost per turn against the monthly cap. On demand only (costs money); deliberately no test script, so pnpm -r test never calls the API. self-check runs offline.",
   "scripts": {
     "eval": "node --env-file-if-exists=../.env src/run.ts",
+    "self-check": "node src/self-check.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

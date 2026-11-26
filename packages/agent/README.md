@@ -104,4 +104,5 @@ prefix caches within a turn.
 pnpm --filter @slapdash/agent test        # no network: a scripted client replays Claude
 pnpm --filter @slapdash/agent typecheck
 pnpm eval                                  # real API, costs money (see CONTRIBUTING, "Evals")
+pnpm eval --only pool-house,undo           # just some scenarios; --list shows them all
 ```
