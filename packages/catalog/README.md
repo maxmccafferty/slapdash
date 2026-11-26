@@ -20,7 +20,7 @@ app can't start on a broken catalog.
 | Path | Contents |
 |---|---|
 | `data/materials/*.json` | One file per Appendix A group: lumber, engineered wood, sheet goods, concrete and masonry, fasteners and hardware, roofing, envelope, insulation, openings, site. Load order is fixed in `src/index.ts`. |
-| `data/sections.json` | Actual dressed sizes in mm: 1x/2x/4x/6x lumber, LVL, glulam, I-joists, rebar, CMU. |
+| `data/sections.json` | Actual dressed sizes in mm: 1x/2x/4x/6x lumber, LVL, glulam, I-joists, rebar, CMU. Sections sold in board lengths list them in `stock` (precut studs, 8′–20′ boards) for the cut list; glulam and CMU have none. |
 | `data/joint-types.json` | Nails, screws, bolts, lags, anchors, hangers, ties, post bases, embedded/cast-in-place, mortared, notched, mortise-and-tenon. Each names its `hardwareId` and a `source`. |
 | `data/prices.json` | The dated low–high price table, one `source` note per entry. |
 | `textures/` | `manifest.json`, `<set>/<map>.ktx2`, and the generated `ATTRIBUTION.md`. |

@@ -275,12 +275,30 @@ function expectChatUsable() {
   expect(textbox).toHaveFocus();
 }
 
+/** The chat takes typing while a modal is open, and the modal stays open. */
+async function expectChatTypes(panel: 'materials' | 'steps') {
+  const user = userEvent.setup();
+  await user.click(field());
+  await user.type(field(), 'Price 2x4s at 50 cents a foot');
+  expect(field()).toHaveValue('Price 2x4s at 50 cents a foot');
+  expect(useShellStore.getState().panel).toBe(panel);
+}
+
 describe('chat: modals leave it usable', () => {
+  it('desktop, with the real Materials modal on the sample shell', async () => {
+    await setupChat({ sample: true });
+    act(() => useShellStore.getState().togglePanel('materials'));
+    expect(screen.getByRole('dialog', { name: 'Materials' })).toBeInTheDocument();
+    expectChatUsable();
+    await expectChatTypes('materials');
+  });
+
   for (const panel of ['materials', 'steps'] as const) {
     it(`desktop, with ${panel} open`, async () => {
       await setupChat();
       act(() => useShellStore.getState().togglePanel(panel));
       expectChatUsable();
+      await expectChatTypes(panel);
     });
 
     it(`phone sheet, with ${panel} open`, async () => {
@@ -289,6 +307,7 @@ describe('chat: modals leave it usable', () => {
       act(() => useShellStore.getState().setChatOpen(true));
       act(() => useShellStore.getState().togglePanel(panel));
       expectChatUsable();
+      await expectChatTypes(panel);
     });
   }
 });

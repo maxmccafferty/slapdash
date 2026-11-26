@@ -15,7 +15,7 @@ describe('JSON Schema export', () => {
       'list_versions',
       'restore_version',
     ]);
-    for (const internal of ['put_entities', 'remove_entities', 'set_site', 'replace_project']) {
+    for (const internal of ['put_entities', 'remove_entities', 'set_site', 'set_prices', 'replace_project']) {
       expect(names).not.toContain(internal);
     }
     expect(historyToolSchemas()).toHaveLength(6);

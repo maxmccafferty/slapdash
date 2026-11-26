@@ -164,6 +164,10 @@ kg/m², RSI per mm, N.
 Builders take the first `opening` material that accepts `nailed-16d` as their window/door
 unit, so the generic `opening-unit` stays first in `openings.json`.
 
+A new **section** in `data/sections.json` that is sold in board lengths gets a `stock` list,
+shortest first: `{ "length_mm": … }`, with `"name": "precut stud"` for precuts. The cut-list
+optimizer packs pieces into these lengths; a section without `stock` is cut to length.
+
 ### How to add a joint type
 
 Add it to `packages/catalog/data/joint-types.json`:
@@ -320,7 +324,10 @@ sizes and motion come only from `docs/design/tokens.json`:
 2. In component CSS use only `var(--…)`. `apps/web/test/no-raw-values.test.ts` fails on hex,
    `rgb()`, named colours, raw font sizes, raw durations and `px` values other than 1px hairlines.
 3. Keep text at 14px or more and every control at least 44 × 44 (`--size-touch`).
-4. Run `pnpm --filter @slapdash/web test`, and `pnpm --filter @slapdash/web e2e` for layout,
+4. Modals (Materials, and later Steps and Projects) mount inside `<main>` with
+   `aria-modal="false"` and never make the chat inert; `test/chat/chat.test.tsx` checks it.
+   The Materials modal and the PDF export are described in the web README.
+5. Run `pnpm --filter @slapdash/web test`, and `pnpm --filter @slapdash/web e2e` for layout,
    focus, axe and reduced-motion checks (install Chromium once with
    `pnpm --filter @slapdash/web exec playwright install chromium`).
 

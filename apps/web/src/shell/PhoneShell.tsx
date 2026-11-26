@@ -4,6 +4,7 @@ import { FloorSlider } from '../components/FloorSlider.tsx';
 import { Key } from '../components/Key.tsx';
 import { Popover, PopoverAnchor } from '../components/Popover.tsx';
 import { Unit } from '../components/Unit.tsx';
+import { MaterialsPanel } from '../materials/MaterialsPanel.tsx';
 import { useFloorStops } from '../model/floor-stops.ts';
 import { useShellStore, type PhonePopover } from '../state/shell-store.ts';
 import { ChatPanel } from './ChatPanel.tsx';
@@ -39,6 +40,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
   const floorsRef = useRef<HTMLButtonElement>(null);
   const viewsRef = useRef<HTMLButtonElement>(null);
   const chatRef = useRef<HTMLButtonElement>(null);
+  const materialsRef = useRef<HTMLButtonElement>(null);
 
   const toggle = (p: PhonePopover) => (popover === p ? closePopover() : openPopover(p));
   const trigger = (p: PhonePopover) => ({
@@ -78,6 +80,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
             </Popover>
           </PopoverAnchor>
           <Key
+            ref={materialsRef}
             label="Materials"
             icon="materials"
             iconSize="phone"
@@ -116,6 +119,8 @@ export function PhoneShell({ project, actions }: ShellProps) {
             </Popover>
           </PopoverAnchor>
         </Unit>
+
+        {panel === 'materials' && <MaterialsPanel variant="phone" triggerRef={materialsRef} />}
 
         <div className={styles['chat-key']}>
           <Key

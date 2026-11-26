@@ -108,10 +108,23 @@ const generators: Gen[] = [
     name: 'place_structure',
     input: { kind: pick(['house', 'pool', 'tree', 'shed', 'box'], r), at: { x: `${-80 + Math.floor(r() * 40)}ft`, z: `${Math.floor(r() * 80)}ft` }, rotation: Math.round(r() * 90) },
   }),
+  // Prices (indices 18–19).
+  (_p, r) => ({
+    name: 'set_price',
+    input: r() < 0.5
+      ? { material: 'spf-no2', size: pick(['2x4', '2x6'], r), price: 0.3 + Math.floor(r() * 50) / 100, per: 'linear-ft' }
+      : { material: 'spf-no2', price: 3 + Math.floor(r() * 10), per: 'each', length: '8ft' },
+  }),
+  (p, r) => {
+    const key = pick(Object.keys(p.prices ?? {}), r);
+    if (!key) return null;
+    const [material, size] = key.split('|');
+    return { name: 'clear_price', input: size === undefined ? { material } : { material, size } };
+  },
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19].map((i) => generators[i]!);
 
 const builtAnySeed = new Set<string>();
 

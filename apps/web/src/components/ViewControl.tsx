@@ -13,19 +13,21 @@ export interface ViewControlProps<T extends string> {
   value: T;
   onChange: (value: T) => void;
   disabled?: boolean;
+  /** Keep the title for screen readers only, e.g. when a heading beside the track names it. */
+  hideTitle?: boolean;
 }
 
 /**
  * A title over a two-option track. Native radios give the radiogroup semantics and arrow-key
  * behaviour; the chosen option is a raised white piece with an orange dot.
  */
-export function ViewControl<T extends string>({ title, options, value, onChange, disabled = false }: ViewControlProps<T>) {
+export function ViewControl<T extends string>({ title, options, value, onChange, disabled = false, hideTitle = false }: ViewControlProps<T>) {
   const name = useId();
   const second = value === options[1].value;
   return (
     <Unit className={[styles.unit, disabled && styles.disabled].filter(Boolean).join(' ')}>
       <fieldset className={styles.fieldset} disabled={disabled}>
-        <legend className={styles.title}>{title}</legend>
+        <legend className={hideTitle ? 'visually-hidden' : styles.title}>{title}</legend>
         <div className={[styles.track, second && styles.second].filter(Boolean).join(' ')}>
           <span className={styles.piece} aria-hidden="true" />
           {options.map((option) => (
