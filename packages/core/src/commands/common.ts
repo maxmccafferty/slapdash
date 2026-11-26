@@ -1,10 +1,18 @@
 /** Helpers shared by the command definitions. */
 import { z } from 'zod';
-import { formatBoth } from '../units/length.ts';
+import { formatBoth, unwrapQuotes } from '../units/length.ts';
 import { commandError, type CommandError } from './errors.ts';
 import type { Project } from '../model/schema.ts';
 
-export const zId = (what: string) => z.string().min(1).describe(what);
+/**
+ * An ID that is resolved against the model or catalog (`W3`, `W1-S03`, `spf-no2`).
+ * Trims, and drops a wrapping pair of quote marks: Claude sometimes sends the JSON
+ * string `"\"W3\""`. Add a description with `.describe()`.
+ */
+export const zId = z
+  .string()
+  .overwrite((s) => unwrapQuotes(s) ?? s.trim())
+  .min(1, { error: 'can\'t be blank' });
 
 export const zNonBlank = (what: string) =>
   z
@@ -13,7 +21,7 @@ export const zNonBlank = (what: string) =>
     .min(1, { error: 'can\'t be blank' })
     .describe(what);
 
-export const zIdList = (what: string) => z.array(z.string().min(1)).min(1).describe(what);
+export const zIdList = (what: string) => z.array(zId).min(1).describe(what);
 
 export function plural(n: number, word: string, many = `${word}s`): string {
   return `${n} ${n === 1 ? word : many}`;
