@@ -1,0 +1,53 @@
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 100%;
+  height: 100dvh;
+}
+
+.model {
+  position: relative;
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* The header floats over the model's top-left corner. */
+.header {
+  position: relative;
+  z-index: 1;
+  grid-area: 1 / 1;
+  align-self: start;
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) 0 0 var(--space-4);
+}
+
+.units {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.project {
+  margin-top: var(--space-1);
+}
+
+.floors {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+}
+
+.views {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+}
+
+/* Fluid between the phone breakpoint and full desktop; 408px at 1440. */
+.chat {
+  grid-area: 1 / 2;
+  width: clamp(var(--size-chat-panel-min), 34vw, var(--size-chat-panel));
+  margin: var(--space-4) var(--space-4) var(--space-4) 0;
+}

@@ -1,0 +1,32 @@
+.area {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-paper);
+}
+
+/* The bounded build floor: a dot grid, drawn flat on the ground. */
+.floor {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 4 / 3;
+  background-color: var(--color-floor);
+  background-image: radial-gradient(circle, var(--color-dot) 1px, transparent 1px);
+  background-size: var(--space-5) var(--space-5);
+  border: 1px solid var(--color-key-line);
+  transform: translate(-50%, -50%) rotateX(58deg) rotateZ(-38deg);
+}
+
+.readout {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-muted);
+}

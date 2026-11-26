@@ -1,0 +1,21 @@
+.anchor {
+  position: relative;
+  display: flex;
+}
+
+.popover {
+  position: absolute;
+  z-index: 10;
+  width: max-content;
+  box-shadow: var(--shadow-modal);
+}
+
+.left {
+  top: 0;
+  right: calc(100% + var(--space-2));
+}
+
+.up-right {
+  bottom: calc(100% + var(--space-2));
+  left: 0;
+}

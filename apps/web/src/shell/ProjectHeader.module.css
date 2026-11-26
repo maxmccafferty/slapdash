@@ -1,0 +1,50 @@
+.project {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.name {
+  font-size: var(--type-title-xl-size);
+  line-height: var(--type-title-xl-line);
+  font-weight: var(--type-title-xl-weight);
+  letter-spacing: -0.02em;
+}
+
+.phone .name {
+  font-size: var(--type-title-m-size);
+  line-height: var(--type-title-m-line);
+  font-weight: var(--type-title-m-weight);
+}
+
+.specs {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.phone .specs {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: var(--space-2) var(--space-4);
+}
+
+.spec {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-ink);
+}
+
+.label {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-muted);
+}
+
+.value {
+  font-size: var(--type-spec-size);
+  line-height: var(--type-spec-line);
+  font-weight: var(--type-spec-weight);
+  white-space: nowrap;
+}
