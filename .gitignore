@@ -6,6 +6,9 @@
 # Dependencies & builds
 node_modules/
 dist/
+
+# Keyhole usage counters (local dev: rate limits and the month's Claude spend)
+.data/
 .next/
 .vercel/
 
