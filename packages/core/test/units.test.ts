@@ -10,6 +10,8 @@ import {
   zLength,
   zPitch,
   zPositiveLength,
+  zVec3Input,
+  LENGTH_DESCRIPTION,
 } from '../src/index.ts';
 
 const mm = (s: string) => {
@@ -56,7 +58,49 @@ describe('parseLength', () => {
   });
 
   it('rejects misspelt units in plain language', () => {
-    expect(err('16 fet')).toBe(`Couldn't read "16 fet" as a length. Try 16ft 6in, 9', 5 1/2" or 4877mm.`);
+    expect(err('16 fet')).toBe(`Couldn't read "16 fet" as a length. Try 16ft 6in, 9', 5 1/2in or 4877mm.`);
+  });
+
+  describe('quote marks Claude copies from examples', () => {
+    it.each([
+      ['"9ft"', 2743.2],
+      ['  "9ft"  ', 2743.2],
+      ['“16ft 6in”', 5029.2],
+      ['"16\' 6"', 5029.2],
+      ['"0"', 0],
+      ['“-0”', 0],
+    ])('%j → %f mm', (input, expected) => {
+      expect(mm(input)).toBeCloseTo(expected, 6);
+    });
+
+    it.each([
+      ['5 1/2"', 139.7],
+      ["16' 6\"", 5029.2],
+      ["9'", 2743.2],
+      ['36"', 914.4],
+    ])('a real inch or foot mark is kept: %j → %f mm', (input, expected) => {
+      expect(mm(input)).toBeCloseTo(expected, 6);
+    });
+
+    it('a quoted bare number is still rejected for having no unit', () => {
+      expect(err('"9"')).toBe('"9" has no unit. Add a unit, e.g. 9ft, 9in or 9mm.');
+      expect(err('“12”')).toBe('"12" has no unit. Add a unit, e.g. 12ft, 12in or 12mm.');
+    });
+
+    it('a quote on one side only is not unwrapped', () => {
+      expect(err('"9ft')).toContain("Couldn't read");
+      expect(err('“9ft"')).toContain("Couldn't read");
+    });
+  });
+
+  describe('unitless zero', () => {
+    it.each(['0', '0.0', '-0', '+0', '.0', '00', ' 0 '])('%j → 0 mm', (input) => {
+      expect(Object.is(mm(input), 0)).toBe(true);
+    });
+
+    it.each(['12', '0.5', '-1', '01'])('%j is still rejected for having no unit', (input) => {
+      expect(err(input)).toContain('has no unit');
+    });
   });
 
   it.each([
@@ -124,7 +168,7 @@ describe('parsePitch / formatPitch', () => {
     return r.value;
   };
 
-  it.each(['6 in 12', '6/12', '6:12', '6 IN 12', '3/6'])('%s is a 6-in-12 pitch', (s) => {
+  it.each(['6 in 12', '6/12', '6:12', '6 IN 12', '3/6', '"6 in 12"', '“6/12”'])('%s is a 6-in-12 pitch', (s) => {
     const p = pitch(s);
     expect(p.rise).toBeCloseTo(6);
     expect(p.run).toBe(12);
@@ -144,9 +188,14 @@ describe('parsePitch / formatPitch', () => {
       return res.ok ? '' : res.error;
     };
     expect(r('steep')).toContain(`Couldn't read "steep" as a roof pitch`);
+    expect(r('"6"')).toBe('"6" is ambiguous. Write it as 6 in 12 or 6deg.');
     expect(r('6/0')).toContain('run of zero');
     expect(r('95deg')).toContain('less than 90 degrees');
     expect(r('6')).toContain('ambiguous');
+  });
+
+  it('a unitless zero is a flat roof', () => {
+    for (const s of ['0', '0.0', '"0"']) expect(pitch(s).ratio).toBe(0);
   });
 
   it('formats to the nearest quarter rise, or degrees', () => {
@@ -169,6 +218,20 @@ describe('zod helpers', () => {
     expect(zLength.parse('8ft')).toBeCloseTo(2438.4);
     expect(zLength.safeParse('8').success).toBe(false);
     expect(zLength.safeParse(true).success).toBe(false);
+  });
+
+  it('zLength reads what Claude actually sends: wrapped quotes and a bare zero', () => {
+    // The JSON value "\"9ft\"" arrives as the string "9ft" with its quotes.
+    expect(zLength.parse(JSON.parse('"\\"9ft\\""'))).toBeCloseTo(2743.2);
+    expect(zLength.parse('0')).toBe(0);
+    expect(zVec3Input.parse({ x: '0', y: '"0"', z: '“16ft 6in”' })).toEqual({ x: 0, y: 0, z: expect.closeTo(5029.2, 6) });
+  });
+
+  it('descriptions Claude reads never wrap example values in quote marks', () => {
+    for (const schema of [zLength, zPositiveLength, zPitch]) {
+      expect(schema.description).not.toMatch(/"/);
+    }
+    expect(LENGTH_DESCRIPTION).toContain('without extra quote marks');
   });
 
   it('zPositiveLength rejects zero and negatives with the value in both systems', () => {

@@ -192,6 +192,15 @@ describe('design loads', () => {
     expect(v('frostDepth', '36in')).toBeCloseTo(914.4);
     expect(v('frostDepth', 900)).toBe(900);
     expect(v('groundSnow', '30')).toContain('has no unit');
+    expect(v('groundSnow', '"30"')).toBe('"30" has no unit. Give the ground snow load with a unit, e.g. 30 psf or 1.44 kPa.');
+    expect(v('groundSnow', '"30 psf"')).toBeCloseTo(1.4364, 4);
+    expect(v('windSpeed', '“115 mph”')).toBeCloseTo(51.41, 2);
+    expect(v('frostDepth', '"36in"')).toBeCloseTo(914.4);
+    expect(v('frostDepth', '36"')).toBeCloseTo(914.4);
+    for (const k of ['groundSnow', 'windSpeed', 'frostDepth'] as const) {
+      expect(v(k, '0')).toBe(0);
+      expect(v(k, '"0.0"')).toBe(0);
+    }
     expect(v('windSpeed', '30 knots')).toContain(`Couldn't read "30 knots"`);
   });
 });
