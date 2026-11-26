@@ -11,6 +11,7 @@ import { poolFenceScenario } from './pool-fence.ts';
 import { poolHouseSlidingDoor } from './pool-house-sliding-door.ts';
 import { questionNoChange } from './question-no-change.ts';
 import { refuseImpossibleSpan } from './refuse-impossible-span.ts';
+import { resizeDoor } from './resize-door.ts';
 import { shedRoof } from './shed-roof.ts';
 import { smallChangeNoPlan } from './small-change-no-plan.ts';
 import { undo } from './undo.ts';
@@ -26,6 +27,7 @@ export const SCENARIOS: readonly Scenario[] = [
   refuseImpossibleSpan,
   undo,
   smallChangeNoPlan,
+  resizeDoor,
   planRevision,
   justDoIt,
   clashAvoidance,

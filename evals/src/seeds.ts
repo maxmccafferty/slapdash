@@ -18,6 +18,9 @@ export const POOL_HOUSE_WALLS: SeedCommands = [
   ['build_wall', { start: { x: 0, z: '16ft' }, end: { x: 0, z: 0 }, height: '9ft', name: 'West wall' }],
 ];
 
+/** The pool house with a 3′ 2″ door (O1, 38in × 82 1/2in) centred in the south wall (W3). */
+export const POOL_HOUSE_WITH_DOOR: SeedCommands = [...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W3', kind: 'door', centerAt: '10ft' }]];
+
 /**
  * Slab 10ft (east-west) × 8ft (north-south), walls in the same order and naming: north, east
  * and west 8ft, south 9ft 11 1/4in, the high side of a 3 in 12 shed roof sloping down to the
