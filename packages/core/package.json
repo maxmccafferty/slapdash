@@ -1,0 +1,23 @@
+{
+  "name": "@slapdash/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slapdash core: parts-and-joints model, catalog schema, command bus with undo, units. Pure TypeScript, no DOM.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "smoke": "node scripts/smoke.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}

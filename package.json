@@ -1,0 +1,13 @@
+{
+  "name": "slapdash",
+  "private": true,
+  "packageManager": "pnpm@12.23.0",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "smoke": "pnpm --filter @slapdash/core smoke"
+  }
+}
