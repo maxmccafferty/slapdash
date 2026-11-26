@@ -1,11 +1,17 @@
 import type { z } from 'zod';
 import type { CatalogIndex } from '../catalog/validate.ts';
 import type { Project } from '../model/schema.ts';
+import type { SiteDefaults } from '../site/design-loads.ts';
 import type { CommandError } from './errors.ts';
 
 export interface CommandContext {
   catalog: CatalogIndex;
   now: () => number;
+  /**
+   * The app's site defaults (default location, loads table, fallbacks). Builders size
+   * headers and footings from the same resolved loads the solver checks against.
+   */
+  siteDefaults?: SiteDefaults;
 }
 
 /** A command with its input fully resolved (generated IDs filled in, lengths in mm). Serialisable. */

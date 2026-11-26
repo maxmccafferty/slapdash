@@ -5,7 +5,13 @@
 import ReactThreeTestRenderer from '@react-three/test-renderer';
 import { act } from 'react';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { InstancedMesh, Material, Mesh, Object3D } from 'three';
+import { Color, type InstancedMesh, type Material, type Mesh, type Object3D } from 'three';
+import { analyze } from '@slapdash/solver';
+import { calloutText, mostLoaded } from '../../src/analysis/stress.ts';
+import { isStressChecked, UNCHECKED_OPACITY } from '../../src/renderer/materials.ts';
+import { STRESS_FILL } from '../../src/renderer/PartBatch.tsx';
+import { stressSpec } from '../../src/renderer/stress-spec.ts';
+import { MAX_STRESS_MARKS } from '../../src/renderer/StressCallout.tsx';
 import { indexCatalog } from '@slapdash/core';
 import { TIER1_CATALOG } from '@slapdash/catalog';
 import { groupParts } from '../../src/renderer/batches.ts';
@@ -153,6 +159,54 @@ describe('SceneContent', () => {
     expect(context.children.length).toBeGreaterThan(0);
     const ids = batchMeshes(r.scene.instance).flatMap((m) => m.userData.partIds as string[]);
     expect(ids.some((id) => withContext.parts[id]!.tags.includes('stippled'))).toBe(false);
+    await r.unmount();
+  });
+
+  it('stress mode: checked parts get instance fills, unchecked ones the ghost, and the callout sits on the worst part', async () => {
+    const result = analyze(project, catalog);
+    const all = () => true;
+    const stress = stressSpec(project, result, all);
+    const { r } = await render({ mode: 'stress', stress });
+    const scene = r.scene.instance;
+    const meshes = batchMeshes(scene);
+    let filled = 0;
+    let ghosts = 0;
+    for (const mesh of meshes) {
+      const material = mesh.material as Material & { opacity: number; transparent: boolean };
+      const hatch = mesh.geometry.getAttribute('aHatch');
+      if (isStressChecked(catalog.materials.get(project.parts[(mesh.userData.partIds as string[])[0]!]!.materialId))) {
+        expect(mesh.instanceColor, mesh.name).not.toBeNull();
+        const c = new Color();
+        (mesh.userData.partIds as string[]).forEach((id, i) => {
+          const band = stress.bands.get(id)!;
+          mesh.getColorAt(i, c);
+          expect(`#${c.getHexString()}`, id).toBe(new Color(STRESS_FILL[band]).getHexString().replace(/^/, '#'));
+          expect(hatch.getX(i), id).toBe(band === 'over' ? 1 : 0);
+        });
+        filled++;
+      } else {
+        expect(material.transparent).toBe(true);
+        expect(material.opacity).toBeCloseTo(UNCHECKED_OPACITY);
+        ghosts++;
+      }
+    }
+    expect(filled).toBeGreaterThan(0);
+    expect(ghosts).toBeGreaterThan(0);
+    const worst = mostLoaded(result, project, all)!;
+    const callout = scene.getObjectByName('stress-callout')!;
+    expect(callout.userData).toMatchObject({ partId: worst.id, text: calloutText(worst.label, worst.utilization), over: worst.utilization > 1 });
+    // No orange outline appears for stress; orange stays selection.
+    expect(scene.getObjectByName('outline')).toBeUndefined();
+    await r.unmount();
+  });
+
+  it('stress mode marks over-limit parts (at most 20)', async () => {
+    const result = analyze(project, catalog);
+    const bands = new Map(Object.keys(project.parts).map((id) => [id, 'over' as const]));
+    const { r } = await render({ mode: 'stress', stress: { bands, callout: null } });
+    const marks = r.scene.instance.getObjectByName('stress-marks')!;
+    expect((marks.userData.partIds as string[]).length).toBe(MAX_STRESS_MARKS);
+    expect(result.status).toBe('ok');
     await r.unmount();
   });
 });

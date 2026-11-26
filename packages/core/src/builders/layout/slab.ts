@@ -7,6 +7,7 @@ import type { Project } from '../../model/schema.ts';
 import { MM_PER_INCH } from '../../units/length.ts';
 import { BUILDER_DEFAULTS, resolveMaterials, type BuilderMaterialsInput } from '../defaults.ts';
 import { SpecList, fail, type JointSpec, type LayoutResult } from '../emit.ts';
+import type { SiteDefaults } from '../../site/design-loads.ts';
 import { builderSeq, fi, footingDepth, requireMaterial, round6, type PlanPoint } from '../util.ts';
 
 const IN = MM_PER_INCH;
@@ -29,7 +30,7 @@ const at = (p: { u: number; v: number; w: number }) => {
   return { x: round6(w.x), y: round6(w.y), z: round6(w.z) };
 };
 
-export function layoutSlab(project: Project, input: PourSlabInput, catalog: CatalogIndex): LayoutResult {
+export function layoutSlab(project: Project, input: PourSlabInput, catalog: CatalogIndex, siteDefaults?: SiteDefaults): LayoutResult {
   const x0 = Math.min(input.from.x, input.to.x);
   const x1 = Math.max(input.from.x, input.to.x);
   const z0 = Math.min(input.from.z, input.to.z);
@@ -64,7 +65,7 @@ export function layoutSlab(project: Project, input: PourSlabInput, catalog: Cata
   const matErr = requireMaterial(catalog, materials.concrete, ['concrete'], 'materials.concrete');
   if (matErr) return fail(matErr);
 
-  const fd = footingDepth(project);
+  const fd = footingDepth(project, siteDefaults);
   const bottom = top - thickness;
   if (thick && bottom <= -fd.mm + 1) {
     return fail(commandError('invalid_input', `The slab's underside (${fi(bottom)}) is already below the footing depth (${fi(-fd.mm)}).`, { path: 'top' }));

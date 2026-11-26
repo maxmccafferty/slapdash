@@ -1,8 +1,14 @@
 /**
- * Location and design loads (ADR-0002 §D3). The app supplies defaults (from
- * `SLAPDASH_DEFAULT_LOCATION` and a bundled table, in a later ticket); a project may
- * override any of them. Every value carries its source so the UI and Claude can say
- * where a number came from. Core never reads the environment.
+ * Location and design loads (ADR-0002 §D3). The app supplies defaults: a default
+ * location (`SLAPDASH_DEFAULT_LOCATION`, served by the keyhole), the bundled loads
+ * table (`@slapdash/catalog`'s `DESIGN_LOAD_TABLE`, passed in as plain data) and
+ * fallback values. A project may set its own location and override any load. Every
+ * value carries its source so the UI and Claude can say where a number came from.
+ * Core never reads the environment.
+ *
+ * Per load, the order is: the project's override, then the table row for the
+ * resolved location (the project's location wins over the default), then the app's
+ * fallback, then nothing.
  */
 import { formatFeetInches, isUnitlessZero, parseLength, unwrapQuotes, type Result } from '../units/length.ts';
 import {
@@ -28,6 +34,8 @@ export interface DesignLoadValue {
 export interface ResolvedDesignLoad extends DesignLoadValue {
   /** True when the value comes from the project rather than the app default. */
   overridden: boolean;
+  /** Where it was resolved from: the project override, the loads table or the app fallback. */
+  origin: 'project' | 'table' | 'default';
 }
 
 export interface DefaultLocation {
@@ -36,31 +44,72 @@ export interface DefaultLocation {
   lon?: number;
 }
 
+/** One place in the bundled loads table, with SI values and their sources. */
+export interface DesignLoadTableEntry {
+  /** Display label, e.g. "Bend, OR". */
+  label: string;
+  loads: Partial<Record<DesignLoadKey, DesignLoadValue>>;
+}
+
+/** The bundled loads table, keyed by `normalizeLocationKey(label)`. Plain data (it goes to the solver worker). */
+export type DesignLoadTable = Record<string, DesignLoadTableEntry>;
+
 export interface SiteDefaults {
   location?: DefaultLocation;
+  /** The bundled loads table, looked up by the resolved location. */
+  table?: DesignLoadTable;
+  /** App fallbacks, used for any load neither the project nor the table gives. */
   loads?: Partial<Record<DesignLoadKey, DesignLoadValue>>;
 }
 
 export interface ResolvedSite {
   location: (DefaultLocation & { source: 'project' | 'default' }) | undefined;
+  /** True when the resolved location has a row in the loads table. */
+  locationInTable: boolean;
   loads: Record<DesignLoadKey, ResolvedDesignLoad | undefined>;
 }
 
-/** Project overrides win over app defaults; each value says where it came from. */
+/**
+ * The table key for a place name: lower case, whitespace collapsed, and the state
+ * code after a comma ("Bend OR", " bend ,  or " and "Bend, OR" all give "bend, or").
+ */
+export function normalizeLocationKey(label: string): string {
+  let s = label.trim().toLowerCase().replace(/\s+/g, ' ');
+  s = s.replace(/\s*,\s*/g, ', ');
+  if (!s.includes(',')) s = s.replace(/ ([a-z]{2})$/, ', $1');
+  return s;
+}
+
+/** The table row for a place name, if any. */
+export function lookupDesignLoads(table: DesignLoadTable | undefined, label: string | undefined): DesignLoadTableEntry | undefined {
+  if (!table || !label) return undefined;
+  const key = normalizeLocationKey(label);
+  return Object.hasOwn(table, key) ? table[key] : undefined;
+}
+
+/**
+ * Resolve the site: the project's location wins over the default; per load, the
+ * project override wins, then the table row for the location, then the app fallback.
+ * Each value says where it came from.
+ */
 export function resolveDesignLoads(project: Project, defaults: SiteDefaults = {}): ResolvedSite {
-  const loads = {} as Record<DesignLoadKey, ResolvedDesignLoad | undefined>;
-  for (const key of DESIGN_LOAD_KEYS) {
-    const override = project.site.designLoads[key];
-    const fallback = defaults.loads?.[key];
-    if (override) loads[key] = { ...override, overridden: true };
-    else if (fallback) loads[key] = { ...fallback, overridden: false };
-    else loads[key] = undefined;
-  }
   const loc = project.site.location;
   let location: ResolvedSite['location'];
   if (loc) location = { ...loc, source: 'project' };
   else if (defaults.location) location = { ...defaults.location, source: 'default' };
-  return { location, loads };
+  const row = lookupDesignLoads(defaults.table, location?.label);
+
+  const loads = {} as Record<DesignLoadKey, ResolvedDesignLoad | undefined>;
+  for (const key of DESIGN_LOAD_KEYS) {
+    const override = project.site.designLoads[key];
+    const fromTable = row?.loads[key];
+    const fallback = defaults.loads?.[key];
+    if (override) loads[key] = { ...override, overridden: true, origin: 'project' };
+    else if (fromTable) loads[key] = { ...fromTable, overridden: false, origin: 'table' };
+    else if (fallback) loads[key] = { ...fallback, overridden: false, origin: 'default' };
+    else loads[key] = undefined;
+  }
+  return { location, locationInTable: row !== undefined, loads };
 }
 
 const LABELS: Record<DesignLoadKey, string> = {

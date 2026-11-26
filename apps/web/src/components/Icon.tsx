@@ -14,6 +14,7 @@ import {
   Mic,
   Redo2,
   Square,
+  TriangleAlert,
   Undo2,
   X,
   type LucideIcon,
@@ -37,6 +38,7 @@ const ICONS = {
   image: Image,
   stop: Square,
   pdf: FileDown,
+  warning: TriangleAlert,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

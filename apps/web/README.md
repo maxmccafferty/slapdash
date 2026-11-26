@@ -179,6 +179,38 @@ untouched. Snapshot PNGs are saved to `test-results/screens/`.
 To check on real devices, run `pnpm --filter @slapdash/web dev --host` and open
 `http://<lan-ip>:5173/?sample=pool-house&perf`.
 
+### The stress view (`src/analysis/`, LOC-113)
+
+Stress On (3D only) colours every part by how close it is to its limit, from the solver
+in a Web Worker (`analysis/solver.ts`, one client; the view uses the `'view'` channel and
+Claude's `check_structure` the `'claude'` channel, so neither cancels the other).
+
+- `useStressAnalysis` (mounted once in `ModelArea`) re-analyses 300 ms after the project
+  or the site defaults change, keeps the last result on screen while a new one runs, and
+  pauses in 2D. State lives in `stress-store.ts`.
+- `stress.ts` has the rules: five equal bands (`stress-1` … `stress-5` tokens), "over"
+  (ink, paper hatching, warning mark), "not checked" (a 25% paper ghost), the callout on
+  the most loaded visible part ("Header, South wall · about 90% of its limit", nearest 5%)
+  and when Claude explains unprompted.
+- When Stress goes on and the first result has the worst part at 80% or more, anything
+  over or anything unstable, `stress-explain.ts` runs one automatic chat turn (shown as a
+  "Stress view on" chip): Claude calls `check_structure`, explains, and offers the fix
+  first when over the limit (`resize_header` for a header). Once per switch-on, only when
+  the keyhole has confirmed Claude is configured and nothing else is running.
+- `shell/StressLegend.tsx` shows the ramp, the status, the design loads with their
+  sources (the person's own get the orange dot and "Yours") and the planning-estimate
+  disclaimer; compact on the phone.
+
+**Where the loads come from.** `state/site-store.ts` holds the site defaults: the default
+location from `GET /api/claude` (`SLAPDASH_DEFAULT_LOCATION` on the server, never in the
+bundle) and `DESIGN_LOAD_TABLE` from `@slapdash/catalog`. The bus (builders size headers),
+the solver, Claude's `<project>` summary and the legend all read the same values. Without
+a keyhole there is no default location, and the solver's 30 psf / 115 mph fallbacks show
+with "no location set".
+
+`window.__slapdash.stress` (dev and `?e2e`) exposes the stress state and `execute(name,
+input)` on the current bus, so e2e can undersize a header and resize it.
+
 ## The 2D drawing sheet (`src/drawing/`)
 
 **View 2D** swaps the model for a drawing sheet (ADR-0003 §C/§D). It is plain SVG with no

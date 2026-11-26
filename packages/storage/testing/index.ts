@@ -7,4 +7,4 @@
  */
 export { describeProjectStore, type StoreHarness } from './project-store-suite.ts';
 export { describeAuth, describeDeviceState, type AuthHarness, type DeviceStateHarness } from './auth-suite.ts';
-export { allBytes, fixedClock, sampleRecord, sequentialIds } from './fixtures.ts';
+export { allBytes, fixedClock, sampleRecord, sequentialIds, withSite } from './fixtures.ts';

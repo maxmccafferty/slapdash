@@ -335,3 +335,16 @@ describe('serialize / hydrate', () => {
     expect(copy.execute('add_assembly', wall)).toMatchObject({ created: ['W2'] });
   });
 });
+
+describe('CommandBus siteDefaults', () => {
+  it('reads the site defaults each time a command runs', () => {
+    let defaults: { location: { label: string }; table: Record<string, { label: string; loads: { groundSnow: { value: number; unit: 'kPa'; source: string } } }> } | undefined;
+    const bus = new CommandBus({ project: createProject({ name: 't' }), catalog: SAMPLE_CATALOG, now: fixedClock(), siteDefaults: () => defaults });
+    bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
+    const first = bus.execute('build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', openings: [{ kind: 'window', centerAt: '8ft' }] });
+    expect(first.ok && first.summary).toContain('the default 30 psf ground snow load');
+    defaults = { location: { label: 'Snowy, ST' }, table: { 'snowy, st': { label: 'Snowy, ST', loads: { groundSnow: { value: 2.394, unit: 'kPa', source: 'test' } } } } };
+    const second = bus.execute('build_wall', { start: { x: '20ft', z: 0 }, end: { x: '20ft', z: '16ft' }, height: '9ft', openings: [{ kind: 'window', centerAt: '8ft' }] });
+    expect(second.ok && second.summary).toContain("Snowy, ST's 50 psf ground snow load (test)");
+  });
+});

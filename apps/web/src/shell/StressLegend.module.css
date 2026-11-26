@@ -1,0 +1,140 @@
+/* The stress legend: the ramp, what the loads are and where they came from, and the disclaimer. */
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: min(calc(var(--size-chat-panel-min) - var(--space-6)), calc(100vw - var(--space-6)));
+  padding: var(--space-3);
+  background: var(--color-unit);
+  border-radius: var(--radius-unit);
+  font-size: var(--type-list-size);
+  line-height: var(--type-list-line);
+  color: var(--color-ink);
+}
+
+.title {
+  font-size: var(--type-heading-size);
+  line-height: var(--type-heading-line);
+  font-weight: var(--type-heading-weight);
+}
+
+.ramp {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compact .ramp {
+  grid-template-columns: repeat(2, auto 1fr);
+}
+
+.ramp li {
+  display: contents;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-swatch);
+  height: var(--size-swatch);
+  border-radius: var(--radius-key);
+  box-shadow: inset 0 0 0 1px var(--color-key-line);
+}
+
+.band-0 {
+  background: var(--color-stress-1);
+}
+.band-1 {
+  background: var(--color-stress-2);
+}
+.band-2 {
+  background: var(--color-stress-3);
+}
+.band-3 {
+  background: var(--color-stress-4);
+}
+.band-4 {
+  background: var(--color-stress-5);
+}
+
+/* Over the limit: ink with paper hatching, and the warning mark next to it. */
+.band-over {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--color-ink) 0,
+    var(--color-ink) calc(var(--space-1) * 0.75),
+    var(--color-paper) calc(var(--space-1) * 0.75),
+    var(--color-paper) calc(var(--space-1) * 1.25)
+  );
+}
+
+/* Not checked: a pale ghost. */
+.band-unchecked {
+  background: var(--color-paper);
+  opacity: 0.6;
+}
+
+.swatch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-ink-soft);
+}
+
+.status {
+  color: var(--color-ink-soft);
+}
+
+.loads {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-hairline);
+}
+
+.loads-title {
+  font-weight: var(--type-heading-weight);
+}
+
+.load {
+  display: flex;
+  flex-direction: column;
+}
+
+.load-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.muted {
+  color: var(--color-muted);
+}
+
+.user-dot {
+  display: inline-block;
+  width: calc(var(--space-1) * 1.5);
+  height: calc(var(--space-1) * 1.5);
+  border-radius: var(--radius-full);
+  background: var(--color-signal);
+}
+
+.disclosure summary {
+  min-height: var(--size-touch);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: var(--type-heading-weight);
+}
+
+.footer {
+  color: var(--color-muted);
+}

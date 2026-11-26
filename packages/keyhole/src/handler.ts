@@ -197,6 +197,7 @@ export function createKeyhole(deps: KeyholeDeps): KeyholeHandler {
     try {
       if (request.method === 'GET') {
         const status: KeyholeStatus = { configured: Boolean(config.apiKey), model: config.model, budget: await currentBudget(now()) };
+        if (config.defaultLocation) status.defaultLocation = config.defaultLocation;
         return json(200, status);
       }
       if (request.method === 'POST') return await post(request);

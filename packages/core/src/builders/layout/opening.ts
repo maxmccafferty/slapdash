@@ -261,18 +261,14 @@ function cutRect(r: FrameBox, hole: { u0: number; u1: number; v0: number; v1: nu
   return pieces.filter((p) => p.u1 - p.u0 > 1 && p.v1 - p.v0 > 1);
 }
 
-/**
- * Frame the opening into the wall state: remove the common studs in its way, add
- * kings, jacks, header, cripples and sill, cut the bottom plate for doors and cut the
- * sheathing around the rough opening. New framing is tagged `opening:<ref>`.
- */
-export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: string, panel?: { materialId: string; seq: number }): void {
-  const p = state.params;
-  const top = studTop(p, T);
-  const D = p.depth;
+/** The header and opening framing in `o` only needs these fields. */
+export type HeaderFraming = Pick<ResolvedOpening, 'roU0' | 'roU1' | 'roTop' | 'jacks' | 'header'>;
+
+/** Adds a member tagged `opening:<ref>`, in the wall's lumber. */
+function openingMember(state: WallState, o: HeaderFraming, openingRef: string) {
   const tag = `opening:${openingRef}`;
-  const lumber = p.materials.lumber;
-  const frameMember = (role: 'stud' | 'header' | 'sill' | 'plate', tags: string[], box: FrameBox, vertical: boolean, sectionId: string) =>
+  const lumber = state.params.materials.lumber;
+  return (role: 'stud' | 'header' | 'sill' | 'plate', tags: string[], box: FrameBox, vertical: boolean, sectionId: string) =>
     addMember(state, {
       role,
       tags: [...tags, tag],
@@ -283,6 +279,66 @@ export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: s
       sectionId,
       phase: 'framing',
     });
+}
+
+/**
+ * The header over an opening (plies on edge side by side from the outside face, or
+ * one flat 2x4) and the cripples above it on layout, up to the top plate. Shared by
+ * `frameOpening` and `resize_header`.
+ */
+export function frameHeader(state: WallState, o: HeaderFraming, openingRef: string): void {
+  const p = state.params;
+  const top = studTop(p, T);
+  const D = p.depth;
+  const frameMember = openingMember(state, o, openingRef);
+  const jL0 = o.roU0 - o.jacks * T;
+  const jR1 = o.roU1 + o.jacks * T;
+  if (o.header.flat) {
+    frameMember('header', ['header'], { u0: jL0, u1: jR1, v0: o.roTop, v1: o.roTop + T, w0: 0, w1: 3.5 * IN }, false, o.header.sectionId);
+  } else {
+    for (let i = 0; i < o.header.plies; i++) {
+      frameMember(
+        'header',
+        ['header'],
+        { u0: jL0, u1: jR1, v0: o.roTop, v1: o.roTop + o.header.depth, w0: i * T, w1: (i + 1) * T },
+        false,
+        o.header.sectionId,
+      );
+    }
+  }
+  const headerTop = o.roTop + headerHeight(o.header);
+  if (top - headerTop > 1) {
+    for (const c of marksWithin(p.spacing, jL0, jR1)) {
+      frameMember('stud', ['cripple'], { u0: c - T / 2, u1: c + T / 2, v0: headerTop, v1: top, w0: 0, w1: D }, true, p.studSectionId);
+    }
+  }
+}
+
+/** How tall a header stands in the wall: its depth on edge, or 1 1/2in flat. */
+export const headerHeight = (h: { flat: boolean; depth: number }) => (h.flat ? T : h.depth);
+
+/** A header size as people write it: "2-2x10", "3-2x12", "flat 2x4". Null if it isn't one. */
+export function parseHeaderSize(text: string): { plies: number; sectionId: string; flat: boolean } | null {
+  const s = text.trim().toLowerCase().replace(/\s+/g, ' ');
+  const flat = /^flat (2x\d+)$/.exec(s);
+  if (flat) return { plies: 1, sectionId: flat[1]!, flat: true };
+  const m = /^(?:(\d)\s*[-x×]\s*|(\d) ?ply )?(2x\d+)$/.exec(s);
+  if (!m) return null;
+  const plies = Number(m[1] ?? m[2] ?? 1);
+  if (plies < 1) return null;
+  return { plies, sectionId: m[3]!, flat: false };
+}
+
+/**
+ * Frame the opening into the wall state: remove the common studs in its way, add
+ * kings, jacks, header, cripples and sill, cut the bottom plate for doors and cut the
+ * sheathing around the rough opening. New framing is tagged `opening:<ref>`.
+ */
+export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: string, panel?: { materialId: string; seq: number }): void {
+  const p = state.params;
+  const top = studTop(p, T);
+  const D = p.depth;
+  const frameMember = openingMember(state, o, openingRef);
 
   // Common studs in the way.
   for (const item of [...state.items]) {
@@ -302,26 +358,7 @@ export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: s
   for (let i = 0; i < o.jacks; i++) frameMember('stud', ['jack'], studBox(jL0 + i * T, T, o.roTop), true, p.studSectionId);
   for (let i = 0; i < o.jacks; i++) frameMember('stud', ['jack'], studBox(o.roU1 + i * T, T, o.roTop), true, p.studSectionId);
 
-  // Header: plies on edge, side by side from the outside face; or one flat 2x4.
-  if (o.header.flat) {
-    frameMember('header', ['header'], { u0: jL0, u1: jR1, v0: o.roTop, v1: o.roTop + T, w0: 0, w1: 3.5 * IN }, false, o.header.sectionId);
-  } else {
-    for (let i = 0; i < o.header.plies; i++) {
-      frameMember(
-        'header',
-        ['header'],
-        { u0: jL0, u1: jR1, v0: o.roTop, v1: o.roTop + o.header.depth, w0: i * T, w1: (i + 1) * T },
-        false,
-        o.header.sectionId,
-      );
-    }
-  }
-
-  // Cripples above the header, on layout.
-  const headerTop = o.roTop + (o.header.flat ? T : o.header.depth);
-  if (top - headerTop > 1) {
-    for (const c of marksWithin(p.spacing, jL0, jR1)) frameMember('stud', ['cripple'], studBox(c - T / 2, headerTop, top), true, p.studSectionId);
-  }
+  frameHeader(state, o, openingRef);
 
   if (o.kind === 'window') {
     // Flat sill between the jacks, and cripples under it on layout.
@@ -359,7 +396,7 @@ export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: s
   if (panel) {
     addMember(state, {
       role: 'panel',
-      tags: [o.kind, tag],
+      tags: [o.kind, `opening:${openingRef}`],
       box: { u0: o.roU0, u1: o.roU1, v0: o.roBottom, v1: o.roTop, w0: 0, w1: D },
       lengthAxis: 'u',
       widthAxis: 'v',

@@ -53,7 +53,15 @@ export function validateSnapshotRequest(raw: unknown, project: Project): Validat
   if (!parsed.success) return { ok: false, errors: zodIssuesToErrors(parsed.error.issues, raw) };
   const req = parsed.data;
   if (req.mode === 'stress') {
-    return { ok: false, errors: [commandError('not_allowed', "Stress view isn't available yet.", { path: 'mode' })] };
+    return {
+      ok: false,
+      errors: [
+        commandError('not_allowed', "Snapshots can't show the stress view.", {
+          path: 'mode',
+          hint: 'Call check_structure for the most loaded parts and their % of limit.',
+        }),
+      ],
+    };
   }
   if (req.mode === 'exploded') {
     return {

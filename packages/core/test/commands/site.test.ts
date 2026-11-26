@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { KPA_PER_PSF, MS_PER_MPH, createProject } from '../../src/index.ts';
+import { KPA_PER_PSF, MS_PER_MPH, createProject, normalizeLocationKey, resolveDesignLoads, type DesignLoadTable, type SiteDefaults } from '../../src/index.ts';
 import { expectRoundTrip, runErr, runOk } from '../helpers.ts';
 
 describe('set_site_location', () => {
@@ -65,5 +65,69 @@ describe('clear_design_load', () => {
       message: 'This project has no frost depth override to clear.',
     });
     expect(runErr(p, 'clear_design_load', {})[0]!.message).toContain('"key" is required');
+  });
+});
+
+describe('resolveDesignLoads with the loads table', () => {
+  const table: DesignLoadTable = {
+    'bend, or': {
+      label: 'Bend, OR',
+      loads: {
+        groundSnow: { value: 25 * KPA_PER_PSF, unit: 'kPa', source: 'ASCE 7-22 Hazard Tool' },
+        windSpeed: { value: 98 * MS_PER_MPH, unit: 'm/s', source: 'ASCE 7-22 Hazard Tool' },
+      },
+    },
+    'denver, co': { label: 'Denver, CO', loads: { groundSnow: { value: 30 * KPA_PER_PSF, unit: 'kPa', source: 'ASCE 7-22 Hazard Tool' } } },
+  };
+  const fallbacks: SiteDefaults['loads'] = {
+    groundSnow: { value: 30 * KPA_PER_PSF, unit: 'kPa', source: 'app default' },
+    frostDepth: { value: 305, unit: 'mm', source: 'app default' },
+  };
+
+  it('normalises place names', () => {
+    expect(normalizeLocationKey('Bend, OR')).toBe('bend, or');
+    expect(normalizeLocationKey('  bend ,   or ')).toBe('bend, or');
+    expect(normalizeLocationKey('Salt  Lake City UT')).toBe('salt lake city, ut');
+  });
+
+  it("finds the project's location in the table", () => {
+    const p = runOk(createProject({ name: 't' }), 'set_site_location', { location: { label: 'bend,  or' } }).project;
+    const r = resolveDesignLoads(p, { location: { label: 'Denver, CO' }, table, loads: fallbacks });
+    expect(r.location).toMatchObject({ label: 'bend,  or', source: 'project' });
+    expect(r.locationInTable).toBe(true);
+    expect(r.loads.groundSnow).toMatchObject({ source: 'ASCE 7-22 Hazard Tool', origin: 'table', overridden: false });
+    expect(r.loads.groundSnow!.value).toBeCloseTo(25 * KPA_PER_PSF);
+    // Missing from the row: the app fallback fills in and says so.
+    expect(r.loads.frostDepth).toMatchObject({ value: 305, source: 'app default', origin: 'default' });
+  });
+
+  it('finds the default (env) location in the table', () => {
+    const r = resolveDesignLoads(createProject({ name: 't' }), { location: { label: 'Denver, CO' }, table, loads: fallbacks });
+    expect(r.location).toMatchObject({ label: 'Denver, CO', source: 'default' });
+    expect(r.locationInTable).toBe(true);
+    expect(r.loads.groundSnow).toMatchObject({ origin: 'table' });
+    expect(r.loads.windSpeed).toBeUndefined();
+  });
+
+  it('a project override beats the table', () => {
+    const p = runOk(createProject({ name: 't' }), 'set_design_load', { key: 'groundSnow', value: '50 psf', source: 'county' }).project;
+    const r = resolveDesignLoads(p, { location: { label: 'Bend, OR' }, table });
+    expect(r.loads.groundSnow).toMatchObject({ source: 'county', origin: 'project', overridden: true });
+    expect(r.loads.windSpeed).toMatchObject({ origin: 'table' });
+  });
+
+  it('a location not in the table uses the fallbacks', () => {
+    const r = resolveDesignLoads(createProject({ name: 't' }), { location: { label: 'Nowhere, ZZ' }, table, loads: fallbacks });
+    expect(r.locationInTable).toBe(false);
+    expect(r.loads.groundSnow).toMatchObject({ origin: 'default', source: 'app default' });
+  });
+
+  it("the wall's header note names the table's snow load", () => {
+    let p = runOk(createProject({ name: 't' }), 'pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }).project;
+    const siteDefaults: SiteDefaults = { location: { label: 'Bend, OR' }, table };
+    const res = runOk(p, 'build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', openings: [{ kind: 'window', centerAt: '8ft' }] }, { siteDefaults });
+    expect(res.summary).toContain("Headers are sized for Bend, OR's 25 psf ground snow load (ASCE 7-22 Hazard Tool)");
+    p = res.project;
+    expect(p.assemblies.W1!.builder!.params).toMatchObject({ snowPsf: expect.closeTo(25, 6) });
   });
 });

@@ -134,6 +134,11 @@ export const SCENE_COLOR_TOKENS = {
   signal: 'signal',
   hairline: 'hairline',
   concrete: 'concrete',
+  stress1: 'stress-1',
+  stress2: 'stress-2',
+  stress3: 'stress-3',
+  stress4: 'stress-4',
+  stress5: 'stress-5',
 } as const;
 
 export function generateTs(tokens: TokensJson): string {

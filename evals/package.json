@@ -12,7 +12,8 @@
     "@slapdash/agent": "workspace:*",
     "@slapdash/catalog": "workspace:*",
     "@slapdash/core": "workspace:*",
-    "@slapdash/keyhole": "workspace:*"
+    "@slapdash/keyhole": "workspace:*",
+    "@slapdash/solver": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.20.5",

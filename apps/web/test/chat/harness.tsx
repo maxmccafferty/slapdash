@@ -9,6 +9,7 @@ import { ChatProvider } from '../../src/agent/ChatContext.tsx';
 import { createPhotoStore } from '../../src/agent/photos.ts';
 import { buildSampleShell } from '../../src/model/sample-shell.ts';
 import { resetModelStore, useModelStore } from '../../src/state/model-store.ts';
+import { useSiteStore } from '../../src/state/site-store.ts';
 
 export { BUDGET };
 
@@ -19,7 +20,7 @@ export const status = (budget: Partial<BudgetStatus> = {}, configured = true): K
 });
 
 export function newBus(sample = false): CommandBus {
-  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG });
+  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG, siteDefaults: () => useSiteStore.getState().siteDefaults });
   if (sample) buildSampleShell(bus);
   return bus;
 }

@@ -12,6 +12,7 @@ const INERT: ChatController = {
   start: async () => {},
   send: async () => null,
   approvePlan: async () => null,
+  explainStress: async () => null,
   changePlan: () => {},
   chooseOption: async () => null,
   undoTurn: () => {},

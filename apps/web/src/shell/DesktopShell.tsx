@@ -11,6 +11,7 @@ import type { ShellActions } from './actions.ts';
 import { ChatPanel } from './ChatPanel.tsx';
 import { ModelArea } from './ModelArea.tsx';
 import { ProjectHeader } from './ProjectHeader.tsx';
+import { StressLegend } from './StressLegend.tsx';
 import { ViewControls } from './ViewControls.tsx';
 import styles from './DesktopShell.module.css';
 
@@ -65,6 +66,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
           <FloorSlider floors={floors} value={floor} onChange={setFloor} />
         </div>
         <div className={styles.views}>
+          <StressLegend />
           <ViewControls />
         </div>
         {panel === 'materials' && <MaterialsPanel variant="desktop" triggerRef={materialsRef} />}

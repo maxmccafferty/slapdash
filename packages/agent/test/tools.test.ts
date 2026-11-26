@@ -19,12 +19,20 @@ describe('agent tools', () => {
       'measure',
       'list_materials',
       'snapshot',
+      'check_structure',
       'propose_plan',
       'request_photo',
       'set_preferences',
       'offer_options',
     ]);
     expect(tools.map((t) => t.name).slice(0, commandJsonSchemas().length)).toEqual(commandJsonSchemas().map((t) => t.name));
+  });
+
+  it('include check_structure and resize_header', () => {
+    const names = tools.map((t) => t.name);
+    expect(names).toContain('check_structure');
+    expect(names).toContain('resize_header');
+    expect(tools.find((t) => t.name === 'offer_options')!.description).toContain('fix first when it is over the limit');
   });
 
   it('include the location and design-load overrides', () => {

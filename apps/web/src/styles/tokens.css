@@ -18,6 +18,11 @@
   --color-signal-pressed: #c9490a;
   --color-wood: #e3c28c;
   --color-concrete: #dcd9d2;
+  --color-stress-1: #e4e4e2;
+  --color-stress-2: #c4c4c1;
+  --color-stress-3: #9c9c99;
+  --color-stress-4: #f3a877;
+  --color-stress-5: #e8590c;
   --font-sans: "Geist", system-ui, sans-serif;
   --type-title-xl-size: 56px;
   --type-title-xl-line: 53px;

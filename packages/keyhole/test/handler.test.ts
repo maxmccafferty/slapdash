@@ -145,6 +145,11 @@ describe('POST /api/claude', () => {
     expect(await store.getSpend(MONTH)).toBe(costMicroUsd('claude-sonnet-5-5', first) + costMicroUsd('claude-sonnet-5', second));
   });
 
+  it('GET includes the default location only when the server sets one', async () => {
+    expect(await statusOf(setup().keyhole)).not.toHaveProperty('defaultLocation');
+    expect((await statusOf(setup({ env: { SLAPDASH_DEFAULT_LOCATION: 'Bend, OR' } }).keyhole)).defaultLocation).toBe('Bend, OR');
+  });
+
   it('returns 503 not_configured without a key, and GET says configured: false', async () => {
     const store = new MemoryUsageStore();
     const fake = fakeTransport();

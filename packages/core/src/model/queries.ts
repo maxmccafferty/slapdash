@@ -59,3 +59,17 @@ export function jointCapacity(joint: Joint, catalog: CatalogIndex): ResolvedCapa
   }
   return out;
 }
+
+const capitalise = (s: string) => (s ? s[0]!.toUpperCase() + s.slice(1) : s);
+
+/**
+ * How a part is named to the person and to Claude: "Header, South wall". The part's own
+ * name wins over its role when set. Null for an unknown id.
+ */
+export function partLabel(project: Project, partId: string): string | null {
+  const part = Object.hasOwn(project.parts, partId) ? project.parts[partId] : undefined;
+  if (!part) return null;
+  const name = part.name?.trim() || capitalise(part.role);
+  const assembly = project.assemblies[part.assemblyId];
+  return assembly ? `${name}, ${assembly.name}` : name;
+}

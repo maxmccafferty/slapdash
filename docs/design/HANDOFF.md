@@ -139,6 +139,8 @@ Full set in `docs/design/tokens.json`. Generate the app's CSS variables from tha
 | `key-dark` | `#2B2B2B` | Primary keys: Build it, Next step, Send |
 | `signal` | `#E8590C` | Selected / being worked on; the Talk key |
 | `dot` | `#BFC5CD` | Floor dot grid, stippled site |
+| `stress-1` … `stress-3` | `#E4E4E2`, `#C4C4C1`, `#9C9C99` | Stress fill, 0–20, 20–40, 40–60% of the limit |
+| `stress-4`, `stress-5` | `#F3A877`, `#E8590C` | Stress fill, 60–80 and 80–100% (`stress-5` = `signal`, as a fill) |
 
 - **Type:** Geist only. 56 / 44 / 32 for titles (weight 400, tight tracking), 15 for chat, 14 lists, 14 keys, 14 labels. (Keys and labels were raised from 13 / 12 to 14 for LOC-104 accessibility: no text below 14px.)
 - **Radius:** 7 keys, 10 fields and Talk, 12 small units, 16 panels, 24 chat panel and modals.
@@ -170,7 +172,7 @@ A stud wall: three thick studs under an orange top plate.
 
 - View-only orbit, pan, zoom.
 - A level cut (Floors) and a 4′ section cut (Inside), with cut faces drawn dark.
-- Stress overlay: a five-step ramp, three greys then two oranges.
+- Stress overlay: a five-step ramp, three greys then two oranges (`stress-1` … `stress-5`), as a fill. Over 100% is `ink` with `paper` hatching and an ink warning mark. Parts the solver doesn't check (roofing, siding, door units) are a "not checked" ghost: `paper` at 25%, so the framing shows through. The callout is a white unit with ink text on a leader line; orange stays the selection outline.
 - Dimension lines in feet and inches.
 - Highlight for a pointed-at part; orange outline for parts in progress; orange dashed outline for a proposed structure.
 - The floor: bounded, dot grid, with the compass on it.

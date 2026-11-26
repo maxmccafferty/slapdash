@@ -42,6 +42,15 @@
   bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
 }
 
+/* The stress legend, above the eye key. */
+.legend {
+  position: absolute;
+  left: calc(var(--space-4) + env(safe-area-inset-left));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom) + var(--size-touch) + var(--space-2) * 3);
+  max-height: 55%;
+  overflow: auto;
+}
+
 .chat-key {
   position: absolute;
   /* Above the Materials modal (z 2), below the chat sheet (z 20). */

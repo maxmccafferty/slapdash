@@ -166,5 +166,5 @@ test('snapshots never move the user’s view', async ({ page }, info) => {
 test('snapshot errors are plain sentences', async ({ page }) => {
   await open(page);
   const message = await page.evaluate(() => window.__slapdash.renderSnapshot({ mode: 'stress' }).then(() => 'ok', (e: Error) => e.message));
-  expect(message).toBe("Stress view isn't available yet.");
+  expect(message).toBe("Snapshots can't show the stress view. Call check_structure for the most loaded parts and their % of limit.");
 });

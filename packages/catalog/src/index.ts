@@ -25,6 +25,14 @@ import prices from '../data/prices.json' with { type: 'json' };
 import textureManifest from '../textures/manifest.json' with { type: 'json' };
 import { zTextureManifest, type TextureSet } from './textures.ts';
 
+export {
+  DESIGN_LOAD_ROWS,
+  DESIGN_LOAD_TABLE,
+  toDesignLoadTable,
+  validateDesignLoadRows,
+  zDesignLoadRow,
+  type DesignLoadRow,
+} from './design-loads.ts';
 export { KNOWN_FLAGS, isKnownFlag, type KnownFlag } from './flags.ts';
 export { TEXTURE_MAPS, texturePath, zTextureManifest, zTextureSet, type TextureManifest, type TextureMap, type TextureSet } from './textures.ts';
 

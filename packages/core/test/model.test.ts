@@ -163,8 +163,8 @@ describe('design loads', () => {
         windSpeed: { value: 51, unit: 'm/s', source: 'bundled table' },
       },
     });
-    expect(r.loads.groundSnow).toEqual({ value: 1.9, unit: 'kPa', source: 'county building dept', overridden: true });
-    expect(r.loads.windSpeed).toEqual({ value: 51, unit: 'm/s', source: 'bundled table', overridden: false });
+    expect(r.loads.groundSnow).toEqual({ value: 1.9, unit: 'kPa', source: 'county building dept', overridden: true, origin: 'project' });
+    expect(r.loads.windSpeed).toEqual({ value: 51, unit: 'm/s', source: 'bundled table', overridden: false, origin: 'default' });
     expect(r.loads.frostDepth).toBeUndefined();
     expect(r.location).toEqual({ label: 'Default Town, ST', source: 'default' });
 
