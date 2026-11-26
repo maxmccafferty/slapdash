@@ -2,14 +2,15 @@ import { TIER1_CATALOG } from '@slapdash/catalog';
 import { AgentMemory } from '@slapdash/agent';
 import { CommandBus, createProject } from '@slapdash/core';
 import { createLocalBackend } from '@slapdash/storage/local';
-import { ProjectSession } from '@slapdash/storage';
+import { CLOUD_UNAVAILABLE_MESSAGE, ProjectSession, type Auth, type SyncConflict, type SyncControl, type SyncStatus } from '@slapdash/storage';
 import { IDBFactory, IDBKeyRange } from 'fake-indexeddb';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createProjectsController, type ProjectsController, type ProjectsControllerDeps } from '../../src/projects/projects-controller.ts';
 import { resetProjectsStore, useProjectsStore } from '../../src/projects/projects-store.ts';
 import { buildSampleText } from '../../src/samples/build.ts';
 import { resetModelStore, useModelStore } from '../../src/state/model-store.ts';
 import { useShellStore } from '../../src/state/shell-store.ts';
+import { OFFLINE_NOTE, SYNCED_NOTE } from '../../src/sync/sync-status.ts';
 
 const SAMPLE = buildSampleText();
 const open: { close(): void }[] = [];
@@ -188,5 +189,130 @@ describe('the projects controller', () => {
     await controller.openSample();
     await controller.save();
     expect(notes).toEqual(['Saved "Pool house".']);
+  });
+});
+
+/** A stand-in for the synced backend's sync control. */
+function fakeSync() {
+  const statusListeners = new Set<(s: SyncStatus) => void>();
+  const conflictListeners = new Set<(c: SyncConflict) => void>();
+  let status: SyncStatus = { kind: 'synced' };
+  const sync: SyncControl = {
+    get status() {
+      return status;
+    },
+    onStatus: (fn) => (statusListeners.add(fn), () => void statusListeners.delete(fn)),
+    onConflict: (fn) => (conflictListeners.add(fn), () => void conflictListeners.delete(fn)),
+    retry: vi.fn(),
+    idle: vi.fn(async () => {}),
+  };
+  return {
+    sync,
+    emit(next: SyncStatus) {
+      status = next;
+      for (const fn of statusListeners) fn(next);
+    },
+    conflict(c: SyncConflict) {
+      for (const fn of conflictListeners) fn(c);
+    },
+  };
+}
+
+describe('the projects controller with cloud sync (hosted copy)', () => {
+  it('notes going offline once, and "Synced." when it is back', async () => {
+    const fake = fakeSync();
+    const { controller, notes } = setup({ sync: fake.sync });
+    await controller.start('');
+    expect(useProjectsStore.getState().sync).toEqual({ kind: 'synced' });
+    fake.emit({ kind: 'offline', message: CLOUD_UNAVAILABLE_MESSAGE, pending: 1 });
+    fake.emit({ kind: 'offline', message: CLOUD_UNAVAILABLE_MESSAGE, pending: 2 });
+    fake.emit({ kind: 'syncing', pending: 2 });
+    fake.emit({ kind: 'synced' });
+    expect(notes).toEqual([OFFLINE_NOTE, SYNCED_NOTE]);
+    expect(useProjectsStore.getState().sync).toEqual({ kind: 'synced' });
+  });
+
+  it('back in the foreground: pushes, lists, and reopens the open project when another device changed it', async () => {
+    const fake = fakeSync();
+    const { controller, backend, target } = setup({ sync: fake.sync });
+    await controller.start('');
+    await controller.openSample();
+    const id = controller.current!.id;
+    const before = controller.current!;
+    const firstBus = useModelStore.getState().bus;
+
+    // Another device saved a newer copy, which sync put in the store.
+    const stored = (await backend.store.load(id))!;
+    await backend.store.save({
+      ...stored,
+      meta: { ...stored.meta, name: 'Pool house v2', updatedAt: stored.meta.updatedAt + 60_000 },
+      project: { ...stored.project, name: 'Pool house v2' },
+    });
+
+    target.dispatchEvent(new Event('focus'));
+    await controller.resync();
+    expect(fake.sync.retry).toHaveBeenCalled();
+    expect(controller.current).not.toBe(before);
+    expect(controller.current!.id).toBe(id);
+    expect(controller.current!.meta.name).toBe('Pool house v2');
+    expect(useModelStore.getState().bus).not.toBe(firstBus);
+    expect(useProjectsStore.getState().projects.map((p) => p.name)).toEqual(['Pool house v2']);
+  });
+
+  it('does not reopen over unsaved changes or while Claude is working', async () => {
+    const fake = fakeSync();
+    let busy = true;
+    const { controller, backend } = setup({ sync: fake.sync, isBusy: () => busy });
+    await controller.start('');
+    await controller.openSample();
+    const session = controller.current!;
+    const stored = (await backend.store.load(session.id))!;
+    await backend.store.save({ ...stored, meta: { ...stored.meta, updatedAt: stored.meta.updatedAt + 60_000 } });
+    await controller.resync();
+    expect(controller.current).toBe(session);
+    busy = false;
+    expect(session.bus.execute('rename_project', { name: 'Edited here' }).ok).toBe(true);
+    expect(session.isDirty).toBe(true);
+    await controller.resync();
+    expect(controller.current).toBe(session);
+  });
+
+  it('a conflict on the open project says where the other version went and reopens it', async () => {
+    const fake = fakeSync();
+    const { controller, backend, notes } = setup({ sync: fake.sync });
+    await controller.start('');
+    await controller.openSample();
+    const session = controller.current!;
+    await controller.refreshList();
+    fake.conflict({ id: session.id, copyId: 'copy-1', copyName: 'Pool house (conflict, this device)' });
+    await vi.waitFor(() => expect(controller.current).not.toBe(session));
+    expect(notes.at(-1)).toMatch(/^"Pool house" was also changed on another device\..*"Pool house \(conflict, this device\)"\.$/);
+    expect(await backend.store.load(session.id)).not.toBeNull();
+  });
+
+  it('Sign out saves, waits for sync, signs out and reloads', async () => {
+    const fake = fakeSync();
+    const order: string[] = [];
+    const auth = { signOut: vi.fn(async () => void order.push('signOut')) } as unknown as Auth;
+    (fake.sync.idle as ReturnType<typeof vi.fn>).mockImplementation(async () => void order.push('idle'));
+    const reload = vi.fn(() => void order.push('reload'));
+    const user = { id: 'u1', displayName: 'max@example.com', email: 'max@example.com' };
+    const { controller, backend } = setup({ sync: fake.sync, auth, user, reload });
+    await controller.start('');
+    expect(useProjectsStore.getState().user).toEqual({ displayName: 'max@example.com', email: 'max@example.com' });
+    controller.current!.bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: '10ft', z: '12ft' } });
+    await controller.signOut();
+    expect(order).toEqual(['idle', 'signOut', 'reload']);
+    expect((await backend.store.list()).map((p) => p.name)).toEqual(['New project']);
+  });
+
+  it('without sync, focus does nothing new', async () => {
+    const { controller, target } = setup();
+    await controller.start('');
+    const session = controller.current;
+    target.dispatchEvent(new Event('focus'));
+    await controller.resync();
+    expect(controller.current).toBe(session);
+    expect(useProjectsStore.getState().sync).toBeNull();
   });
 });

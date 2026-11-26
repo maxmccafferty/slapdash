@@ -50,7 +50,8 @@ export type KeyholeError =
   | { error: 'bad_request'; message: string } // 400
   | { error: 'too_large' } // 413
   | { error: 'forbidden_origin' } // 403
-  | { error: 'method_not_allowed' }; // 405
+  | { error: 'method_not_allowed' } // 405
+  | { error: 'sign_in_required' }; // 401: sign-in is on and the request has no valid user token
 
 export interface KeyholeDone {
   budget: BudgetStatus;

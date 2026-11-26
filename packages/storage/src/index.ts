@@ -9,6 +9,7 @@ export type {
   DeviceState,
   FileRef,
   NewFile,
+  Passkeys,
   ProjectFiles,
   ProjectMeta,
   ProjectRecord,
@@ -19,7 +20,7 @@ export type {
   StoredFile,
   User,
 } from './types.ts';
-export { StorageError, isStorageError, describeError, type StorageErrorCode } from './errors.ts';
+export { CLOUD_UNAVAILABLE_MESSAGE, StorageError, isStorageError, describeError, type StorageErrorCode } from './errors.ts';
 export {
   CHAT_LOG_VERSION,
   emptyChatLog,
@@ -65,3 +66,23 @@ export {
   type SaveStatus,
   type SessionDeps,
 } from './session.ts';
+export {
+  CONFLICT_SUFFIX,
+  DEFAULT_RETRY_DELAYS_MS,
+  MemorySyncJournal,
+  SyncedProjectStore,
+  adoptProjects,
+  createSyncedBackend,
+  emptyPending,
+  normalizePending,
+  pendingCount,
+  type Pending,
+  type PendingFile,
+  type SyncConflict,
+  type SyncControl,
+  type SyncJournal,
+  type SyncStatus,
+  type SyncedBackend,
+  type SyncedBackendOptions,
+  type SyncedStoreOptions,
+} from './sync/index.ts';

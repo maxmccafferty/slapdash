@@ -36,6 +36,7 @@ describe('fetchKeyholeClient', () => {
     [503, { error: 'not_configured' }, 'not_configured'],
     [400, { error: 'bad_request', message: 'x' }, 'upstream_error'],
     [500, { error: 'internal' }, 'upstream_error'],
+    [401, { error: 'sign_in_required' }, 'upstream_error'],
   ])('maps a %i JSON error to a KeyholeRequestError', async (status, body, state) => {
     const client = fetchKeyholeClient({ fetch: async () => jsonResponse(status, body) });
     const err = await drain(client([{ role: 'user', content: 'hi' }])).catch((e: unknown) => e);
@@ -52,5 +53,27 @@ describe('fetchKeyholeClient', () => {
       },
     });
     await expect(drain(down([{ role: 'user', content: 'hi' }]))).rejects.toMatchObject({ state: 'upstream_error', failure: { error: 'network' } });
+  });
+
+  it('sends the extra headers (the sign-in token) on every request, read fresh each time', async () => {
+    const seen: Record<string, string>[] = [];
+    const fetch: FetchLike = async (_url, init) => {
+      seen.push(init.headers);
+      return new Response(formatSseEvent('budget', BUDGET)) as unknown as FetchResponseLike;
+    };
+    let token = 'one';
+    const client = fetchKeyholeClient({ fetch, headers: async () => ({ Authorization: `Bearer ${token}` }) });
+    await drain(client([{ role: 'user', content: 'hi' }]));
+    token = 'two';
+    await drain(client([{ role: 'user', content: 'hi' }]));
+    expect(seen.map((h) => h.Authorization)).toEqual(['Bearer one', 'Bearer two']);
+    expect(seen[0]!['Content-Type']).toBe('application/json');
+  });
+
+  it('a 401 sign_in_required says to sign in', async () => {
+    const client = fetchKeyholeClient({ fetch: async () => jsonResponse(401, { error: 'sign_in_required' }) });
+    const err = (await drain(client([{ role: 'user', content: 'hi' }])).catch((e: unknown) => e)) as KeyholeRequestError;
+    expect(err.failure).toEqual({ error: 'sign_in_required' });
+    expect(err.message).toBe('Sign in to talk to Claude.');
   });
 });

@@ -3,6 +3,7 @@ import { Icon } from '../components/Icon.tsx';
 import { Key } from '../components/Key.tsx';
 import { useDismiss } from '../hooks/useDismiss.ts';
 import { useShellStore } from '../state/shell-store.ts';
+import { syncLine } from '../sync/sync-status.ts';
 import { ProjectCard } from './ProjectCard.tsx';
 import { useProjects } from './ProjectsContext.tsx';
 import { useProjectsStore } from './projects-store.ts';
@@ -31,6 +32,8 @@ export function ProjectsPanel({ variant, triggerRef }: ProjectsPanelProps) {
   const currentId = useProjectsStore((s) => s.currentId);
   const busy = useProjectsStore((s) => s.busy);
   const error = useProjectsStore((s) => s.error);
+  const sync = useProjectsStore((s) => s.sync);
+  const user = useProjectsStore((s) => s.user);
   const closePanel = useShellStore((s) => s.closePanel);
 
   useDismiss(true, ref, triggerRef, closePanel, { outside: false });
@@ -86,7 +89,13 @@ export function ProjectsPanel({ variant, triggerRef }: ProjectsPanelProps) {
             />
           ))}
         </ul>
-        {projects.length === 0 && <p className={styles.muted}>{KEPT_ON_DEVICE}</p>}
+        {sync ? (
+          <p className={styles.muted} data-testid="sync-line">
+            {syncLine(sync)}
+          </p>
+        ) : (
+          projects.length === 0 && <p className={styles.muted}>{KEPT_ON_DEVICE}</p>
+        )}
       </div>
 
       <footer className={styles.footer}>
@@ -108,6 +117,15 @@ export function ProjectsPanel({ variant, triggerRef }: ProjectsPanelProps) {
         <p className={styles.error} role="status">
           {error}
         </p>
+        {user && (
+          <p className={styles.account}>
+            <span>Signed in as {user.email ?? user.displayName}</span>
+            <span aria-hidden="true">·</span>
+            <button type="button" className={styles['text-button']} disabled={busy} onClick={() => void actions.signOut()}>
+              Sign out
+            </button>
+          </p>
+        )}
       </footer>
     </section>
   );

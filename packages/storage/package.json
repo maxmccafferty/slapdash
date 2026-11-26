@@ -7,14 +7,17 @@
   "exports": {
     ".": "./src/index.ts",
     "./local": "./src/adapters/local/index.ts",
+    "./supabase": "./src/adapters/supabase/index.ts",
     "./testing": "./testing/index.ts"
   },
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test:supabase": "node scripts/test-supabase.ts"
   },
   "dependencies": {
     "@slapdash/core": "workspace:*",
+    "@supabase/supabase-js": "2.119.2",
     "dexie": "^4.0.11",
     "zod": "^4.6.7"
   },
@@ -29,6 +32,7 @@
   "devDependencies": {
     "@types/node": "^22.20.5",
     "fake-indexeddb": "^6.0.1",
+    "supabase": "^3.4.0",
     "typescript": "~5.9.3",
     "vitest": "^5.1.1"
   }

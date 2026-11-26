@@ -16,8 +16,8 @@
 /* Desktop: inset over the model, below the header's logo and keys, so the latched Load key
    stays reachable (the same placement as Materials). */
 .desktop {
-  inset: calc(var(--space-4) + var(--space-5) + var(--space-3) + var(--size-touch) + var(--space-2) + var(--space-3)) var(--space-4)
-    var(--space-4) var(--space-4);
+  inset: calc(var(--space-4) + var(--space-5) + var(--space-3) + var(--size-touch) + var(--space-2) + var(--space-3) + env(safe-area-inset-top))
+    calc(var(--space-4) + env(safe-area-inset-right)) calc(var(--space-4) + env(safe-area-inset-bottom)) var(--space-4);
 }
 
 /* Phone: nearly full screen, with room at the bottom for the floating chat key. */
@@ -180,4 +180,38 @@
 .error {
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
+}
+
+/* Hosted copy: who is signed in, and the one way to sign out. */
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  color: var(--color-muted);
+}
+
+.text-button {
+  min-width: var(--size-touch);
+  min-height: var(--size-touch);
+  padding: 0 var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.text-button:focus-visible {
+  outline: var(--size-focus-ring) solid var(--color-ink);
+  outline-offset: var(--size-focus-ring);
+}
+
+.text-button:disabled {
+  opacity: 0.35;
+  cursor: default;
 }

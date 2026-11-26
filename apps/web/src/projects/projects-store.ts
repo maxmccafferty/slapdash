@@ -3,7 +3,7 @@
  * and any error to explain. `projects-controller.ts` is the only writer.
  */
 import { create } from 'zustand';
-import type { ProjectSummary, SaveStatus } from '@slapdash/storage';
+import type { ProjectSummary, SaveStatus, SyncStatus } from '@slapdash/storage';
 
 export interface ProjectsState {
   /** Stored projects, newest first. */
@@ -17,6 +17,10 @@ export interface ProjectsState {
   /** A plain sentence for the modal's status line. */
   error: string | null;
   saveStatus: SaveStatus;
+  /** Sync with the cloud; null for the local-only app. */
+  sync: SyncStatus | null;
+  /** Who is signed in (hosted copy); null for the local-only app. */
+  user: { email?: string; displayName: string } | null;
 }
 
 export const initialProjectsState: ProjectsState = {
@@ -26,6 +30,8 @@ export const initialProjectsState: ProjectsState = {
   busy: false,
   error: null,
   saveStatus: { kind: 'idle' },
+  sync: null,
+  user: null,
 };
 
 export const useProjectsStore = create<ProjectsState>()(() => ({ ...initialProjectsState }));

@@ -13,7 +13,9 @@
     "typecheck": "pnpm -r typecheck",
     "smoke": "pnpm --filter @slapdash/core smoke",
     "eval": "pnpm --filter @slapdash/evals eval",
-    "check:secrets": "pnpm --filter @slapdash/web check:secrets"
+    "check:secrets": "pnpm --filter @slapdash/web check:secrets",
+    "test:supabase": "pnpm --filter @slapdash/storage test:supabase",
+    "supabase:add-user": "node scripts/supabase-add-user.ts"
   },
   "devDependencies": {
     "esbuild": "^0.28.2"

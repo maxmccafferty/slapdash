@@ -28,6 +28,11 @@ export interface KeyholeConfig {
    * loads, served on `GET /api/claude` so it never goes into the browser bundle.
    */
   readonly defaultLocation: string | undefined;
+  /**
+   * Supabase project URL and publishable key, when sign-in is on: `POST` then needs a
+   * signed-in user's token (checked against Supabase Auth). Never the secret key.
+   */
+  readonly supabase: { readonly url: string; readonly key: string } | undefined;
 }
 
 export type Env = Readonly<Record<string, string | undefined>>;
@@ -74,6 +79,15 @@ export function readConfig(env: Env): KeyholeConfig {
     throw new Error(`SLAPDASH_FALLBACKS must be "on" or "off"; got "${fallbacksRaw}".`);
   }
 
+  const supabaseUrl = str(env, 'SUPABASE_URL') ?? str(env, 'VITE_SUPABASE_URL') ?? str(env, 'NEXT_PUBLIC_SUPABASE_URL');
+  const supabaseKey =
+    str(env, 'SUPABASE_PUBLISHABLE_KEY') ??
+    str(env, 'SUPABASE_ANON_KEY') ??
+    str(env, 'VITE_SUPABASE_PUBLISHABLE_KEY') ??
+    str(env, 'VITE_SUPABASE_ANON_KEY') ??
+    str(env, 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') ??
+    str(env, 'NEXT_PUBLIC_SUPABASE_ANON_KEY');
+
   const upstashUrl = str(env, 'KV_REST_API_URL') ?? str(env, 'UPSTASH_REDIS_REST_URL');
   const upstashToken = str(env, 'KV_REST_API_TOKEN') ?? str(env, 'UPSTASH_REDIS_REST_TOKEN');
 
@@ -95,5 +109,6 @@ export function readConfig(env: Env): KeyholeConfig {
     usageFile: str(env, 'SLAPDASH_USAGE_FILE') ?? '.data/usage.json',
     defaultLocation: str(env, 'SLAPDASH_DEFAULT_LOCATION'),
     upstash: upstashUrl && upstashToken ? { url: upstashUrl.replace(/\/+$/, ''), token: upstashToken } : undefined,
+    supabase: supabaseUrl && supabaseKey ? { url: supabaseUrl.replace(/\/+$/, ''), key: supabaseKey } : undefined,
   });
 }

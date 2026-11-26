@@ -4,7 +4,7 @@ import type { ProjectsController } from './projects-controller.ts';
 /** What the shell calls: the Projects modal's actions. */
 export type ProjectsActions = Pick<
   ProjectsController,
-  'openProject' | 'newProject' | 'importFile' | 'openSample' | 'prepareList' | 'clearError'
+  'openProject' | 'newProject' | 'importFile' | 'openSample' | 'prepareList' | 'clearError' | 'signOut'
 >;
 
 const ProjectsContext = createContext<ProjectsActions | null>(null);
@@ -21,6 +21,7 @@ const INERT: ProjectsActions = {
   openSample: async () => false,
   prepareList: async () => {},
   clearError: () => {},
+  signOut: async () => {},
 };
 
 export function useProjects(): ProjectsActions {

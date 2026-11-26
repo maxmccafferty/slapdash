@@ -26,6 +26,7 @@ describe('the Vercel bundle', () => {
     process.env.SLAPDASH_USAGE_FILE = join(dir, 'usage.json');
     delete process.env.ANTHROPIC_API_KEY;
     delete process.env.VERCEL_ENV;
+    for (const name of Object.keys(process.env)) if (name.includes('SUPABASE')) delete process.env[name];
     try {
       const mod = (await import(pathToFileURL(outfile).href)) as { GET: (r: Request) => Promise<Response>; POST: (r: Request) => Promise<Response> };
       const get = await mod.GET(new Request('http://localhost/api/claude'));

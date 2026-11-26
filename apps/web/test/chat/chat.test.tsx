@@ -2,7 +2,7 @@ import { act, screen, waitFor, within, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { call, replyEvents, say, scriptedClient } from '@slapdash/agent/testing';
 import { AgentMemory, KeyholeRequestError, KeyholeStreamFailure } from '@slapdash/agent';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { openSampleProject } from '../../src/model/bootstrap.ts';
 import { useChatStore } from '../../src/state/chat-store.ts';
 import { createChatController } from '../../src/agent/chat-controller.ts';
@@ -343,6 +343,14 @@ describe('chat: errors', () => {
     expect(screen.getByText("Couldn't reach Claude. Check your connection and try again.")).toBeInTheDocument();
     expect(field()).toBeEnabled();
     expect(screen.queryAllByTestId('claude-message')).toHaveLength(0);
+  });
+  it("a 401 sign_in_required says you've been signed out and tells the app", async () => {
+    const onSignedOut = vi.fn();
+    await setupChat({ steps: [new KeyholeRequestError({ error: 'sign_in_required' }, 401)], onSignedOut });
+    await sendText('Hello');
+    expect(screen.getByText("You've been signed out. Sign in again to talk to Claude.")).toBeInTheDocument();
+    expect(onSignedOut).toHaveBeenCalledTimes(1);
+    expect(field()).toBeEnabled();
   });
 });
 

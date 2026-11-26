@@ -20,7 +20,7 @@ off. `thinking` is left out, so the model thinks adaptively.
 
 | Import | What |
 | --- | --- |
-| `@slapdash/keyhole` | `createKeyhole({ config, store, transport?, now?, identify? })`, `createKeyholeFromEnv(env)`, `readConfig`, the usage stores, pricing, budget and rate-limit helpers. |
+| `@slapdash/keyhole` | `createKeyhole({ config, store, transport?, now?, identify?, authenticate? })`, `createKeyholeFromEnv(env)`, `readConfig`, `supabaseIdentity`, the usage stores, pricing, budget and rate-limit helpers. |
 | `@slapdash/keyhole/node` | `toNodeMiddleware(handler \| { load })` for Connect/Vite; used by the dev server. |
 | `src/vercel-entry.ts` | The Vercel function, bundled to `dist/vercel.js` by `pnpm build:api` and re-exported by `api/claude.js`. |
 
@@ -34,8 +34,26 @@ off. `thinking` is left out, so the model thinks adaptively.
 - `usage-store.ts` and `stores/`: memory, JSON file (local dev) and Upstash Redis over REST
   (deployed). `selectUsageStore()` picks one from the environment.
 - `rate-limit.ts`: fixed per-minute and per-day windows per user.
-- `identify.ts`: the user is a SHA-256 hash of the client IP until sign-in exists.
+- `identify.ts`: without sign-in the user is a SHA-256 hash of the client IP.
+- `supabase-identify.ts`: the sign-in gate (below).
 - `handler.ts`: the handler, spend tracking from stream usage, and upstream error mapping.
+
+## The sign-in gate (hosted copy with Supabase)
+
+When `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` are set (or `SUPABASE_ANON_KEY`; both fall
+back to the `VITE_` names, so one pair of settings is enough), `createKeyholeFromEnv` puts a
+gate in front of Claude:
+
+- `POST` needs `Authorization: Bearer <access token>` from a signed-in user. The keyhole asks
+  Supabase Auth who it is (`GET /auth/v1/user` with the publishable key; no supabase-js, only
+  `fetch`). No token, a refused token or an unreachable Supabase → `401 { error: 'sign_in_required' }`,
+  checked after the origin and before anything else. Answers are cached in memory for 60 s
+  (refusals for 10 s), keyed by a SHA-256 of the token, at most 500 entries.
+- The rate limit counts per signed-in user (`u:<user id>`) instead of per IP.
+- `GET` still answers, but includes `defaultLocation` only for a signed-in user.
+
+The secret (service-role) key is never read here. Without the Supabase settings nothing
+changes: there is no gate, as before.
 
 ## Without Upstash on a deployment
 

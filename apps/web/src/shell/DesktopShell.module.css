@@ -22,7 +22,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-4) 0 0 var(--space-4);
+  /* The insets matter on an iPad home-screen app, where the status bar overlays the page. */
+  padding: calc(var(--space-4) + env(safe-area-inset-top)) 0 0 calc(var(--space-4) + env(safe-area-inset-left));
 }
 
 .units {
@@ -36,14 +37,14 @@
 
 .floors {
   position: absolute;
-  top: var(--space-4);
+  top: calc(var(--space-4) + env(safe-area-inset-top));
   right: var(--space-4);
 }
 
 .views {
   position: absolute;
-  left: var(--space-4);
-  bottom: var(--space-4);
+  left: calc(var(--space-4) + env(safe-area-inset-left));
+  bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -54,5 +55,6 @@
 .chat {
   grid-area: 1 / 2;
   width: clamp(var(--size-chat-panel-min), 34vw, var(--size-chat-panel));
-  margin: var(--space-4) var(--space-4) var(--space-4) 0;
+  margin: calc(var(--space-4) + env(safe-area-inset-top)) calc(var(--space-4) + env(safe-area-inset-right))
+    calc(var(--space-4) + env(safe-area-inset-bottom)) 0;
 }
