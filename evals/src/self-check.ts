@@ -427,22 +427,24 @@ const badInput = section('Input-parse rejections are told apart from refusals', 
       ...over,
     });
 
-  // Claude wraps the length in quote marks, is told so, and retries: the turn still answers.
-  const quoted = scriptedClient([plan({ height: '"9ft"' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  // Claude sends a length the parser can't read, is told so, and retries: the turn still answers.
+  // (Quote-wrapped lengths like `"9ft"` are read without the quote marks now, so they aren't bad input.)
+  const quoted = scriptedClient([plan({ height: 'tall' }), plan({ height: '9ft' }), say('Here is the plan.')]);
   const q = (await runSuite([oneTurn()], quoted.client, { maxUsd: 1 })).results[0]!;
   check('the script was used up', quoted.remaining() === 0, quoted.remaining());
-  check('a turn with a "\\"9ft\\"" length fails the bad-input check', q.status === 'fail' && q.failures.some((f) => /couldn't be parsed/.test(f)), q);
+  check('a turn with an unreadable "tall" length fails the bad-input check', q.status === 'fail' && q.failures.some((f) => /couldn't be parsed/.test(f)), q);
   check('the rejection is recorded as bad input', q.turns[0]?.badInput.length === 1 && q.turns[0]?.toolErrors.length === 1, q.turns[0]);
   check('the turn line shows "1 bad input"', q.turns[0] !== undefined && turnLine(q.turns[0], 0).includes('1 bad input'), q.turns[0] && turnLine(q.turns[0], 0));
 
-  const unitless = scriptedClient([plan({ height: '0' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  // A unitless zero reads as zero in any unit; any other bare number has no unit.
+  const unitless = scriptedClient([plan({ height: '9' }), plan({ height: '9ft' }), say('Here is the plan.')]);
   const u = (await runSuite([oneTurn()], unitless.client, { maxUsd: 1 })).results[0]!;
-  check('a turn with a unitless "0" fails the bad-input check', u.status === 'fail' && u.turns[0]?.badInput.length === 1, u);
+  check('a turn with a unitless "9" fails the bad-input check', u.status === 'fail' && u.turns[0]?.badInput.length === 1, u);
 
-  // An ID wrapped in quote marks is bad input; an ID that doesn't exist is a real miss.
+  // An ID wrapped in quote marks is read without them; an ID that doesn't exist is a real miss.
   const lookup = (id: string) => scriptedClient([call(['get_part', { id }]), say('The east wall is W2.')]);
   const quotedId = (await runSuite([oneTurn({ seed: POOL_HOUSE_WALLS })], lookup('"W1"').client, { maxUsd: 1 })).results[0]!;
-  check('a quote-wrapped ID ("\\"W1\\"") fails the bad-input check', quotedId.status === 'fail' && quotedId.turns[0]?.badInput.length === 1, quotedId);
+  check('a quote-wrapped ID ("\\"W1\\"") is read without its quote marks', quotedId.status === 'pass' && quotedId.turns[0]?.toolErrors.length === 0 && quotedId.turns[0]?.badInput.length === 0, quotedId);
   const missing = (await runSuite([oneTurn({ seed: POOL_HOUSE_WALLS })], lookup('W9').client, { maxUsd: 1 })).results[0]!;
   check('an ID that does not exist is a refusal, not bad input', missing.status === 'pass' && missing.turns[0]?.refusals === 1 && missing.turns[0]?.badInput.length === 0, missing);
 
@@ -456,7 +458,7 @@ const badInput = section('Input-parse rejections are told apart from refusals', 
   check('the clash is recorded as a refusal, not bad input', c.turns[0]?.refusals === 1 && c.turns[0]?.badInput.length === 0, c.turns[0]);
 
   // A scenario can opt out; the run's summary still counts the rejection.
-  const optOut = scriptedClient([plan({ height: '"9ft"' }), plan({ height: '9ft' }), say('Here is the plan.')]);
+  const optOut = scriptedClient([plan({ height: 'tall' }), plan({ height: '9ft' }), say('Here is the plan.')]);
   const o = (await runSuite([oneTurn({ allowBadInput: true })], optOut.client, { maxUsd: 1 })).results[0]!;
   check('allowBadInput turns the check off', o.status === 'pass', o);
   const all = [q, c, o];
