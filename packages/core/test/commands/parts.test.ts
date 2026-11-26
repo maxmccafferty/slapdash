@@ -129,7 +129,7 @@ describe('add_part', () => {
       `"length": "8" has no unit. Add a unit, e.g. 8ft, 8in or 8mm.`,
     ]);
     expect(runErr(p, 'add_part', stud({ length: true }))[0]!.message).toBe(
-      '"length" should be a length: a number in millimetres or text like "8ft 6in".',
+      '"length" should be a length: a number in millimetres or a string with a unit, e.g. 8ft 6in.',
     );
   });
 });
