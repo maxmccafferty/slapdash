@@ -34,6 +34,7 @@ import { jointsForParts } from '../model/queries.ts';
 import type { Assembly, Project } from '../model/schema.ts';
 import { MM_PER_INCH } from '../units/length.ts';
 import { LENGTH_DESCRIPTION, zLength, zPitch, zPositiveLength } from '../units/zod.ts';
+import { zId } from './common.ts';
 import { commandError, formatErrors, notFound, type CommandError } from './errors.ts';
 import { patchWithInverse } from './internal.ts';
 import { defineCommand, type CommandContext } from './types.ts';
@@ -191,7 +192,7 @@ const buildWallSchema = z.strictObject({
   studLength: zPositiveLength.optional().describe(`Use this stud length instead (e.g. precut "104 5/8in"); the height follows from it. ${LENGTH_DESCRIPTION}`),
   exterior: z.enum(['left', 'right']).optional().describe('Which side is outside, walking from start to end in a north-up plan. Default "left".'),
   baseElevation: zLength.optional().describe(`Bottom of the bottom plate. Default: top of the slab or floor under the wall, else the ground. ${LENGTH_DESCRIPTION}`),
-  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default "2x4".'),
+  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default 2x4.'),
   spacing: z.enum(SPACINGS).optional().describe('Stud spacing on center, measured from the wall start. Default "16in".'),
   loadBearing: z.boolean().optional().describe('Whether the wall carries the roof. Sets header sizes. Default true.'),
   buildingWidth: zPositiveLength
@@ -216,7 +217,7 @@ export const buildWall = builderCommand({
 // ── add_opening ─────────────────────────────────────────────────────────────
 
 const addOpeningSchema = z.strictObject({
-  wallId: z.string().min(1).describe('The wall to frame the opening in, e.g. "W2". Must have been made with build_wall.'),
+  wallId: zId.describe('The wall to frame the opening in, e.g. W2. Must have been made with build_wall.'),
   ...zOpeningFields,
 });
 
@@ -384,11 +385,7 @@ interface OpeningParams {
 }
 
 const resizeHeaderSchema = z.strictObject({
-  opening: z
-    .string()
-    .trim()
-    .min(1)
-    .describe('The opening assembly made by add_opening (e.g. "O1"), or the ID of one of its header plies.'),
+  opening: zId.describe('The opening assembly made by add_opening (e.g. O1), or the ID of one of its header plies.'),
   size: z
     .string()
     .trim()

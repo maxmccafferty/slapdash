@@ -92,18 +92,18 @@ function checkJoint(project: Project, j: JointFields, catalog: CatalogIndex): Co
 export const connect = defineCommand({
   name: 'connect',
   description:
-    'Join two parts with a joint type from the catalog (nails, a hanger, a post base…). Use "GROUND" as the second part for a support on the ground. Both parts\' materials must accept the joint type.',
+    'Join two parts with a joint type from the catalog (nails, a hanger, a post base…). Use GROUND as the second part for a support on the ground. Both parts\' materials must accept the joint type.',
   exposed: true,
   schema: z.strictObject({
-    jointTypeId: zId('Catalog joint type ID, e.g. "nailed-16d".'),
+    jointTypeId: zId.describe('Catalog joint type ID, e.g. nailed-16d.'),
     partIds: z
-      .tuple([z.string().min(1), z.string().min(1)])
-      .describe('The two part IDs, e.g. ["W2-S07", "W2-P01"]. The second may be "GROUND".'),
+      .tuple([zId, zId])
+      .describe('The two part IDs, e.g. W2-S07 and W2-P01. The second may be GROUND.'),
     at: zVec3Input.describe('Where the joint is.'),
     fastenerCount: zFastenerCount.optional(),
     capacityOverride: zCapacityOverrideInput.optional(),
     note: z.string().optional(),
-    id: z.string().optional().describe('Explicit ID like "J0012". Usually left out so one is chosen.'),
+    id: zId.optional().describe('Explicit ID like J0012. Usually left out so one is chosen.'),
   }),
   check(project, input, ctx) {
     const errors = checkJoint(project, input, ctx.catalog);
@@ -145,8 +145,8 @@ export const updateJoint = defineCommand({
     'Change a joint\'s type, fastener count, capacity override, location or note. capacityOverride or note null clears it.',
   exposed: true,
   schema: z.strictObject({
-    id: zId('Joint ID, e.g. "J0012".'),
-    jointTypeId: z.string().optional(),
+    id: zId.describe('Joint ID, e.g. J0012.'),
+    jointTypeId: zId.optional().describe('New catalog joint type ID.'),
     fastenerCount: zFastenerCount.optional(),
     capacityOverride: zCapacityOverrideInput.nullable().optional(),
     at: zVec3Input.optional(),
@@ -189,7 +189,7 @@ export const disconnect = defineCommand({
   description: 'Remove joints by ID. The parts stay.',
   exposed: true,
   schema: z.strictObject({
-    ids: zIdList('Joint IDs, e.g. ["J0012"].'),
+    ids: zIdList('Joint IDs, e.g. J0012.'),
   }),
   check(project, input) {
     const missing = input.ids.filter((id) => !exists(project.joints, id));

@@ -6,7 +6,7 @@
  * limit and the top few. Also the `<stress_view>` note that starts the automatic turn
  * when the person turns Stress on.
  */
-import { KPA_PER_PSF, formatLoad, partLabel, type DesignLoadKey, type Project } from '@slapdash/core';
+import { KPA_PER_PSF, formatLoad, zId, partLabel, type DesignLoadKey, type Project } from '@slapdash/core';
 import type { AnalysisResult, Governing, JointResult, PartResult, SourcedValue } from '@slapdash/solver';
 import { z } from 'zod';
 import { compareIds } from '../format.ts';
@@ -17,7 +17,7 @@ export type AnalysisProvider = (project: Project) => Promise<AnalysisResult>;
 export const STRUCTURE_DISCLAIMER = 'Planning estimate, not an engineering check; confirm with the building department or an engineer.';
 
 export const zCheckStructure = z.strictObject({
-  assembly: z.string().trim().min(1).optional().describe('Only parts in this assembly (and joints touching them), e.g. "W3". Default: the whole project.'),
+  assembly: zId.optional().describe('Only parts in this assembly (and joints touching them), e.g. W3. Default: the whole project.'),
   limit: z.number().int().min(1).max(30).default(8).describe('How many of the most loaded parts and joints to list. Default 8.'),
 });
 export type CheckStructureInput = z.output<typeof zCheckStructure>;

@@ -57,7 +57,7 @@ export const BUILDER_DEFAULTS = {
 
 export const zBuilderMaterials = z
   .strictObject({
-    lumber: z.string().min(1).optional().describe('Framing lumber material ID. Default "spf-no2".'),
+    lumber: z.string().min(1).optional().describe('Framing lumber material ID. Default spf-no2.'),
     treatedLumber: z
       .string()
       .min(1)

@@ -8,10 +8,10 @@ import { formatBoth, parseLength } from './length.ts';
 import { parsePitch, pitchFromRatio, type Pitch } from './pitch.ts';
 
 export const LENGTH_DESCRIPTION =
-  'Length: a number in millimetres, or text with a unit like "16ft 6in", "9\'", "5 1/2in" or "4877mm".';
+  "Length: a number in millimetres, or a string with a unit, e.g. 16ft 6in, 9', 5 1/2in or 4877mm. Write the value itself without extra quote marks.";
 
 const lengthInput = z.union([z.number(), z.string()], {
-  error: 'should be a length: a number in millimetres or text like "8ft 6in"',
+  error: 'should be a length: a number in millimetres or a string with a unit, e.g. 8ft 6in',
 });
 
 /** Any length (may be zero or negative), as millimetres. */
@@ -40,10 +40,10 @@ export const zPositiveLength = zLength
   })
   .describe(`${LENGTH_DESCRIPTION} Must be more than zero.`);
 
-/** A roof pitch: text like "6 in 12" / "6/12" / "26.57deg", or a number meaning rise per 12. */
+/** A roof pitch: text like `6 in 12` / `6/12` / `26.57deg`, or a number meaning rise per 12. */
 export const zPitch = z
   .union([z.number(), z.string()], {
-    error: 'should be a roof pitch like "6 in 12" or "26.57deg"',
+    error: 'should be a roof pitch, e.g. 6 in 12 or 26.57deg',
   })
   .transform((value, ctx): Pitch => {
     if (typeof value === 'number') return pitchFromRatio(value / 12);
@@ -54,7 +54,9 @@ export const zPitch = z
     }
     return parsed.value;
   })
-  .describe('Roof pitch: text like "6 in 12", "6/12" or "26.57deg", or a number meaning inches of rise per 12 of run.');
+  .describe(
+    'Roof pitch: a string, e.g. 6 in 12, 6/12 or 26.57deg, or a number meaning inches of rise per 12 of run. Write the value itself without extra quote marks.',
+  );
 
 /** A point in project space (mm, y-up). Each coordinate accepts a number (mm) or text with a unit. */
 export const zVec3Input = z
