@@ -148,10 +148,29 @@ const generators: Gen[] = [
       input: { from: { x: `${x}ft`, z: `${z}ft` }, to: { x: `${x + 12}ft`, z: `${z + 10}ft` }, height: pick(['2ft', '4ft'], r), ...(r() < 0.5 ? { stairs: { side: 'south', at: '3ft' } } : {}) },
     };
   },
+  // Opening edits (indices 23–24).
+  (p, r) => {
+    const o = pick(Object.values(p.assemblies).filter((a) => a.builder?.name === 'add_opening'), r);
+    if (!o) return null;
+    const wall = p.assemblies[(o.builder!.params as { wallId: string }).wallId];
+    const length = (wall?.builder?.params as { length?: number } | undefined)?.length ?? 6000;
+    const k = r();
+    const change =
+      k < 1 / 3
+        ? { width: pick(['30in', '3ft', '4ft', '6ft'], r) }
+        : k < 2 / 3
+          ? { centerAt: Math.round(length * (0.3 + r() * 0.4)) }
+          : { height: pick(['3ft', '4ft', '6ft 8in'], r) };
+    return { name: 'update_opening', input: { openingId: o.id, ...change } };
+  },
+  (p, r) => {
+    const o = pick(Object.values(p.assemblies).filter((a) => a.builder?.name === 'add_opening'), r);
+    return o ? { name: 'remove_opening', input: { openingId: o.id } } : null;
+  },
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19, 20, 21, 22].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19, 20, 21, 22, 23, 23, 24].map((i) => generators[i]!);
 
 const builtAnySeed = new Set<string>();
 
@@ -196,6 +215,6 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
 
 describe('builder coverage across seeds', () => {
   it('every builder generator succeeded at least once', () => {
-    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'place_structure', 'build_fence', 'build_pergola', 'build_deck']) expect(builtAnySeed, name).toContain(name);
+    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'update_opening', 'remove_opening', 'place_structure', 'build_fence', 'build_pergola', 'build_deck']) expect(builtAnySeed, name).toContain(name);
   });
 });
