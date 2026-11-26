@@ -18,13 +18,13 @@ import { defineCommand } from './types.ts';
 const MEMBER_CATEGORIES = new Set<Material['category']>(['lumber', 'engineered-wood', 'steel']);
 const THICKNESS_CATEGORIES = new Set<Material['category']>(['sheet', 'insulation']);
 
-const zMaterialId = zNonBlank('Catalog material id, e.g. "spf-no2" or "osb-7-16".');
+const zMaterialId = zNonBlank('Catalog material id, e.g. spf-no2 or osb-7-16.');
 const zSize = z
   .string()
   .trim()
   .min(1)
   .optional()
-  .describe('Only this size: a section like "2x4", or a sheet thickness like "23/32in". Leave out to price every size.');
+  .describe('Only this size: a section like 2x4, or a sheet thickness like 23/32in. Leave out to price every size.');
 
 type SizeResult = { ok: true; variant: string } | { ok: false; error: CommandError };
 
