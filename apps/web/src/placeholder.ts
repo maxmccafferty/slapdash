@@ -1,4 +1,3 @@
-import type { Swatch } from '@slapdash/core';
 import type { FloorId } from './state/shell-store.ts';
 
 /**
@@ -33,8 +32,3 @@ export const PLACEHOLDER_FLOORS: FloorStop[] = [
   { id: 'foundation', label: 'Foundation', height: '0′ 8″' },
 ];
 
-/** The example material chip in the placeholder chat. */
-export const PLACEHOLDER_CHIP: { label: string; swatch: Swatch } = {
-  label: '2×4 stud, SPF',
-  swatch: { color: '#e3c28c' },
-};

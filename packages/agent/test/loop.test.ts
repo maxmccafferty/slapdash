@@ -10,7 +10,7 @@ import {
   type SnapshotProvider,
   type UserInput,
 } from '../src/index.ts';
-import { call, say, scriptedClient, type ScriptStep } from './fixtures/scripted-client.ts';
+import { call, say, scriptedClient, type ScriptStep } from '../testing/scripted-client.ts';
 import { SHELL, expectValidMessages, makeBus } from './helpers.ts';
 
 type ToolResultBlock = { type: 'tool_result'; tool_use_id: string; content: unknown; is_error?: boolean };
@@ -276,6 +276,37 @@ describe('tools in the loop', () => {
     expect(r.photoRequest).toBe('the wall where the deck attaches');
     expect(events).toContainEqual({ type: 'photo_request', what: 'the wall where the deck attaches' });
     expect(events.filter((e) => e.type === 'text_delta').map((e) => (e as { text: string }).text).join('')).toBe('Can you send a photo?');
+  });
+});
+
+describe('can\'t do it and pointing', () => {
+  it('offer_options ends up in the result and as an event, and changes nothing', async () => {
+    const options = ['Use a beam with a post in the middle', 'Make the opening 12ft'];
+    const { deps, events, bus } = setup([call(['offer_options', { options }]), say("A 24ft opening needs an engineered beam. Nothing has changed yet.")]);
+    const r = await turn(deps, 'Make a 24ft opening with no posts');
+    expect(r.options).toEqual(options);
+    expect(r.historyEntryId).toBeNull();
+    expect(r.refusals).toBe(0);
+    expect(events).toContainEqual({ type: 'options', options });
+    expect(bus.listHistory(1)).toEqual([]);
+  });
+
+  it('refuses one option or four', async () => {
+    const { deps, script } = setup([call(['offer_options', { options: ['Only one'] }]), call(['offer_options', { options: ['a', 'b', 'c', 'd'] }]), say('Hmm.')]);
+    const r = await turn(deps, 'x');
+    expect(r.options).toBeNull();
+    expect(r.refusals).toBe(2);
+    expect(lastResults(script.sent)[0]!.is_error).toBe(true);
+  });
+
+  it('sends the tapped part before the text', async () => {
+    const { deps, script } = setup([say('Raised it.')]);
+    await turn(deps, { text: 'make this taller', pointedAt: { id: 'W3-H01', label: 'Header, South wall' } });
+    const first = script.sent[0]![0]!.content as { type: string; text?: string }[];
+    expect(first).toHaveLength(3);
+    expect(first[0]!.text).toMatch(/^<project>/);
+    expect(first[2]!.text).toBe('make this taller');
+    expect(first[1]!.text).toBe('<pointing_at part="W3-H01">Header, South wall</pointing_at>');
   });
 });
 

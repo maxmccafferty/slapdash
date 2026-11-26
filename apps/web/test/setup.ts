@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeEach } from 'vitest';
+import { resetChatStore } from '../src/state/chat-store.ts';
 import { resetShellStore } from '../src/state/shell-store.ts';
 
 /**
@@ -46,6 +47,7 @@ Object.defineProperty(window, 'matchMedia', {
 beforeEach(() => {
   viewportWidth = 1440;
   resetShellStore();
+  resetChatStore();
 });
 
 afterEach(() => {

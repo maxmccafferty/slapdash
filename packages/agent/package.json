@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Slapdash agent: Claude's system prompt, the tool list, the keyhole wire protocol and the agent loop (tools, memory, guard). Runs in the browser and in Node.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./testing/scripted-client.ts"
   },
   "scripts": {
     "test": "vitest run",

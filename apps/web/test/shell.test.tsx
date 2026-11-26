@@ -70,7 +70,7 @@ describe('desktop shell (1440)', () => {
     expect(within(chat).getByRole('textbox', { name: 'Message Claude' })).toBeInTheDocument();
     expect(within(chat).getByRole('button', { name: 'Send' })).toBeInTheDocument();
     expect(within(chat).getByRole('button', { name: 'Talk' })).toBeInTheDocument();
-    expect(within(chat).getByTestId('swatch')).toBeInTheDocument();
+    expect(within(chat).getByText('What are we building?')).toBeInTheDocument();
   });
 
   it('tab order runs header, floors, view controls, chat', async () => {

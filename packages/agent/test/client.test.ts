@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fetchKeyholeClient, formatSseEvent, KeyholeRequestError, type FetchLike, type FetchResponseLike, type KeyholeEvent } from '../src/index.ts';
-import { BUDGET } from './fixtures/scripted-client.ts';
+import { BUDGET } from '../testing/scripted-client.ts';
 
 function jsonResponse(status: number, body: unknown, headers: Record<string, string> = {}): FetchResponseLike {
   return {

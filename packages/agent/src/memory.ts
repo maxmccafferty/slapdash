@@ -19,6 +19,13 @@
 import type { BetaContentBlockParam, BetaMessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
 import { clip } from './format.ts';
 
+/** The part the person tapped before sending, as Claude reads it. */
+export function pointerText(partId: string, label: string): string {
+  const attr = partId.replace(/[&"<>]/g, (c) => `&#${c.charCodeAt(0)};`);
+  const body = label.replace(/[&<>]/g, (c) => `&#${c.charCodeAt(0)};`);
+  return `<pointing_at part="${attr}">${body}</pointing_at>`;
+}
+
 /** JSON data, the same shape as storage's `JsonValue`. */
 export type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
@@ -348,6 +355,9 @@ export class AgentMemory {
           else out.push({ type: 'text', text: PHOTO_MISSING });
           break;
         }
+        case 'slapdash_pointer':
+          out.push({ type: 'text', text: pointerText(String(b.partId), String(b.label)) });
+          break;
         case 'slapdash_snapshot': {
           const image = b.image as { media_type: string; data: string } | undefined;
           if (recent && image) out.push({ type: 'image', source: { type: 'base64', media_type: image.media_type as 'image/png', data: image.data } });

@@ -22,6 +22,7 @@ describe('agent tools', () => {
       'propose_plan',
       'request_photo',
       'set_preferences',
+      'offer_options',
     ]);
     expect(tools.map((t) => t.name).slice(0, commandJsonSchemas().length)).toEqual(commandJsonSchemas().map((t) => t.name));
   });

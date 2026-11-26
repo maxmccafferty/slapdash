@@ -1,15 +1,18 @@
 import {
   ArrowUp,
+  Camera,
   Download,
   Eye,
   Folder,
   FolderOpen,
+  Image,
   Layers,
   List,
   ListOrdered,
   MessageCircle,
   Mic,
   Redo2,
+  Square,
   Undo2,
   X,
   type LucideIcon,
@@ -29,6 +32,9 @@ const ICONS = {
   mic: Mic,
   send: ArrowUp,
   close: X,
+  camera: Camera,
+  image: Image,
+  stop: Square,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

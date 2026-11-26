@@ -7,13 +7,15 @@ export interface TalkKeyProps {
   iconSize?: IconSize;
   onHoldStart?: () => void;
   onHoldEnd?: () => void;
+  /** Faded and inert, e.g. while Claude isn't available. */
+  disabled?: boolean;
 }
 
 /** The orange push-to-talk key. Hold with the pointer, Space or Enter; it reads "Let go" while held. */
-export function TalkKey({ iconOnly = false, iconSize = 'key', onHoldStart, onHoldEnd }: TalkKeyProps) {
+export function TalkKey({ iconOnly = false, iconSize = 'key', onHoldStart, onHoldEnd, disabled = false }: TalkKeyProps) {
   const [held, setHeld] = useState(false);
   const start = () => {
-    if (held) return;
+    if (held || disabled) return;
     setHeld(true);
     onHoldStart?.();
   };
@@ -28,6 +30,7 @@ export function TalkKey({ iconOnly = false, iconSize = 'key', onHoldStart, onHol
   return (
     <button
       type="button"
+      disabled={disabled}
       className={[styles.talk, iconOnly && styles['icon-only'], held && styles.held].filter(Boolean).join(' ')}
       aria-pressed={held}
       aria-label={iconOnly ? label : undefined}

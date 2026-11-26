@@ -22,7 +22,7 @@ declare global {
 async function open(page: Page, query = '') {
   await page.goto(`/?sample=pool-house&e2e${query}`);
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForFunction(() => window.__slapdash?.frameStats().frames > 0, undefined, { timeout: 30_000 });
+  await page.waitForFunction(() => window.__slapdash?.frameStats?.().frames > 0, undefined, { timeout: 30_000 });
   // Let the in-progress outlines and drop-ins finish.
   await page.waitForTimeout(900);
 }

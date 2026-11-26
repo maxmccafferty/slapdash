@@ -41,6 +41,8 @@ export interface UserInput {
    * any reply after a plan counts as an answer to it.
    */
   approvePlan?: boolean;
+  /** The part the person tapped in the view before sending, so "this" can mean it. */
+  pointedAt?: { id: string; label: string };
 }
 
 export type AgentEvent =
@@ -50,6 +52,7 @@ export type AgentEvent =
   | { type: 'tool_result'; id: string; name: string; isError: boolean; content: string | StoredBlock[] }
   | { type: 'plan'; plan: PlanEvent }
   | { type: 'photo_request'; what: string }
+  | { type: 'options'; options: string[] }
   | { type: 'budget'; budget: BudgetStatus }
   | { type: 'done'; done: KeyholeDone }
   | { type: 'error'; error: unknown };
@@ -63,6 +66,8 @@ export interface TurnResult {
   historyEntryId: number | null;
   plan: PlanEvent | null;
   photoRequest: string | null;
+  /** Choices Claude offered when it couldn't do what was asked. */
+  options: string[] | null;
   /** What the requests this turn cost, in dollars. */
   costUsd: number;
   budget: BudgetStatus | null;
@@ -104,6 +109,7 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
   });
   const userContent: StoredBlock[] = [{ type: 'slapdash_project', text: summary }];
   for (const photo of input.photos ?? []) userContent.push({ type: 'slapdash_file', fileId: photo.fileId, mimeType: photo.mimeType, kind: 'photo' });
+  if (input.pointedAt) userContent.push({ type: 'slapdash_pointer', partId: input.pointedAt.id, label: input.pointedAt.label });
   userContent.push({ type: 'text', text: input.text.trim() === '' ? '(no text)' : input.text });
   memory.beginTurn(turnId, userContent);
 
@@ -114,6 +120,7 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
     historyEntryId: null,
     plan: null,
     photoRequest: null,
+    options: null,
     costUsd: 0,
     budget: null,
     toolCalls: 0,
@@ -185,6 +192,10 @@ export async function runTurn(deps: AgentDeps, input: UserInput): Promise<TurnRe
           if (fx.photoRequest) {
             result.photoRequest = fx.photoRequest;
             emit({ type: 'photo_request', what: fx.photoRequest });
+          }
+          if (fx.options) {
+            result.options = fx.options;
+            emit({ type: 'options', options: fx.options });
           }
         }
         if (outcome.isError) result.refusals++;
