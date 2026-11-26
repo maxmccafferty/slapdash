@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { zId } from '../commands/common.ts';
 import type { AppliedCommand } from '../commands/types.ts';
 
 export type HistorySource = 'claude' | 'user' | 'system';
@@ -64,7 +65,7 @@ export const historyToolDefs = [
     name: 'save_version',
     description: 'Save a named copy of the project as it is now, to come back to later.',
     schema: z.strictObject({
-      name: z.string().trim().min(1).describe('A unique name, e.g. "before roof".'),
+      name: zId.describe('A unique name, e.g. before roof.'),
       note: z.string().optional().describe('Optional note about this version.'),
     }),
   },
@@ -77,7 +78,7 @@ export const historyToolDefs = [
     name: 'restore_version',
     description: 'Restore a saved version. The restore can itself be undone.',
     schema: z.strictObject({
-      name: z.string().trim().min(1).describe('Name of the saved version.'),
+      name: zId.describe('Name of the saved version.'),
     }),
   },
 ] as const;
