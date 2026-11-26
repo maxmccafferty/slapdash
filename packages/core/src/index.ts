@@ -20,6 +20,7 @@ export {
 } from './commands/errors.ts';
 export type { AnyCommandDef, AppliedCommand, ApplyResult, CommandContext, CommandDef } from './commands/types.ts';
 export { commandRegistry, exposedCommands } from './commands/registry.ts';
+export { zId } from './commands/common.ts';
 export { commandJsonSchemas, historyToolSchemas, toInputJsonSchema, type ToolSchema } from './commands/json-schema.ts';
 
 export {
