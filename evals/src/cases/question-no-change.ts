@@ -1,4 +1,4 @@
-import { noMutatingCalls, noPlan, nothingChanged, textMentions } from '../checks.ts';
+import { feetRe, noMutatingCalls, noPlan, nothingChanged, textMentions } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_HOUSE_WALLS } from '../seeds.ts';
 
@@ -13,6 +13,6 @@ export const questionNoChange = defineScenario({
     ctx.expect(nothingChanged(ctx.session, ctx.baseline));
     ctx.expect(noPlan(t));
     ctx.expect(noMutatingCalls(t));
-    ctx.expect(textMentions(t, /9\s*(ft|foot|feet|')/i, 'the 9ft wall height'));
+    ctx.expect(textMentions(t, feetRe(9), 'the 9ft wall height'));
   },
 });
