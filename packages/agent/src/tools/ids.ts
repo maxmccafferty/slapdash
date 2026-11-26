@@ -3,8 +3,9 @@
  * string (the JSON value `"\"R1\""`), so ids are trimmed and one matching pair of `"…"` or
  * `“…”` is stripped before lookup.
  *
- * TODO: switch to `zId` from `@slapdash/core` once LOC-100's version (same behaviour)
- * reaches this branch.
+ * TODO: switch to core's `zId` once LOC-100 (3126f51) syncs in. There it is a schema used as
+ * `zId.describe('…')`, not a factory, so call sites change shape;
+ * zIdList becomes `z.array(zId)`.
  */
 import { unwrapQuotes } from '@slapdash/core';
 import { z } from 'zod';
