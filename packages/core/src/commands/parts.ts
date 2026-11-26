@@ -69,13 +69,13 @@ function incompatibleJoints(project: Project, partId: string, material: Material
 export const addPart = defineCommand({
   name: 'add_part',
   description:
-    'Add one part (a stud, joist, sheet, slab…) to an assembly. Give a material and either a sectionId (e.g. "2x4", which sets width and height) or explicit width and height. Lengths accept numbers in mm or text like "8ft". Position is the part\'s start corner; the part runs along its local x axis.',
+    'Add one part (a stud, joist, sheet, slab…) to an assembly. Give a material and either a sectionId (e.g. 2x4, which sets width and height) or explicit width and height. Lengths accept numbers in mm or a string with a unit, e.g. 8ft, without extra quote marks. Position is the part\'s start corner; the part runs along its local x axis.',
   exposed: true,
   schema: z.strictObject({
-    assemblyId: zId('Assembly to add to, e.g. "W2".'),
+    assemblyId: zId.describe('Assembly to add to, e.g. W2.'),
     role: zPartRole.describe('What the part does. Sets the ID code (stud → S, joist → J, …).'),
-    materialId: zId('Catalog material ID, e.g. "spf-no2".'),
-    sectionId: z.string().optional().describe('Catalog section ID, e.g. "2x4". Sets width and height.'),
+    materialId: zId.describe('Catalog material ID, e.g. spf-no2.'),
+    sectionId: zId.optional().describe('Catalog section ID, e.g. 2x4. Sets width and height.'),
     position: zVec3Input.describe('Start corner of the part, from the ground origin; y is up.'),
     rotation: zRotationInput.optional(),
     length: zPositiveLength.describe(`Length along the part (local x). ${LENGTH_DESCRIPTION}`),
@@ -86,7 +86,7 @@ export const addPart = defineCommand({
     buildStep: zBuildStep.optional(),
     name: z.string().optional().describe('Optional readable name.'),
     tags: z.array(z.string()).optional().describe('Free-form tags.'),
-    id: z.string().optional().describe('Explicit ID like "W2-S07". Usually left out so one is chosen.'),
+    id: zId.optional().describe('Explicit ID like W2-S07. Usually left out so one is chosen.'),
   }),
   check(project, input, ctx) {
     const errors: CommandError[] = [];
@@ -209,7 +209,7 @@ export const moveParts = defineCommand({
     'Move one or more parts. Use "by" to shift every listed part by the same offset, or "to" to put a single part\'s start corner at a point. "rotation" sets the listed axes to absolute angles.',
   exposed: true,
   schema: z.strictObject({
-    ids: zIdList('Part IDs to move, e.g. ["W2-S07"].'),
+    ids: zIdList('Part IDs to move, e.g. W2-S07.'),
     to: zVec3Input.optional().describe('New start corner (one part only).'),
     by: zVec3Input.optional().describe('Offset to add to each part\'s position.'),
     rotation: zRotationInput.optional(),
@@ -269,7 +269,7 @@ export const resizePart = defineCommand({
     'Change a part\'s length, or the width/height of a part with no section. To change a sectioned member\'s size, give it a different section with update_part.',
   exposed: true,
   schema: z.strictObject({
-    id: zId('Part ID, e.g. "W2-S07".'),
+    id: zId.describe('Part ID, e.g. W2-S07.'),
     length: zPositiveLength.optional(),
     width: zPositiveLength.optional(),
     height: zPositiveLength.optional(),
@@ -315,14 +315,14 @@ export const updatePart = defineCommand({
     'Change a part\'s material, section, role, name, build step, tags or assembly. The part keeps its ID even if its role or assembly changes. Changing the section resets width and height to the section\'s size; sectionId null removes the section and keeps the current size.',
   exposed: true,
   schema: z.strictObject({
-    id: zId('Part ID, e.g. "W2-S07".'),
-    materialId: z.string().optional().describe('New catalog material ID.'),
-    sectionId: z.string().nullable().optional().describe('New catalog section ID, or null to remove it.'),
+    id: zId.describe('Part ID, e.g. W2-S07.'),
+    materialId: zId.optional().describe('New catalog material ID.'),
+    sectionId: zId.nullable().optional().describe('New catalog section ID, or null to remove it.'),
     role: zPartRole.optional(),
     name: z.string().nullable().optional().describe('New name, or null to clear it.'),
     buildStep: zBuildStep.optional(),
     tags: z.array(z.string()).optional().describe('Replaces the tags.'),
-    assemblyId: z.string().optional().describe('Move the part to another assembly (its ID stays the same).'),
+    assemblyId: zId.optional().describe('Move the part to another assembly (its ID stays the same).'),
   }),
   check(project, input, ctx) {
     if (!exists(project.parts, input.id)) return [notFound('part', input.id, Object.keys(project.parts), 'id')];
@@ -400,7 +400,7 @@ export const deleteParts = defineCommand({
   description: 'Delete parts. Any joints on them are deleted too.',
   exposed: true,
   schema: z.strictObject({
-    ids: zIdList('Part IDs to delete, e.g. ["W2-S07", "W2-S08"].'),
+    ids: zIdList('Part IDs to delete, e.g. W2-S07 and W2-S08.'),
   }),
   check(project, input) {
     const missing = input.ids.filter((id) => !exists(project.parts, id));
