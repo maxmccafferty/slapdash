@@ -2,6 +2,7 @@
 import type { Scenario } from '../scenario.ts';
 import { clashAvoidance } from './clash-avoidance.ts';
 import { fence } from './fence.ts';
+import { followUpsAfterBuild } from './follow-ups-after-build.ts';
 import { gableRoof } from './gable-roof.ts';
 import { justDoIt } from './just-do-it.ts';
 import { planRevision } from './plan-revision.ts';
@@ -26,4 +27,5 @@ export const SCENARIOS: readonly Scenario[] = [
   justDoIt,
   clashAvoidance,
   questionNoChange,
+  followUpsAfterBuild,
 ];

@@ -6,16 +6,20 @@
  *    each building scenario), so a FAIL in `pnpm eval` points at the model, not the check;
  * 2. the checks catch known-bad models (a clash, a broken joint, a loose stud, no slab);
  * 3. the runner, usage tap, spend guard and report work end to end with a scripted client;
- * 4. the in-process keyhole ignores Supabase sign-in.
+ * 4. an upstream error on any turn ends a scenario as an error, never a pass;
+ * 5. the in-process keyhole ignores Supabase sign-in.
  */
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { scriptedClient, say } from '@slapdash/agent/testing';
+import { KeyholeRequestError, type KeyholeClient } from '@slapdash/agent';
+import { BUDGET, scriptedClient, say } from '@slapdash/agent/testing';
 import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, GROUND, indexCatalog, type Project } from '@slapdash/core';
 import {
+  answered,
   assemblyCount,
+  feetRe,
   commonStudLength,
   distanceFromWallEnd,
   FT,
@@ -35,6 +39,7 @@ import { SCENARIOS } from './cases/index.ts';
 import { budgetStatus, inProcessKeyhole } from './harness.ts';
 import { scenarioLines, summaryLines, totalsOf } from './report.ts';
 import { POOL_HOUSE_WALLS, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
+import { defineScenario } from './scenario.ts';
 import { runSuite } from './suite.ts';
 
 const catalog = indexCatalog(TIER1_CATALOG);
@@ -234,7 +239,11 @@ const runner = section('Runner, usage tap, spend guard and report work offline',
 
   const broken = scriptedClient([new Error('boom')]);
   const err = await runSuite([questionNoChange], broken.client, { maxUsd: 1 });
-  check('a thrown error is reported as error', err.results[0]?.status === 'error' && err.results[0]?.error === 'boom', err.results[0]);
+  check('a thrown error is reported as error', err.results[0]?.status === 'error' && /boom/.test(err.results[0]?.error ?? ''), err.results[0]);
+
+  const prime = scriptedClient([say('The walls are 9′ 0″ tall and the slab is 20′ 0″ × 16′ 0″.')]);
+  const primed = await runSuite([questionNoChange], prime.client, { maxUsd: 1 });
+  check('an answer in primes (9′ 0″) passes', primed.results[0]?.status === 'pass', primed.results[0]?.failures);
 
   const guard = scriptedClient([say('9ft walls.'), say('9ft walls.')]);
   const guarded = await runSuite([questionNoChange, questionNoChange], guard.client, { maxUsd: 0.005 });
@@ -255,7 +264,55 @@ const runner = section('Runner, usage tap, spend guard and report work offline',
   check('the cap projection uses typical turns', totals.typicalTurnsPerCap !== null && totals.typicalTurnsPerCap > 0, totals);
 });
 
-// ── 4. Sign-in bypass ───────────────────────────────────────────────────────
+// ── 4. Upstream errors and follow-up turns ─────────────────────────────────
+
+const feetText = section('Feet marks and upstream errors', async () => {
+  for (const ok of ['9ft', '9 ft', '9 feet', '9-foot', "9'", '9′ 0″', '9’', 'walls are 9 Feet tall']) check(`feetRe(9) accepts "${ok}"`, feetRe(9).test(ok));
+  for (const bad of ['19ft', '9.5ft', '9 inches', '9″', '90 feet']) check(`feetRe(9) rejects "${bad}"`, !feetRe(9).test(bad));
+
+  // A thinking turn, then a question: the shape of the LOC-108 regression.
+  const twoTurns = defineScenario({
+    name: 'two-turns',
+    description: 'self-check only',
+    async run(ctx) {
+      const t1 = await ctx.turn('Build it');
+      ctx.expect(answered(t1, 'turn 1'));
+      const t2 = await ctx.turn('How tall are the walls?');
+      ctx.expect(answered(t2, 'turn 2'));
+    },
+  });
+  const thinkThenSay = { content: [{ type: 'thinking' as const, thinking: 'Plan the walls.', signature: 'sig-1' }, { type: 'text' as const, text: 'Done.' }] };
+
+  const fine = scriptedClient([thinkThenSay, say('9ft.')]);
+  const ok = await runSuite([twoTurns], fine.client, { maxUsd: 1 });
+  check('two answered turns pass', ok.results[0]?.status === 'pass', ok.results[0]);
+  check('thinking blocks are counted per turn', ok.results[0]?.turns[0]?.thinking === 1 && ok.results[0]?.turns[1]?.thinking === 0, ok.results[0]?.turns.map((t) => t.thinking));
+
+  // The upstream error as the keyhole streams it: an `error` event instead of `done`.
+  const streamed = scriptedClient([thinkThenSay]);
+  let calls = 0;
+  const failsSecond: KeyholeClient = async function* (messages, signal) {
+    if (++calls === 1) return yield* streamed.client(messages, signal);
+    yield { event: 'budget', data: BUDGET };
+    yield { event: 'error', data: { error: 'upstream', message: 'Invalid `signature` in `thinking` block', retryable: false } };
+  };
+  const se = (await runSuite([twoTurns], failsSecond, { maxUsd: 1 })).results[0]!;
+  check('a streamed upstream error on turn 2 is an error, not a pass', se.status === 'error' && /^T2 .*signature/.test(se.error ?? ''), se);
+  check('the turn before the error is kept', se.turns.length === 1, se.turns.length);
+
+  // The keyhole refusing the request outright (HTTP 400).
+  const refused = scriptedClient([thinkThenSay, new KeyholeRequestError({ error: 'bad_request', message: 'Invalid `signature` in `thinking` block' }, 400)]);
+  const re = (await runSuite([twoTurns], refused.client, { maxUsd: 1 })).results[0]!;
+  check('an HTTP 400 on turn 2 is an error naming the turn and status', re.status === 'error' && /^T2 .*HTTP 400/.test(re.error ?? ''), re);
+  check('the report shows the error', scenarioLines(re, { log: true }).some((l) => l.startsWith('ERROR') || l.includes('HTTP 400')), scenarioLines(re, { log: true }));
+
+  const silent = scriptedClient([thinkThenSay, { content: [], stopReason: 'end_turn' }]);
+  check('a turn with no reply fails', (await runSuite([twoTurns], silent.client, { maxUsd: 1 })).results[0]?.status === 'fail');
+  const cut = scriptedClient([thinkThenSay, { content: [{ type: 'text', text: 'The walls are' }], stopReason: 'max_tokens' }]);
+  check('a cut-off reply fails', (await runSuite([twoTurns], cut.client, { maxUsd: 1 })).results[0]?.status === 'fail');
+});
+
+// ── 5. Sign-in bypass ───────────────────────────────────────────────────────
 
 const signIn = section('The in-process keyhole skips Supabase sign-in', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'slapdash-evals-'));
@@ -276,6 +333,6 @@ const signIn = section('The in-process keyhole skips Supabase sign-in', async ()
   check('the budget can be read', typeof budget.capUsd === 'number' && budget.capUsd > 0, budget);
 });
 
-for (const run of [goodModels, badModels, runner, signIn]) await run();
+for (const run of [goodModels, badModels, runner, feetText, signIn]) await run();
 console.log(`\n${failures === 0 ? 'PASS' : 'FAIL'} self-check: ${passes} checks passed, ${failures} failed`);
 process.exit(failures === 0 ? 0 : 1);

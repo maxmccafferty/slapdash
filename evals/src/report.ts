@@ -21,6 +21,7 @@ export function turnLine(t: TurnRecord, i: number): string {
   const bits = [
     t.plan ? 'plan' : null,
     t.options ? `${t.options.length} options` : null,
+    t.thinking > 0 ? 'thinking' : null,
     `${t.toolCalls.length} tools`,
     t.refusals > 0 ? `${t.refusals} refused` : null,
     `${kTokens(t.tokens.input)} in / ${kTokens(t.tokens.output)} out / ${kTokens(t.tokens.cacheRead)} cache-read`,

@@ -104,7 +104,18 @@ export async function runScenario(scenario: Scenario, client: KeyholeClient, opt
       async turn(input) {
         const text = typeof input === 'string' ? input : input.text;
         log(`  T${turns.length + 1} "${text}"`);
-        const { result, record } = await session.turn(input);
+        let turn;
+        try {
+          turn = await session.turn(input);
+        } catch (e) {
+          // An upstream error (e.g. the API refusing the replayed history) ends the scenario as an
+          // error, never a pass: say which turn it was.
+          const msg = e instanceof Error ? e.message : String(e);
+          const status = typeof (e as { status?: unknown })?.status === 'number' ? ` (HTTP ${(e as { status: number }).status})` : '';
+          log(`    ✗ error${status}: ${msg}`);
+          throw new Error(`T${turns.length + 1} "${text.slice(0, 60)}" ended in an error${status}: ${msg}`, { cause: e });
+        }
+        const { result, record } = turn;
         turns.push(record);
         log(`    Claude: ${record.text.replace(/\s+/g, ' ').slice(0, 400)}`);
         return { ...result, record };

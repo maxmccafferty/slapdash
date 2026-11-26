@@ -88,6 +88,8 @@ export interface RequestUsage {
   tokens: TokenTotals;
   costUsd: number;
   model: string | null;
+  /** Thinking blocks in the reply (including redacted ones). */
+  thinkingBlocks: number;
 }
 
 interface RawUsage {
@@ -114,17 +116,20 @@ export function tapUsage(client: KeyholeClient, sink: (usage: RequestUsage) => v
     const tokens = zeroTokens();
     let costUsd = 0;
     let model: string | null = null;
+    let thinkingBlocks = 0;
     let seen = false;
     try {
       for await (const e of client(messages, signal)) {
         if (e.event === 'anthropic') {
-          const data = e.data as { type: string; message?: { usage?: RawUsage; model?: string }; usage?: RawUsage };
+          const data = e.data as { type: string; message?: { usage?: RawUsage; model?: string }; usage?: RawUsage; content_block?: { type?: string } };
           if (data.type === 'message_start') {
             seen = true;
             applyUsage(tokens, data.message?.usage);
             model = data.message?.model ?? model;
           } else if (data.type === 'message_delta') {
             applyUsage(tokens, data.usage);
+          } else if (data.type === 'content_block_start' && /thinking/.test(data.content_block?.type ?? '')) {
+            thinkingBlocks++;
           }
         } else if (e.event === 'done') {
           seen = true;
@@ -134,7 +139,7 @@ export function tapUsage(client: KeyholeClient, sink: (usage: RequestUsage) => v
         yield e;
       }
     } finally {
-      if (seen) sink({ tokens, costUsd, model });
+      if (seen) sink({ tokens, costUsd, model, thinkingBlocks });
     }
   };
 }
@@ -150,6 +155,8 @@ export interface TurnRecord {
   /** Requests to Claude this turn. */
   requests: number;
   models: string[];
+  /** Thinking blocks Claude wrote this turn: a later turn replays them, signatures and all. */
+  thinking: number;
   /** Tool names in call order. */
   toolCalls: string[];
   /** Error results from tools or the guard, shortened. */
@@ -227,6 +234,7 @@ export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}
         tokens: usage.reduce((a, u) => addTokens(a, u.tokens), zeroTokens()),
         requests: usage.length,
         models: [...new Set(usage.map((u) => u.model).filter((m): m is string => m !== null))],
+        thinking: usage.reduce((a, u) => a + u.thinkingBlocks, 0),
         toolCalls,
         toolErrors,
         refusals: result.refusals,

@@ -92,6 +92,24 @@ export function noMutatingCalls(t: TurnLike): Fail {
 /** Used sparingly: for refusals and answers only. */
 export const textMentions = (t: TurnLike, re: RegExp, what: string): Fail => (re.test(t.text) ? null : `Claude's reply should mention ${what}`);
 
+/**
+ * Feet and inch marks as Claude may write them: words, straight quotes, the primes the app
+ * formats with (9′ 0″) and curly quotes. Use these in any regex that matches a length.
+ */
+export const FEET_MARK = String.raw`(?:ft\b|foot|feet|['′’])`;
+export const INCH_MARK = String.raw`(?:in\b|inch|inches|["″”])`;
+
+/** Matches a whole number of feet, e.g. 9ft, 9 feet, 9-foot, 9', 9′ or 9’ (not 19ft). */
+export const feetRe = (n: number): RegExp => new RegExp(String.raw`(?<![\d.])${n}(?:\s*|-)${FEET_MARK}`, 'i');
+
+/** The turn ended with a real reply: not aborted, not cut off or refused, and Claude said something. */
+export function answered(t: TurnLike, which = 'this turn'): Fail {
+  if (t.aborted) return `${which} was aborted`;
+  if (t.stopReason !== 'end_turn' && t.stopReason !== 'stop_sequence') return `${which} should end normally (stop reason ${t.stopReason ?? 'none'})`;
+  if (t.text.trim() === '') return `${which} should get a reply from Claude (it said nothing)`;
+  return null;
+}
+
 // ── Counts ──────────────────────────────────────────────────────────────────
 
 export const assembliesOf = (p: Project, kind: Assembly['kind']): Assembly[] => Object.values(p.assemblies).filter((a) => a.kind === kind);
