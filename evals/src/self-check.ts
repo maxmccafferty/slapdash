@@ -362,7 +362,7 @@ const feetText = section('Feet marks and upstream errors', async () => {
 const badInput = section('Input-parse rejections are told apart from refusals', async () => {
   // Messages as the parsers and builders write them.
   for (const msg of [
-    `"height": Couldn't read ""9ft"" as a length. Try "9ft", "8' 6\"" or "2400mm".`,
+    `"height": Couldn't read ""9ft"" as a length. Try "9ft", "8' 6"" or "2400mm".`,
     `"height": "0" has no unit. Add a unit, e.g. 0ft, 0in or 0mm.`,
     `"pitch": Couldn't read "steep" as a roof pitch.`,
     `"plan" is required.`,
