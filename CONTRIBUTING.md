@@ -321,3 +321,23 @@ sizes and motion come only from `docs/design/tokens.json`:
 4. Run `pnpm --filter @slapdash/web test`, and `pnpm --filter @slapdash/web e2e` for layout,
    focus, axe and reduced-motion checks (install Chromium once with
    `pnpm --filter @slapdash/web exec playwright install chromium`).
+
+## Renderer
+
+The 3D view lives in `apps/web/src/renderer` (see the web app's README for its architecture).
+
+- **A new material draws itself.** The renderer reads only the catalog entry: its `swatch`
+  (colour, roughness, metalness, opacity; glass is anything with opacity below 1) and,
+  optionally, its `textureSet` (KTX2 maps at `tileSize_mm`). Add those to the material (see
+  "How to add a material") and it appears with grain along the board's length. There is no
+  per-material renderer code. A material without a swatch is drawn neutral grey.
+- **The view rules live in one place:** `visibility.ts` decides what Floors and Look from
+  show and where Inside cuts. Change it there, and update `test/renderer/visibility.test.ts`.
+  The user's view and snapshots both use it.
+- **Colour.** The model is the only colour. Orange (`signal`) is for outlines of the selection
+  and parts being worked on, never fill. Scene colours come from `SCENE_COLORS` in the generated
+  `tokens.ts`, never literals.
+- **Tests.** Keep pure logic (batching, camera fit, dimensions, picking, snapshot requests) in
+  plain modules with vitest tests in `apps/web/test/renderer/`; `scene.test.tsx` covers the
+  scene graph with `@react-three/test-renderer`. Real WebGL is covered by
+  `apps/web/e2e/renderer.spec.ts`.

@@ -30,3 +30,28 @@
   font-weight: var(--type-label-weight);
   color: var(--color-muted);
 }
+
+/* The 3D view fills the area. No browser gestures on it: drag orbits, pinch zooms. */
+.canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+/* 2D: the canvas stays mounted (snapshots keep working) but is not shown. */
+.hidden {
+  visibility: hidden;
+}
+
+/* `?perf` device readout, top centre (clear of the corner units). */
+.perf {
+  position: absolute;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-muted);
+  pointer-events: none;
+}

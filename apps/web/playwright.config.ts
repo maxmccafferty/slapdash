@@ -10,6 +10,8 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: 'retain-on-failure',
+    // WebGL 2 in headless Chromium, without a GPU (the renderer specs need it).
+    launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] },
   },
   webServer: {
     command: `npx vite build && npx vite preview --port ${PORT} --strictPort`,

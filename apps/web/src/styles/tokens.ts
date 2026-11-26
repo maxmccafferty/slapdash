@@ -9,6 +9,19 @@ export const PHONE_BREAKPOINT_PX = 900;
 /** Minimum touch target, in px. */
 export const TOUCH_TARGET_PX = 44;
 
+/** Scene colours (hex) for the 3D renderer, which cannot read CSS variables. */
+export const SCENE_COLORS = {
+  paper: '#ffffff',
+  floor: '#fbfbfc',
+  dot: '#bfc5cd',
+  ink: '#1a1a1a',
+  keyDark: '#2b2b2b',
+  muted: '#666664',
+  signal: '#e8590c',
+  hairline: '#ececea',
+  concrete: '#dcd9d2',
+} as const;
+
 /** Every custom property in tokens.css, without the leading `--`. */
 export const TOKEN_NAMES = [
   'color-paper',

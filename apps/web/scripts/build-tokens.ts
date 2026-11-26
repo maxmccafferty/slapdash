@@ -5,8 +5,9 @@
  *   pnpm --filter @slapdash/web tokens
  *
  * Writes `src/styles/tokens.css` (CSS custom properties) and `src/styles/tokens.ts`
- * (values CSS variables can't carry, such as the phone breakpoint). Both are committed;
- * `test/tokens.test.ts` fails if they differ from what this script would write.
+ * (values CSS variables can't carry, such as the phone breakpoint and the 3D scene
+ * colours). Both are committed; `test/tokens.test.ts` fails if they differ from what this
+ * script would write.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -122,7 +123,26 @@ function pxNumber(value: string): number {
   return Number(value.replace(/px$/, ''));
 }
 
+/** The colours the 3D scene uses, as `SCENE_COLORS` keys (camelCase) → token names. */
+export const SCENE_COLOR_TOKENS = {
+  paper: 'paper',
+  floor: 'floor',
+  dot: 'dot',
+  ink: 'ink',
+  keyDark: 'key-dark',
+  muted: 'muted',
+  signal: 'signal',
+  hairline: 'hairline',
+  concrete: 'concrete',
+} as const;
+
 export function generateTs(tokens: TokensJson): string {
+  const theme = tokens.color.themes[0]!.id;
+  const sceneColors = Object.entries(SCENE_COLOR_TOKENS).map(([key, name]) => {
+    const value = tokens.color.tokens.find((c) => c.name === name)?.value[theme];
+    if (value === undefined) throw new Error(`tokens.json has no colour "${name}" for theme "${theme}"`);
+    return `  ${key}: '${value.toLowerCase()}',`;
+  });
   const size = (name: string): number => {
     const t = tokens.size.tokens.find((s) => s.name === name);
     if (!t) throw new Error(`tokens.json has no size token "${name}"`);
@@ -137,6 +157,11 @@ export function generateTs(tokens: TokensJson): string {
     '',
     '/** Minimum touch target, in px. */',
     `export const TOUCH_TARGET_PX = ${size('size-touch')};`,
+    '',
+    '/** Scene colours (hex) for the 3D renderer, which cannot read CSS variables. */',
+    'export const SCENE_COLORS = {',
+    ...sceneColors,
+    '} as const;',
     '',
     '/** Every custom property in tokens.css, without the leading `--`. */',
     'export const TOKEN_NAMES = [',

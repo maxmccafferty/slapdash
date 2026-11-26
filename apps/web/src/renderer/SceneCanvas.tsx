@@ -1,0 +1,115 @@
+/**
+ * The 3D view (lazy-loaded, its own chunk): one `<Canvas>` that renders on demand (the
+ * biggest battery and heat win on phones), with the user's scene, the controls, picking,
+ * quality management, post effects and the offscreen snapshot host.
+ */
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useMemo } from 'react';
+import { ACESFilmicToneMapping } from 'three';
+import { useMediaQuery } from '../hooks/useMediaQuery.ts';
+import { useModelStore } from '../state/model-store.ts';
+import { useShellStore } from '../state/shell-store.ts';
+import { SCENE_COLORS } from '../styles/tokens.ts';
+import { createCutUniforms } from './CutFaces.ts';
+import { Effects } from './Effects.tsx';
+import { scaleScreenSprites } from './labels.ts';
+import { Picking } from './Picking.tsx';
+import { QualityManager } from './QualityManager.tsx';
+import { TIER_SETTINGS } from './quality.ts';
+import { useRendererStore } from './renderer-store.ts';
+import { SceneContent, type ViewSpec } from './SceneContent.tsx';
+import { SnapshotHost } from './snapshot/SnapshotHost.tsx';
+import { useRendererDebug } from './useRendererDebug.ts';
+import { cutPlaneFor } from './visibility.ts';
+import { REDUCED_MOTION_QUERY, ViewControls3D } from './ViewControls3D.tsx';
+
+/** Labels keep their pixel size as the camera moves. */
+function LabelScaler() {
+  useFrame((state) => scaleScreenSprites(state.scene, state.camera, state.size.height), -1);
+  return null;
+}
+
+/** Redraw when the model or the view controls change (the canvas renders on demand). */
+function Invalidator() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const a = useModelStore.subscribe(() => invalidate());
+    const b = useShellStore.subscribe(() => invalidate());
+    const c = useRendererStore.subscribe(() => invalidate());
+    return () => {
+      a();
+      b();
+      c();
+    };
+  }, [invalidate]);
+  return null;
+}
+
+function UserScene() {
+  const project = useModelStore((s) => s.project);
+  const catalog = useModelStore((s) => s.catalog);
+  const selected = useModelStore((s) => s.selectedPartId);
+  const inProgress = useModelStore((s) => s.inProgress);
+  const proposal = useModelStore((s) => s.proposal);
+  const lastEvent = useModelStore((s) => s.lastEvent);
+  const floor = useShellStore((s) => s.floor);
+  const lookFrom = useShellStore((s) => s.lookFrom);
+  const dimensions = useShellStore((s) => s.dimensions);
+  const view = useShellStore((s) => s.view);
+  const tier = useRendererStore((s) => s.tier);
+  const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
+  const cut = useMemo(() => createCutUniforms(), []);
+  useRendererDebug();
+
+  const outlined = useMemo(() => {
+    const ids = new Set(inProgress);
+    if (selected) ids.add(selected);
+    return [...ids];
+  }, [inProgress, selected]);
+  const spec = useMemo<ViewSpec>(
+    () => ({ mode: 'textured', floor, lookFrom, dimensions, outlined, proposal }),
+    [floor, lookFrom, dimensions, outlined, proposal],
+  );
+
+  const cutMm = project ? cutPlaneFor(lookFrom, project.levels) : null;
+  return (
+    <>
+      {project && (
+        <SceneContent
+          project={project}
+          catalog={catalog}
+          spec={spec}
+          cut={cut}
+          tier={tier}
+          animateNew={!reducedMotion && lastEvent === 'execute'}
+        />
+      )}
+      <ViewControls3D enabled={view === '3d'} />
+      <Picking enabled={view === '3d'} cutY={cutMm === null ? null : cutMm / 1000} />
+    </>
+  );
+}
+
+export default function SceneCanvas() {
+  // Antialiasing can't change after the context is made, so it follows the starting tier.
+  const startTier = useMemo(() => useRendererStore.getState().tier, []);
+  const tier = useRendererStore((s) => s.tier);
+  return (
+    <Canvas
+      frameloop="demand"
+      shadows
+      dpr={[1, TIER_SETTINGS[startTier].dprMax]}
+      gl={{ antialias: startTier !== 'low', preserveDrawingBuffer: false, powerPreference: 'high-performance', toneMapping: ACESFilmicToneMapping }}
+      camera={{ fov: 35, near: 0.05, far: 2000, position: [12, 9, 15] }}
+      style={{ touchAction: 'none' }}
+    >
+      <color attach="background" args={[SCENE_COLORS.paper]} />
+      <UserScene />
+      <LabelScaler />
+      <QualityManager />
+      <Invalidator />
+      <Effects tier={tier} />
+      <SnapshotHost />
+    </Canvas>
+  );
+}

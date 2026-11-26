@@ -4,7 +4,7 @@ import { FloorSlider } from '../components/FloorSlider.tsx';
 import { Key } from '../components/Key.tsx';
 import { Popover, PopoverAnchor } from '../components/Popover.tsx';
 import { Unit } from '../components/Unit.tsx';
-import { PLACEHOLDER_FLOORS } from '../placeholder.ts';
+import { useFloorStops } from '../model/floor-stops.ts';
 import { useShellStore, type PhonePopover } from '../state/shell-store.ts';
 import { ChatPanel } from './ChatPanel.tsx';
 import type { ShellProps } from './DesktopShell.tsx';
@@ -26,6 +26,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
   const togglePanel = useShellStore((s) => s.togglePanel);
   const floor = useShellStore((s) => s.floor);
   const setFloor = useShellStore((s) => s.setFloor);
+  const floors = useFloorStops();
   const zoomPercent = useShellStore((s) => s.zoomPercent);
   const popover = useShellStore((s) => s.phone.popover);
   const chatOpen = useShellStore((s) => s.phone.chatOpen);
@@ -95,7 +96,7 @@ export function PhoneShell({ project, actions }: ShellProps) {
           <PopoverAnchor>
             <Key ref={floorsRef} label="Floors" icon="floors" iconSize="phone" iconOnly {...trigger('floors')} />
             <Popover id={POPOVER_IDS.floors} label="Floors" open={popover === 'floors'} onClose={closePopover} triggerRef={floorsRef}>
-              <FloorSlider floors={PLACEHOLDER_FLOORS} value={floor} onChange={setFloor} />
+              <FloorSlider floors={floors} value={floor} onChange={setFloor} />
             </Popover>
           </PopoverAnchor>
         </Unit>
