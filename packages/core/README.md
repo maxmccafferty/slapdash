@@ -70,7 +70,9 @@ bus.undo(); // undoes the whole group
 - `listHistory`, `saveVersion`, `listVersions` and `restoreVersion` are also available. A
   restore is its own undo step, so it can be undone.
 - `subscribe(fn)` fires once per execute, undo, redo and restore.
-- `serialize()` and `CommandBus.hydrate()` are hooks for storage, which comes in a later ticket.
+- `serialize()` and `CommandBus.hydrate()` turn history and named versions into plain data
+  and back. `@slapdash/storage` (`packages/storage`) uses them to persist projects.
+- `rename_project` sets `project.name`. It is undoable like any other command.
 - Project states are immutable and deep-frozen. Unchanged entities keep reference
   equality across edits.
 

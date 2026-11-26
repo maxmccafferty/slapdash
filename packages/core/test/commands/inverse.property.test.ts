@@ -75,10 +75,11 @@ const generators: Gen[] = [
   },
   (_p, r) => ({ name: 'set_design_load', input: { key: 'groundSnow', value: `${10 + Math.floor(r() * 40)} psf`, source: 'user' } }),
   (_p, r) => ({ name: 'set_site_location', input: { location: r() < 0.8 ? { label: 'Somewhere, ST' } : null } }),
+  (_p, r) => ({ name: 'rename_project', input: { name: `P${Math.floor(r() * 100)}` } }),
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((i) => generators[i]!);
 
 describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
   // Each seed runs a long random command sequence and checks every inverse, which

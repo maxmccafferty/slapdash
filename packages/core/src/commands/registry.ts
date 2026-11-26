@@ -2,10 +2,12 @@ import { assemblyCommands } from './assemblies.ts';
 import { internalCommands } from './internal.ts';
 import { jointCommands } from './joints.ts';
 import { partCommands } from './parts.ts';
+import { projectCommands } from './project.ts';
 import { siteCommands } from './site.ts';
 import type { AnyCommandDef } from './types.ts';
 
 const all: AnyCommandDef[] = [
+  ...projectCommands,
   ...assemblyCommands,
   ...partCommands,
   ...jointCommands,

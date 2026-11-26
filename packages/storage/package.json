@@ -1,0 +1,35 @@
+{
+  "name": "@slapdash/storage",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slapdash project storage: ProjectStore/Auth interfaces, the local IndexedDB adapter, autosave and .slapdash files.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./local": "./src/adapters/local/index.ts",
+    "./testing": "./testing/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@slapdash/core": "workspace:*",
+    "dexie": "^4.0.11",
+    "zod": "^4.6.7"
+  },
+  "peerDependencies": {
+    "vitest": "^5.1.1"
+  },
+  "peerDependenciesMeta": {
+    "vitest": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "fake-indexeddb": "^6.0.1",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}
