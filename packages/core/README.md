@@ -20,7 +20,9 @@ See ADR-0001 §3–4 and ADR-0002 §A1–A9, §D3, §E5 and §F7 in `docs/adr/`.
   can be added later without a migration.
 - Every length input accepts a JSON number (mm) or text with a unit:
   `"16ft 6in"`, `"16' 6\""`, `"5 1/2in"`, `"4877mm"`, `"4.877 m"`. A bare numeric string
-  such as `"16"` is rejected as ambiguous. Use `parseLength`, `formatFeetInches`,
+  such as `"16"` is rejected as ambiguous, except zero (`"0"`, which is 0 mm in any
+  unit). Text wrapped in matching quote marks (`"\"9ft\""`, `“16ft 6in”`) is read without
+  them; a lone trailing `"` is still an inch mark. Use `parseLength`, `formatFeetInches`,
   `formatLength` and `formatBoth` for conversions. Roof pitch uses `parsePitch` and
   `formatPitch` (`"6 in 12"`).
 
