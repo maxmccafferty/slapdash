@@ -11,6 +11,7 @@ pnpm -r test                             # every package's tests
 pnpm -r typecheck                        # every package's typecheck
 pnpm --filter @slapdash/core test        # core only (vitest, node environment)
 pnpm --filter @slapdash/core typecheck   # core src without DOM or Node types, then tests/scripts
+pnpm --filter @slapdash/catalog test     # the tier-1 catalog, prices and textures
 pnpm smoke                               # node packages/core/scripts/smoke.ts
 ```
 
@@ -77,8 +78,8 @@ Builders are commands that hold carpentry knowledge (ADR-0002 §A4). They live i
 - **Catalog defaults.** Default material, section and joint-type IDs live in
   `BUILDER_DEFAULTS` (`src/builders/defaults.ts`); every builder takes a `materials`
   override object. `test/builders/catalog-defaults.test.ts` checks the sample catalog has
-  them all, and **the tier-1 catalog (`packages/catalog`) must include every one of them
-  too.**
+  them all, and `packages/catalog/test/builders.test.ts` checks the tier-1 catalog has
+  them all and builds the acceptance shell on it.
 - **Code tables with citations.** Prescriptive rules (header spans, king studs, anchor
   bolts, nailing) are data in `src/builders/rules.ts`, each with a comment citing the table
   it came from. Transcribe from the published text, not from memory, and spot-check values
@@ -112,6 +113,75 @@ Builders are commands that hold carpentry knowledge (ADR-0002 §A4). They live i
 Gable-end wall studs under the rafters, hip roofs, stairs, gates, multi-storey framing
 (`levelId` stays `L0`), non-rectangular slabs and floors, modelled birdsmouths, and
 removing an opening.
+
+## How to add a material
+
+The tier-1 catalog is JSON in `packages/catalog/data/`, checked against the schema in
+`packages/core/src/catalog/` when `@slapdash/catalog` is imported. Units: MPa, kg/m³,
+kg/m², RSI per mm, N.
+
+1. **Pick the file** in `packages/catalog/data/materials/` for its ADR-0001 Appendix A
+   group. Ids are lower-case kebab (`df-l-no2`) and are never renamed once shipped:
+   projects store them.
+2. **Fill in the numbers**, in SI:
+   - `structural` (`E_MPa`, `Fb_MPa`, `Fv_MPa`, `Ft_MPa`, `Fc_MPa`, `Fc_perp_MPa`) for
+     anything used as a beam or post: lumber, engineered wood, steel members. Use NDS
+     Supplement **reference** values, unadjusted (psi × 0.00689476).
+   - `strength` (`compressive_MPa`, `E_MPa`, `yield_MPa`, `tensile_MPa`) for concrete
+     (f'c), masonry (f'm) and rebar (fy).
+   - `density_kg_m3` (NDS specific gravity or manufacturer data), `arealMass_kg_m2` for
+     products whose thickness isn't modelled (shingles, siding, membranes; psf ×
+     4.88243), `rValuePerMm` for insulation (labelled R × 0.17611 ÷ thickness in mm, or R
+     per inch × 0.0069335).
+   - `source` citing the table each number came from. **Transcribe from the published
+     table; don't recall.**
+   - `description`: one or two plain sentences Claude can quote, including caveats
+     ("generic approximation; size from the manufacturer's table").
+3. **Joints and flags.** `acceptsJoints` lists existing joint types (add one with "How to
+   add a joint type" below). `flags` come from `KNOWN_FLAGS` in
+   `packages/catalog/src/flags.ts`; add a flag there, with its meaning, if you need a new
+   one.
+4. **Look.** Always give a `swatch` (`#rrggbb` lower-case, optional `roughness`,
+   `metalness`, `opacity`); it is the untextured colour and tints the texture. For a
+   `textureSet`, reuse one from `textures/manifest.json` where it reads right, or add a set:
+   a CC0 asset from Poly Haven or ambientCG, with its real-world `tileSize_mm` (from the
+   asset page, or a `tileSizeNote` saying how you estimated it), then run
+   `pnpm --filter @slapdash/catalog textures <set-id>` (needs KTX-Software's `ktx` CLI) and
+   commit the `.ktx2` files and the regenerated `ATTRIBUTION.md`. Keep each file under
+   1.5 MB and the folder under 25 MB.
+5. **Price.** Set `priceKey` (`<group>.<id>`, e.g. `lumber.df-l-no2`) and add entries to
+   `data/prices.json` in the unit parts are measured in (lumber per linear foot by section
+   variant, sheets per sheet by thickness, hardware each, coverings per square foot…), with
+   a `source` note naming the retailers, products and raw prices. If it can't be priced
+   credibly, add an `unpriced` entry with the reason. Don't change `researchedOn` for one
+   new entry; put the date you looked in the `source` instead.
+6. **Test.** If it fulfils an Appendix A item, add it to
+   `packages/catalog/test/appendix-a.test.ts`. Run `pnpm --filter @slapdash/catalog test`.
+
+Builders take the first `opening` material that accepts `nailed-16d` as their window/door
+unit, so the generic `opening-unit` stays first in `openings.json`.
+
+### How to add a joint type
+
+Add it to `packages/catalog/data/joint-types.json`:
+
+- `category` and `behaviour` (`pinned` or `fixed`, ADR-0002 §E5; there are no semi-rigid
+  joints).
+- `capacity` in N, ASD allowable at normal load duration, for SPF/Hem-Fir unless the
+  `source` says otherwise; `basis` is `per-fastener` (multiplied by the fastener count) or
+  `per-joint`. Connector uplift is published at 160%: record it as published and say so.
+- `hardwareId`: the `fastener` material it consumes (one per fastener, or one per joint),
+  so the materials list can count and price it.
+- `source`: the published table (NDS, ICC-ES ESR, manufacturer catalog). Where nothing is
+  published, start it with `Estimate:` and give the reasoning, and add the id to
+  `ESTIMATED_JOINTS` in `packages/catalog/test/tier1.test.ts`, so made-up numbers can't hide.
+- Add the id to `acceptsJoints` of every material that takes it.
+
+### Refreshing the price table
+
+Re-research every entry, not just a few, so the table keeps one honest date. Update the
+`source` notes, set `researchedOn` to the day of the research and `CATALOG_VERSION` in
+`packages/catalog/src/index.ts` to the same day, and land it in one commit.
 
 ## Builder reference
 

@@ -1,0 +1,349 @@
+[
+  {
+    "id": "1x4",
+    "name": "1x4",
+    "nominal": "1x4",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 19.05,
+      "depth": 88.9
+    },
+    "materialCategories": [
+      "lumber",
+      "envelope"
+    ]
+  },
+  {
+    "id": "1x6",
+    "name": "1x6",
+    "nominal": "1x6",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 19.05,
+      "depth": 139.7
+    },
+    "materialCategories": [
+      "lumber",
+      "envelope"
+    ]
+  },
+  {
+    "id": "1x8",
+    "name": "1x8",
+    "nominal": "1x8",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 19.05,
+      "depth": 184.15
+    },
+    "materialCategories": [
+      "lumber",
+      "envelope"
+    ]
+  },
+  {
+    "id": "2x4",
+    "name": "2x4",
+    "nominal": "2x4",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 38.1,
+      "depth": 88.9
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "2x6",
+    "name": "2x6",
+    "nominal": "2x6",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 38.1,
+      "depth": 139.7
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "2x8",
+    "name": "2x8",
+    "nominal": "2x8",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 38.1,
+      "depth": 184.15
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "2x10",
+    "name": "2x10",
+    "nominal": "2x10",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 38.1,
+      "depth": 234.95
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "2x12",
+    "name": "2x12",
+    "nominal": "2x12",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 38.1,
+      "depth": 285.75
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "4x4",
+    "name": "4x4",
+    "nominal": "4x4",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 88.9,
+      "depth": 88.9
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "4x6",
+    "name": "4x6",
+    "nominal": "4x6",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 88.9,
+      "depth": 139.7
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "6x6",
+    "name": "6x6",
+    "nominal": "6x6",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 139.7,
+      "depth": 139.7
+    },
+    "materialCategories": [
+      "lumber"
+    ]
+  },
+  {
+    "id": "lvl-1-75x9-25",
+    "name": "LVL 1 3/4 x 9 1/4in",
+    "nominal": "1 3/4 x 9 1/4",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 44.45,
+      "depth": 234.95
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "lvl-1-75x11-25",
+    "name": "LVL 1 3/4 x 11 1/4in",
+    "nominal": "1 3/4 x 11 1/4",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 44.45,
+      "depth": 285.75
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "lvl-1-75x11-875",
+    "name": "LVL 1 3/4 x 11 7/8in",
+    "nominal": "1 3/4 x 11 7/8",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 44.45,
+      "depth": 301.625
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "lvl-1-75x14",
+    "name": "LVL 1 3/4 x 14in",
+    "nominal": "1 3/4 x 14",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 44.45,
+      "depth": 355.6
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "glulam-3-125x9",
+    "name": "Glulam 3 1/8 x 9in",
+    "nominal": "3 1/8 x 9",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 79.375,
+      "depth": 228.6
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "glulam-3-5x11-875",
+    "name": "Glulam 3 1/2 x 11 7/8in",
+    "nominal": "3 1/2 x 11 7/8",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 88.9,
+      "depth": 301.625
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "glulam-5-125x12",
+    "name": "Glulam 5 1/8 x 12in",
+    "nominal": "5 1/8 x 12",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 130.175,
+      "depth": 304.8
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "ij-9-5",
+    "name": "I-joist 9 1/2in (typical TJI 210-type: 2 1/16 x 1 3/8in flanges, 3/8in OSB web; check the manufacturer)",
+    "nominal": "9 1/2in",
+    "shape": "i-beam",
+    "dims_mm": {
+      "width": 52.387,
+      "depth": 241.3,
+      "thickness": 34.925,
+      "wall": 9.525
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "ij-11-875",
+    "name": "I-joist 11 7/8in (typical TJI 210-type: 2 1/16 x 1 3/8in flanges, 3/8in OSB web; check the manufacturer)",
+    "nominal": "11 7/8in",
+    "shape": "i-beam",
+    "dims_mm": {
+      "width": 52.387,
+      "depth": 301.625,
+      "thickness": 34.925,
+      "wall": 9.525
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "ij-14",
+    "name": "I-joist 14in (typical TJI 210-type: 2 1/16 x 1 3/8in flanges, 3/8in OSB web; check the manufacturer)",
+    "nominal": "14in",
+    "shape": "i-beam",
+    "dims_mm": {
+      "width": 52.387,
+      "depth": 355.6,
+      "thickness": 34.925,
+      "wall": 9.525
+    },
+    "materialCategories": [
+      "engineered-wood"
+    ]
+  },
+  {
+    "id": "rebar-3",
+    "name": "#3 rebar (3/8in)",
+    "nominal": "#3",
+    "shape": "round",
+    "dims_mm": {
+      "width": 9.525,
+      "depth": 9.525
+    },
+    "materialCategories": [
+      "steel"
+    ]
+  },
+  {
+    "id": "rebar-4",
+    "name": "#4 rebar (4/8in)",
+    "nominal": "#4",
+    "shape": "round",
+    "dims_mm": {
+      "width": 12.7,
+      "depth": 12.7
+    },
+    "materialCategories": [
+      "steel"
+    ]
+  },
+  {
+    "id": "rebar-5",
+    "name": "#5 rebar (5/8in)",
+    "nominal": "#5",
+    "shape": "round",
+    "dims_mm": {
+      "width": 15.875,
+      "depth": 15.875
+    },
+    "materialCategories": [
+      "steel"
+    ]
+  },
+  {
+    "id": "cmu-8x8x16",
+    "name": "8in concrete block (7 5/8 x 7 5/8in, 15 5/8in long)",
+    "nominal": "8x8x16",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 193.675,
+      "depth": 193.675
+    },
+    "materialCategories": [
+      "masonry"
+    ]
+  },
+  {
+    "id": "cmu-6x8x16",
+    "name": "6in concrete block (5 5/8 x 7 5/8in, 15 5/8in long)",
+    "nominal": "6x8x16",
+    "shape": "rect",
+    "dims_mm": {
+      "width": 142.875,
+      "depth": 193.675
+    },
+    "materialCategories": [
+      "masonry"
+    ]
+  }
+]

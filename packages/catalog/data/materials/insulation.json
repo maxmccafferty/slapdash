@@ -1,0 +1,128 @@
+[
+  {
+    "id": "batt-fiberglass-r13",
+    "name": "Fiberglass batt R-13",
+    "description": "Kraft-faced fiberglass batt, R-13 at 3 1/2in, for 2x4 walls. Friction fit between studs.",
+    "category": "insulation",
+    "density_kg_m3": 11,
+    "rValuePerMm": 0.02575,
+    "swatch": {
+      "color": "#f2c6a0",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "insulation.batt-fiberglass-r13",
+    "source": "Owens Corning EcoTouch specification 07 21 16: R-13 3 1/2in, R-19 6 1/4in, R-30 9 1/2in. Density about 0.7 pcf is typical; manufacturers publish none."
+  },
+  {
+    "id": "batt-fiberglass-r19",
+    "name": "Fiberglass batt R-19",
+    "description": "Kraft-faced fiberglass batt, R-19 at 6 1/4in, for 2x6 walls and floors.",
+    "category": "insulation",
+    "density_kg_m3": 11,
+    "rValuePerMm": 0.02108,
+    "swatch": {
+      "color": "#f2c6a0",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "insulation.batt-fiberglass-r19",
+    "source": "Owens Corning EcoTouch specification 07 21 16: R-13 3 1/2in, R-19 6 1/4in, R-30 9 1/2in. Density about 0.7 pcf is typical; manufacturers publish none."
+  },
+  {
+    "id": "batt-fiberglass-r30",
+    "name": "Fiberglass batt R-30",
+    "description": "Fiberglass batt, R-30 at about 10in, for ceilings and roofs.",
+    "category": "insulation",
+    "density_kg_m3": 11,
+    "rValuePerMm": 0.0219,
+    "swatch": {
+      "color": "#f2c6a0",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "insulation.batt-fiberglass-r30",
+    "source": "Owens Corning EcoTouch specification 07 21 16: R-13 3 1/2in, R-19 6 1/4in, R-30 9 1/2in. Density about 0.7 pcf is typical; manufacturers publish none."
+  },
+  {
+    "id": "mineral-wool-r15",
+    "name": "Mineral wool batt R-15",
+    "description": "Stone wool batt (ComfortBatt type), R-15 at 3 1/2in, for 2x4 walls. Fire- and moisture-resistant.",
+    "category": "insulation",
+    "density_kg_m3": 29,
+    "rValuePerMm": 0.02971,
+    "swatch": {
+      "color": "#b9a27c",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "insulation.mineral-wool-r15",
+    "source": "ROCKWOOL Comfortbatt US technical data sheet: R-15 at 3.5in, R-23 at 5.5in; density > 1.8 pcf (ASTM C167)"
+  },
+  {
+    "id": "mineral-wool-r23",
+    "name": "Mineral wool batt R-23",
+    "description": "Stone wool batt, R-23 at 5 1/2in, for 2x6 walls.",
+    "category": "insulation",
+    "density_kg_m3": 29,
+    "rValuePerMm": 0.02899,
+    "swatch": {
+      "color": "#b9a27c",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "insulation.mineral-wool-r23",
+    "source": "ROCKWOOL Comfortbatt US technical data sheet: R-15 at 3.5in, R-23 at 5.5in; density > 1.8 pcf (ASTM C167)"
+  },
+  {
+    "id": "rigid-xps",
+    "name": "Rigid foam, XPS",
+    "description": "Extruded polystyrene board, R-5 per inch: under slabs, on foundation walls and over sheathing.",
+    "category": "insulation",
+    "density_kg_m3": 23,
+    "rValuePerMm": 0.03467,
+    "swatch": {
+      "color": "#9ec5e8",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "insulation.rigid-xps",
+    "source": "ASTM C578-23 Type IV XPS (e.g. Foamular 250), via Owens Corning technical bulletin: R-5.0 per inch, density ≥ 1.45 pcf"
+  },
+  {
+    "id": "rigid-polyiso",
+    "name": "Rigid foam, polyiso",
+    "description": "Foil-faced polyisocyanurate board, about R-6 per inch: over sheathing and under roofs (not below grade).",
+    "category": "insulation",
+    "density_kg_m3": 32,
+    "rValuePerMm": 0.0416,
+    "swatch": {
+      "color": "#e8e2c8",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "insulation.rigid-polyiso",
+    "source": "Johns Manville AP Foil-Faced data sheet (ASTM C1289 Type I Class 1): R-6.0 at 1in, aged; density 2.0 pcf nominal (Rmax Durasheath data sheet)"
+  },
+  {
+    "id": "rigid-eps",
+    "name": "Rigid foam, EPS",
+    "description": "Expanded polystyrene board, about R-4 per inch: the cheapest rigid foam.",
+    "category": "insulation",
+    "density_kg_m3": 22,
+    "rValuePerMm": 0.02773,
+    "swatch": {
+      "color": "#f6f6f6",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "insulation.rigid-eps",
+    "source": "ASTM C578 Type II EPS, via Owens Corning technical bulletin and the EPS Industry Alliance table: R-4.0 per inch, density ≥ 1.35 pcf"
+  }
+]

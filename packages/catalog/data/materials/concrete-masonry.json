@@ -1,0 +1,137 @@
+[
+  {
+    "id": "concrete-3000",
+    "name": "3000 psi concrete",
+    "description": "Normal-weight concrete, f'c = 3000 psi at 28 days: footings, piers and slabs on grade. Ready-mix or bagged.",
+    "category": "concrete",
+    "strength": {
+      "E_MPa": 21526,
+      "compressive_MPa": 20.7
+    },
+    "density_kg_m3": 2323,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#a7a7a2",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "post-base",
+      "post-embedded",
+      "anchor-bolt",
+      "concrete-anchor",
+      "cast-in-place",
+      "rebar-embedded"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "concrete.concrete-3000",
+    "source": "ACI 318-19 §19.2.2.1(b): Ec = 57,000·√f'c psi (via secondary sources; ACI 318 is paywalled). Plain normal-weight concrete about 145 pcf (ASCE 7 Table C3.1-2, via secondary sources)."
+  },
+  {
+    "id": "concrete-4000",
+    "name": "4000 psi concrete",
+    "description": "Normal-weight concrete, f'c = 4000 psi at 28 days: slabs exposed to weather and freeze-thaw, and where a stronger mix is specified.",
+    "category": "concrete",
+    "strength": {
+      "E_MPa": 24856,
+      "compressive_MPa": 27.6
+    },
+    "density_kg_m3": 2323,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#a2a29e",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "post-base",
+      "post-embedded",
+      "anchor-bolt",
+      "concrete-anchor",
+      "cast-in-place",
+      "rebar-embedded"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "concrete.concrete-4000",
+    "source": "ACI 318-19 §19.2.2.1(b): Ec = 57,000·√f'c psi (via secondary sources; ACI 318 is paywalled). Plain normal-weight concrete about 145 pcf (ASCE 7 Table C3.1-2, via secondary sources)."
+  },
+  {
+    "id": "cmu-standard",
+    "name": "Concrete block (CMU)",
+    "description": "Hollow concrete masonry units laid in Type S mortar: foundation and garden walls. Strength is the assemblage f'm; grout and rebar the cores for anything structural.",
+    "category": "masonry",
+    "strength": {
+      "E_MPa": 12411,
+      "compressive_MPa": 13.8
+    },
+    "density_kg_m3": 1041,
+    "textureSet": "cmu",
+    "swatch": {
+      "color": "#9e9c96",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "mortared",
+      "rebar-embedded",
+      "anchor-bolt",
+      "concrete-anchor",
+      "cast-in-place"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "masonry.cmu-standard",
+    "source": "TMS 602 Table 2 unit strength method: 2000 psi units in Type S mortar give f'm = 2000 psi; Em = 900·f'm (TMS 402 §4.2.2) (both via secondary sources). Density is per gross wall volume, hollow and ungrouted: a normal-weight 8x8x16 unit weighs about 34.3 lb (NCMA data reproduced in Norlite \"Lightweight CMU\" Table 1) over 7 5/8 × 7 5/8 × 15 5/8in ≈ 65 pcf."
+  },
+  {
+    "id": "rebar-gr60",
+    "name": "Rebar, grade 60",
+    "description": "Deformed reinforcing bar, ASTM A615 grade 60 (#3, #4, #5): footings, slab edges and grouted block.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 199948,
+      "yield_MPa": 414
+    },
+    "density_kg_m3": 7849,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#6b5a4e",
+      "roughness": 0.7,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "rebar-embedded"
+    ],
+    "priceKey": "steel.rebar-gr60",
+    "source": "ASTM A615/A615M Grade 60: fy = 60,000 psi. Es = 29,000,000 psi (ACI 318-19 §20.2.2.2, via secondary sources). Density 490 pcf from the nominal #4 weight, 0.668 lb/ft over 0.20 in² (ASTM A615 Table 1, as reproduced in Caltrans BDD 13-1)."
+  },
+  {
+    "id": "sonotube-form",
+    "name": "Cardboard pier form (Sonotube)",
+    "description": "Spiral-wound cardboard tube for casting round concrete piers (8, 10 or 12in diameter). A form, not structure: the pier itself is concrete.",
+    "category": "other",
+    "swatch": {
+      "color": "#8d6e4c",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [],
+    "priceKey": "other.sonotube-form"
+  },
+  {
+    "id": "gravel-base",
+    "name": "Gravel base (3/4in crushed stone)",
+    "description": "Compacted 3/4in crushed stone under slabs and footings for drainage.",
+    "category": "other",
+    "density_kg_m3": 1602,
+    "textureSet": "gravel",
+    "swatch": {
+      "color": "#8f8c86",
+      "roughness": 1
+    },
+    "acceptsJoints": [],
+    "priceKey": "other.gravel-base",
+    "source": "Approximate: about 2,700 lb per cubic yard (≈100 pcf) loose, the usual supplier conversion for 3/4in crushed stone."
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "name": "@slapdash/catalog",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Slapdash tier-1 catalog data: materials, sections, joint types, the dated price table and CC0 textures. Validated against the @slapdash/core schema at import.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./textures/*": "./textures/*"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "textures": "node scripts/build-textures.ts"
+  },
+  "dependencies": {
+    "@slapdash/core": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "~5.9.3",
+    "vitest": "^5.1.1"
+  }
+}

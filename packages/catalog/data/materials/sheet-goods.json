@@ -1,0 +1,62 @@
+[
+  {
+    "id": "plywood-cdx",
+    "name": "CDX plywood",
+    "description": "Softwood plywood, C/D faces, exposure 1: subfloor and sheathing. Sold as 1/2in, 5/8in and 23/32in (\"3/4\") 4x8 sheets. Panels act as diaphragms and braces, so there are no beam values.",
+    "category": "sheet",
+    "density_kg_m3": 577,
+    "textureSet": "plywood",
+    "swatch": {
+      "color": "#d4b17d",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "screwed-deck",
+      "screwed-structural"
+    ],
+    "priceKey": "sheet.plywood-cdx",
+    "source": "APA D510C-2020 Panel Design Specification Table 13, approximate weight: 1/2in 1.5 psf, 23/32in 2.2 psf (≈36 pcf)"
+  },
+  {
+    "id": "osb-7-16",
+    "name": "7/16in OSB sheathing",
+    "description": "Oriented strand board, 7/16in, 4x8: the usual wall and roof sheathing.",
+    "category": "sheet",
+    "density_kg_m3": 609,
+    "textureSet": "osb",
+    "swatch": {
+      "color": "#c99f62",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "screwed-deck",
+      "screwed-structural"
+    ],
+    "priceKey": "sheet.osb-7-16",
+    "source": "APA D510C-2020 Panel Design Specification Table 13, approximate weight: OSB 7/16in 1.4 psf (≈38 pcf), 23/32in 2.4 psf (≈40 pcf)"
+  },
+  {
+    "id": "osb-23-32",
+    "name": "23/32in OSB subfloor (tongue and groove)",
+    "description": "Oriented strand board, 23/32in tongue-and-groove subfloor panel, 4x8.",
+    "category": "sheet",
+    "density_kg_m3": 641,
+    "textureSet": "osb",
+    "swatch": {
+      "color": "#c49a5e",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "nailed-10d",
+      "screwed-deck",
+      "screwed-structural"
+    ],
+    "priceKey": "sheet.osb-23-32",
+    "source": "APA D510C-2020 Panel Design Specification Table 13, approximate weight: OSB 7/16in 1.4 psf (≈38 pcf), 23/32in 2.4 psf (≈40 pcf)"
+  }
+]

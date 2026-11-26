@@ -51,6 +51,55 @@ describe('catalog', () => {
     expect(migrateCatalog([]).ok).toBe(false);
   });
 
+  it('accepts the optional tier-1 fields', () => {
+    const c = clone();
+    c.materials.push({
+      id: 'nail-16d-common',
+      name: '16d common nail',
+      category: 'fastener',
+      acceptsJoints: [],
+      swatch: { color: '#9a9ca0', metalness: 0.8, roughness: 0.4 },
+    });
+    c.materials[0]!.swatch = { color: '#d9b98a' };
+    c.materials[0]!.structural!.Fc_perp_MPa = 2.93;
+    c.materials[0]!.source = 'NDS 2018 Supplement Table 4A';
+    c.materials[4]!.strength = { compressive_MPa: 20.7, E_MPa: 24855 };
+    c.jointTypes[0]!.hardwareId = 'nail-16d-common';
+    c.jointTypes[0]!.source = 'NDS 2018 Table 12N';
+    expect(validateCatalog(c).ok).toBe(true);
+  });
+
+  it('a swatch colour must be lower-case #rrggbb', () => {
+    const c = clone();
+    c.materials[0]!.swatch = { color: 'tan' };
+    const r = validateCatalog(c);
+    expect(r).toEqual({
+      ok: false,
+      errors: ['"materials[0].swatch.color" should be a lower-case hex colour like "#c8a46e".'],
+    });
+  });
+
+  it('a strength block needs at least one value', () => {
+    const c = clone();
+    c.materials[4]!.strength = {};
+    const r = validateCatalog(c);
+    expect(r).toEqual({ ok: false, errors: ['"materials[4].strength" should give at least one value.'] });
+  });
+
+  it('reports a joint type whose hardware is missing or not a fastener', () => {
+    const c = clone();
+    c.jointTypes[0]!.hardwareId = 'nail-99d';
+    c.jointTypes[1]!.hardwareId = 'plywood-cdx';
+    const r = validateCatalog(c);
+    expect(r).toEqual({
+      ok: false,
+      errors: [
+        'Joint type "nailed-16d" uses hardware "nail-99d", which isn\'t in the catalog.',
+        'Joint type "nailed-8d" uses hardware "plywood-cdx", but "plywood-cdx" is sheet, not a fastener.',
+      ],
+    });
+  });
+
   it('indexCatalog gives O(1) lookups', () => {
     const idx = indexCatalog(SAMPLE_CATALOG);
     expect(idx.materials.get('spf-no2')?.category).toBe('lumber');

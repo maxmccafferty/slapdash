@@ -439,6 +439,8 @@ export function neighbourMembers(project: Project, frame: PlanFrame, wallIds: re
 /**
  * The material for door/window units: the first catalog material in the "opening"
  * category that can be nailed in (16d). None in the sample catalog, so no unit is added.
+ * The tier-1 catalog (`packages/catalog`) lists the generic `opening-unit` first on
+ * purpose, so builders add a neutral unit rather than a specific window or door.
  */
 export function openingUnitMaterial(catalog: CatalogIndex): string | null {
   for (const m of catalog.materials.values()) {
