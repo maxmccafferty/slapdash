@@ -3,7 +3,7 @@
  * cascaded joints) and are never exposed to Claude, so they skip semantic checks.
  */
 import { z } from 'zod';
-import { mergeCounters } from '../model/ids.ts';
+import { mergeCounters, type IdCounters } from '../model/ids.ts';
 import type { Assembly, Joint, Part, Project, SiteSettings } from '../model/schema.ts';
 import { defineCommand, type AppliedCommand } from './types.ts';
 
@@ -114,6 +114,61 @@ export const removeEntitiesCommand = defineCommand({
   },
 });
 
+export interface EntityPatch {
+  /** Entities to insert or replace, applied after `remove`. */
+  put?: EntitySnapshots;
+  /** Entities to remove (no cascade). */
+  remove?: EntityIds;
+  /** ID counters to merge in (only ever moves them forward). */
+  counters?: IdCounters;
+}
+
+function isEmptyIds(ids: EntityIds | undefined): boolean {
+  return !ids || TABLES.every((t) => (ids[t] ?? []).length === 0);
+}
+
+/**
+ * Remove then put, in one step, with a single `patch_entities` inverse that restores
+ * every removed or overwritten entity and removes every newly added one. Builders use
+ * this: their redo is the resulting patch, so re-applying it after an undo recreates
+ * exactly the same IDs.
+ */
+export function patchWithInverse(before: Project, patch: EntityPatch): { project: Project; inverse: AppliedCommand[] } {
+  const put = patch.put ?? {};
+  const restore: EntitySnapshots = {};
+  const remove: EntityIds = {};
+  for (const t of TABLES) {
+    const record = before[t] as Record<string, AnyEntity>;
+    const putIds = new Set(((put[t] ?? []) as AnyEntity[]).map((e) => e.id));
+    const touched = new Set([...(patch.remove?.[t] ?? []), ...putIds]);
+    const prev = [...touched].filter((id) => has(record, id)).map((id) => record[id]!);
+    const added = [...putIds].filter((id) => !has(record, id));
+    if (prev.length > 0) (restore[t] as AnyEntity[]) = prev;
+    if (added.length > 0) remove[t] = added;
+  }
+  let project = removeEntities(before, patch.remove ?? {});
+  project = putEntities(project, put);
+  if (patch.counters) project = { ...project, counters: mergeCounters(project.counters, patch.counters) };
+  const inversePatch: EntityPatch = {};
+  if (Object.keys(restore).length > 0) inversePatch.put = restore;
+  if (!isEmptyIds(remove)) inversePatch.remove = remove;
+  const inverse: AppliedCommand[] =
+    inversePatch.put || inversePatch.remove ? [{ name: 'patch_entities', input: inversePatch }] : [];
+  return { project, inverse };
+}
+
+export const patchEntitiesCommand = defineCommand({
+  name: 'patch_entities',
+  description: 'Internal: remove some entities and put others, as one step. Used as the redo of builder tools.',
+  exposed: false,
+  schema: z.custom<EntityPatch>((v) => typeof v === 'object' && v !== null),
+  check: () => [],
+  apply(project, input) {
+    const { project: next, inverse } = patchWithInverse(project, input);
+    return { project: next, inverse, redo: { name: 'patch_entities', input }, summary: 'Applied a set of changes.', created: [] };
+  },
+});
+
 export const setSiteCommand = defineCommand({
   name: 'set_site',
   description: 'Internal: replace the site settings.',
@@ -153,4 +208,4 @@ export const replaceProjectCommand = defineCommand({
   },
 });
 
-export const internalCommands = [putEntitiesCommand, removeEntitiesCommand, setSiteCommand, replaceProjectCommand];
+export const internalCommands = [putEntitiesCommand, removeEntitiesCommand, patchEntitiesCommand, setSiteCommand, replaceProjectCommand];

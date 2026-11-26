@@ -76,10 +76,44 @@ const generators: Gen[] = [
   (_p, r) => ({ name: 'set_design_load', input: { key: 'groundSnow', value: `${10 + Math.floor(r() * 40)} psf`, source: 'user' } }),
   (_p, r) => ({ name: 'set_site_location', input: { location: r() < 0.8 ? { label: 'Somewhere, ST' } : null } }),
   (_p, r) => ({ name: 'rename_project', input: { name: `P${Math.floor(r() * 100)}` } }),
+  // Builders (indices 14–17). Refusals (clashes, odd corners) are fine: failed commands are skipped.
+  (_p, r) => ({
+    name: 'pour_slab',
+    input: { from: { x: `${Math.floor(r() * 60)}ft`, z: `${Math.floor(r() * 60)}ft` }, to: { x: `${70 + Math.floor(r() * 20)}ft`, z: `${70 + Math.floor(r() * 20)}ft` } },
+  }),
+  (_p, r) => {
+    const x = Math.round(r() * 30000) - 15000;
+    const z = Math.round(r() * 30000) - 15000;
+    const angle = pick([0, 90, 180, 270, 30, 45], r)! * (Math.PI / 180);
+    const len = 3000 + Math.round(r() * 5000);
+    return {
+      name: 'build_wall',
+      input: {
+        start: { x, z },
+        end: { x: Math.round(x + len * Math.cos(angle)), z: Math.round(z + len * Math.sin(angle)) },
+        height: pick(['8ft', '9ft', '10ft'], r),
+        spacing: pick(['16in', '24in'], r),
+        bracing: pick(['sheathing', 'sheathing', 'let-in'], r),
+      },
+    };
+  },
+  (p, r) => {
+    const walls = Object.values(p.assemblies).filter((a) => a.builder?.name === 'build_wall');
+    const w = pick(walls, r);
+    if (!w) return null;
+    const length = (w.builder!.params as { length: number }).length;
+    return { name: 'add_opening', input: { wallId: w.id, kind: pick(['window', 'door', 'sliding-door'], r), centerAt: Math.round(length * (0.3 + r() * 0.4)) } };
+  },
+  (_p, r) => ({
+    name: 'place_structure',
+    input: { kind: pick(['house', 'pool', 'tree', 'shed', 'box'], r), at: { x: `${-80 + Math.floor(r() * 40)}ft`, z: `${Math.floor(r() * 80)}ft` }, rotation: Math.round(r() * 90) },
+  }),
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17].map((i) => generators[i]!);
+
+const builtAnySeed = new Set<string>();
 
 describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
   // Each seed runs a long random command sequence and checks every inverse, which
@@ -91,6 +125,7 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
     let project = createProject({ name: 'Test' });
     const states: Project[] = [project];
     let applied = 0;
+    const built = new Set<string>();
 
     for (let step = 0; step < 250; step++) {
       const cmd = pick(weighted, r)!(project, r);
@@ -104,13 +139,26 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
       project = res.project;
       states.push(project);
       applied++;
+      if (res.redo.name === 'patch_entities') {
+        built.add(cmd.name);
+        builtAnySeed.add(cmd.name);
+      }
     }
     expect(applied).toBeGreaterThan(50);
+    // Builders run (and round-trip) on every seed, not just get refused.
+    expect(built.has('build_wall')).toBe(true);
+    expect(built.has('place_structure')).toBe(true);
 
     const final = bus.project;
     while (bus.canUndo) expect(bus.undo().ok).toBe(true);
     expect(model(bus.project)).toEqual(model(states[0]!));
     while (bus.canRedo) expect(bus.redo().ok).toBe(true);
     expect(bus.project).toEqual(final);
+  });
+});
+
+describe('builder coverage across seeds', () => {
+  it('every builder generator succeeded at least once', () => {
+    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'place_structure']) expect(builtAnySeed, name).toContain(name);
   });
 });

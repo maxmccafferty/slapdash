@@ -42,6 +42,8 @@ export const PART_ROLES = [
   'pier',
   'panel',
   'trim',
+  'brace',
+  'rail',
   'other',
 ] as const;
 export type PartRole = (typeof PART_ROLES)[number];
@@ -64,6 +66,8 @@ export const ROLE_CODES: Record<PartRole, string> = {
   pier: 'PR',
   panel: 'PN',
   trim: 'TR',
+  brace: 'BR',
+  rail: 'RL',
   other: 'X',
 };
 
