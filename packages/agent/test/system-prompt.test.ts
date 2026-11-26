@@ -59,6 +59,12 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toContain('When the person gives a price, call set_price; it replaces the table price for this project.');
   });
 
+  it('tells Claude to edit openings in place rather than rebuild the wall', () => {
+    expect(SYSTEM_PROMPT).toContain('use update_opening');
+    expect(SYSTEM_PROMPT).toContain('use remove_opening');
+    expect(SYSTEM_PROMPT).toContain("Don't rebuild or delete the wall for it");
+  });
+
   it('names only tools that exist', () => {
     const names = new Set(agentTools().map((t) => t.name));
     const mentioned = (SYSTEM_PROMPT.match(/\b[a-z]+_[a-z_]+\b/g) ?? []).filter((m) => m !== 'earlier_conversation' && m !== 'pointing_at' && m !== 'stress_view');
