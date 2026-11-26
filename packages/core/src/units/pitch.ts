@@ -2,7 +2,7 @@
  * Roof pitch. US carpentry speaks in rise per 12 of run ("6 in 12"); some people
  * give an angle. Both parse to the same {@link Pitch}.
  */
-import type { Result } from './length.ts';
+import { isUnitlessZero, unwrapQuotes, type Result } from './length.ts';
 
 export interface Pitch {
   /** Rise in inches per 12 inches of run. */
@@ -16,7 +16,7 @@ export interface Pitch {
 }
 
 const DEG_PER_RAD = 180 / Math.PI;
-const EXAMPLES = 'Try "6 in 12", "6/12" or "26.57deg".';
+const EXAMPLES = 'Try 6 in 12, 6/12 or 26.57deg.';
 
 /** Build a pitch from a rise:run ratio. */
 export function pitchFromRatio(ratio: number): Pitch {
@@ -33,8 +33,18 @@ const NUM = String.raw`(\d+(?:\.\d+)?|\.\d+)`;
 const RATIO = new RegExp(String.raw`^${NUM}\s*(?:in|/|:)\s*${NUM}$`);
 const DEGREES = new RegExp(String.raw`^${NUM}\s*(?:°|deg|degs|degree|degrees)$`);
 
-/** Parse `"6 in 12"`, `"6/12"`, `"6:12"`, `"26.57deg"` or `"26.57°"`. */
+/**
+ * Parse `6 in 12`, `6/12`, `6:12`, `26.57deg` or `26.57°`. A unitless zero is a flat
+ * roof. Text wrapped in quote marks (`"6 in 12"`) is read without them.
+ */
 export function parsePitch(input: string): Result<Pitch> {
+  const inner = unwrapQuotes(input);
+  // Quote marks are never part of a pitch, so the inner text's result stands.
+  return parseBarePitch(inner ?? input);
+}
+
+function parseBarePitch(input: string): Result<Pitch> {
+  if (isUnitlessZero(input)) return { ok: true, value: pitchFromRatio(0) };
   const s = input.trim().toLowerCase().replace(/\s+/g, ' ');
   const original = input.trim();
   let m = RATIO.exec(s);
@@ -55,7 +65,7 @@ export function parsePitch(input: string): Result<Pitch> {
   if (/^\d+(?:\.\d+)?$/.test(s)) {
     return {
       ok: false,
-      error: `"${original}" is ambiguous. Write it as "${original} in 12" or "${original}deg".`,
+      error: `"${original}" is ambiguous. Write it as ${original} in 12 or ${original}deg.`,
     };
   }
   return { ok: false, error: `Couldn't read "${original}" as a roof pitch. ${EXAMPLES}` };
