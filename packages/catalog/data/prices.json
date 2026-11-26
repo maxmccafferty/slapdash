@@ -265,6 +265,13 @@
       "source": "Home Depot 6x6x8 #2 GC SYP 260691 $35.28-$38.78; Lowe's 6x6x8 GC $36.38; Menards AC2 6x6x8 #2 critical structural $44.99; ÷8; 2026-11-25"
     },
     {
+      "key": "lumber.pt-spf-no2",
+      "variant": "2x2",
+      "description": "Pressure-treated 2x2 baluster",
+      "unpriced": "this size hasn't been priced yet; add your own price",
+      "source": "Not researched: web price lookups were unavailable when this size was added on 2026-11-25. Re-price with the next table refresh."
+    },
+    {
       "key": "lumber.pt-syp-no2-gc",
       "variant": "2x4",
       "description": "PT southern pine No.2 ground contact 2x4, 8-12ft, per linear foot",
@@ -328,6 +335,13 @@
       "source": "Home Depot 6x6x8 #2 GC SYP 260691 $35.28-$38.78, 6x6x10 GC $45.16; Lowe's 6x6x8 GC $36.38; ÷length; 2026-11-25"
     },
     {
+      "key": "lumber.pt-syp-no2-gc",
+      "variant": "5-4x6",
+      "description": "Pressure-treated 5/4x6 deck board",
+      "unpriced": "this size hasn't been priced yet; add your own price",
+      "source": "Not researched: web price lookups were unavailable when this size was added on 2026-11-25. Re-price with the next table refresh."
+    },
+    {
       "key": "lumber.cedar-wrc",
       "variant": "1x4",
       "description": "Western red cedar 1x4 board (#3&Btr / S1S2E), 8ft, per linear foot",
@@ -389,6 +403,13 @@
       "low_usd": 16.12,
       "high_usd": 22.5,
       "source": "Home Depot 6x6x8 rough green WRC timber $129.00; Menards 6x6x8 rough sawn red cedar $149.99, S4S $179.99; ÷8; 2026-11-25"
+    },
+    {
+      "key": "lumber.cedar-wrc",
+      "variant": "5-4x6",
+      "description": "Western red cedar 5/4x6 deck board",
+      "unpriced": "this size hasn't been priced yet; add your own price",
+      "source": "Not researched: web price lookups were unavailable when this size was added on 2026-11-25. Re-price with the next table refresh."
     },
     {
       "key": "lumber.redwood-construction",
@@ -1154,6 +1175,1090 @@
       "low_usd": 9.0,
       "high_usd": 30.0,
       "source": "No big-box listing; cost guides: $9-$18/sf material (latestcost), $12-$18, $15-$30/sf glass-shop pricing (avg ~$22); lowest guide figure $5.50 excluded as outlier. Low confidence; 2026-11-25"
+    },
+    {
+      "key": "sheet.drywall-gypsum",
+      "variant": "1/2in",
+      "description": "Drywall 1/2in x 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 13.24,
+      "high_usd": 15.58,
+      "source": "Home Depot, USG Sheetrock UltraLight 1/2in 4x8 (14113411708) $15.58 each, $13.24 each for 34+ (Mold Tough version $21.85 not used). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "sheet.drywall-gypsum",
+      "variant": "5/8in",
+      "description": "Drywall 5/8in Type X x 4x8 sheet",
+      "unit": "sheet",
+      "low_usd": 11.8,
+      "high_usd": 11.8,
+      "source": "Home Depot, USG Sheetrock EcoSmart Firecode X 5/8in 4x8 $11.80 each for 26+ (the only price found; single-sheet price was cut off in the snippet; Lowe's Gold Bond Fire-Shield showed no price). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.cement-board",
+      "description": "Cement backer board 1/2in, per sq ft (3x5 sheet = 15 sq ft)",
+      "unit": "sq-ft",
+      "low_usd": 0.66,
+      "high_usd": 1.06,
+      "source": "Home Depot, USG Durock 1/2in 3x5 with EdgeGuard $15.85 ($14.27 for 30+); Home Depot HardieBacker 1/2in 3x5 $15.41 ($13.87 for 30+); Floor & Decor Durock NextGen 1/2in $9.94; each ÷15 sq ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.paint-interior-latex",
+      "description": "Interior latex paint, per sq ft of one coat",
+      "unit": "sq-ft",
+      "low_usd": 0.057,
+      "high_usd": 0.152,
+      "source": "Home Depot, Glidden Premium Flat $22.98/gal at about 400 sq ft/gal (Glidden label); Behr Premium Plus Eggshell $32.98-$37.98/gal at 250-400 sq ft/gal (Behr label); gallon price ÷ coverage, low = $22.98/400, high = $37.98/250. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.paint-exterior-acrylic",
+      "description": "Exterior acrylic paint, per sq ft of one coat",
+      "unit": "sq-ft",
+      "low_usd": 0.105,
+      "high_usd": 0.192,
+      "source": "Home Depot, Behr Premium Plus Exterior Satin (905001) $46.98/gal, $42.10 each for 5+; behr.com exterior Flat from $47.98/gal; coverage 250-400 sq ft/gal (Behr label); gallon price ÷ coverage, low = $42.10/400, high = $47.98/250. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.stain-exterior",
+      "description": "Exterior wood stain, per sq ft of one coat",
+      "unit": "sq-ft",
+      "low_usd": 0.13,
+      "high_usd": 0.2,
+      "source": "Home Depot, Behr Premium Semi-Transparent Waterproofing Stain & Sealer $38.98-$48.98/gal at 250-300 sq ft/gal first coat; Home Depot and Walmart Business, Olympic Elite Solid $53.98/gal at 350 sq ft/gal; gallon price ÷ coverage, low = $38.98/300, high = $48.98/250. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.tile-ceramic",
+      "description": "Ceramic tile 12x12, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.59,
+      "high_usd": 2.19,
+      "source": "Home Depot, Daltile Glacier White 12x12 (DL111212HD1P2) $2.19/sq ft ($23.37/case); Daltile Glacier White (CR081224HD1PV) $1.59/sq ft ($23.91/case). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.tile-porcelain",
+      "description": "Porcelain tile 12x24, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.89,
+      "high_usd": 1.99,
+      "source": "Home Depot, TrafficMaster Vigo Gris $0.89/sq ft ($14.22/case), Daltile Nova Falls Gray $1.69/sq ft ($26.34/case), Home Decorators Carrara $1.99/sq ft ($31.84/case); designer lines run much higher (Ivy Hill matte $7.91/sq ft). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.tile-natural-stone",
+      "description": "Travertine tile 12x12, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 3.99,
+      "high_usd": 8.85,
+      "source": "Floor & Decor, Noce Tumbled travertine $3.99/sq ft and Ivory Filled Honed 12x12 (101137529) $4.99/sq ft; build.com Daltile honed travertine 12x12 $8.85/sq ft ($88.50 per 10 sq ft carton, sale). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "sealant.thinset-mortar",
+      "description": "Thinset mortar, 50 lb bag",
+      "unit": "each",
+      "low_usd": 17.98,
+      "high_usd": 27.97,
+      "source": "Home Depot, Custom Building Products VersaBond gray (MTSG50) and white (MTSW50) 50 lb $17.98, VersaBond-LFT gray $19.97, VersaBond HP gray $27.97. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "sealant.grout-sanded",
+      "description": "Sanded grout, 25 lb bag",
+      "unit": "each",
+      "low_usd": 13.48,
+      "high_usd": 22.67,
+      "source": "Home Depot, Custom Building Products Polyblend 386 Oyster Gray 25 lb $13.48, Polyblend 115 Platinum $16.39, Polyblend Plus Snow White $22.67. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.flooring-hardwood-oak",
+      "description": "Solid red oak flooring 3/4in, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.65,
+      "high_usd": 4.99,
+      "source": "Home Depot, Anthony Oak red oak #1 Common 3/4 x 2-1/4in unfinished $2.65/sq ft, Blue Ridge red oak 2-3/8in $4.29/sq ft, Bruce American Originals natural red oak 3-1/4in $4.79/sq ft, Bruce Plano red oak 3-1/4in $4.99/sq ft; Floor & Decor unfinished red oak 2-1/4in #1 Common $2.69, Select $3.19/sq ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.flooring-lvp",
+      "description": "Luxury vinyl plank, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 1.49,
+      "high_usd": 3.29,
+      "source": "Home Depot, TrafficMaster Edwards Oak $1.49/sq ft, TrafficMaster Moonstone $1.99/sq ft, LifeProof Chiffon Lace Oak $2.79/sq ft, LifeProof Vesinet Oak $3.29/sq ft ($62.67 per 20.1 sq ft case). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.concrete-sealer",
+      "description": "Concrete sealer, per sq ft of one coat",
+      "unit": "sq-ft",
+      "low_usd": 0.16,
+      "high_usd": 0.31,
+      "source": "Home Depot and Walmart, Foundation Armor AR350 5 gal (AR3505GAL) $224.99 = $45.00/gal at 175-225 sq ft/gal ($0.20-$0.26); Zoro, Quikrete Acrylic Concrete Cure & Seal 1 gal (8730-02) $31.49 at 200 sq ft/gal ($0.16), Harris Teeter $47.02 at 150 sq ft/gal ($0.31); gallon price ÷ coverage. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "finish.concrete-polished",
+      "description": "Polished concrete (grind, densify, seal), contractor installed cost per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.0,
+      "high_usd": 8.0,
+      "source": "Contractor cost guides, not retail: Angi \"cost to polish concrete floors\" most floors $2-$8/sq ft; HomeAdvisor polished concrete $2-$16/sq ft (high end is decorative work), average job $4,500; 2026-11-25"
+    },
+    {
+      "key": "finish.epoxy-floor-coating",
+      "description": "Epoxy floor coating kit, per sq ft of one coat",
+      "unit": "sq-ft",
+      "low_usd": 0.36,
+      "high_usd": 0.53,
+      "source": "Home Depot, Rust-Oleum EpoxyShield 2 gal gray kit (251870) $106.69 at 200-250 sq ft bare concrete ($0.43-$0.53); EpoxyShield 240 oz 2.5-car kits (365187, 365186) $179.45-$189.68 at up to 500 sq ft ($0.36-$0.38); kit price ÷ coverage. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-dwv",
+      "variant": "pipe-1-1-2",
+      "description": "PVC DWV pipe 1-1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.0,
+      "high_usd": 2.07,
+      "source": "Home Depot, Charlotte PVC071120600 and JM Eagle 531111 1-1/2in x 10ft Sch 40 solid $20.69; Ace, Charlotte 1-1/2in foam core $9.99 (unclear snippet); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-dwv",
+      "variant": "pipe-2",
+      "description": "PVC DWV pipe 2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.5,
+      "high_usd": 2.75,
+      "source": "True Value, Charlotte 2in foam core $14.99; Zoro, Charlotte cell core PVC042000600 $19.45; Home Depot, Charlotte 2in solid PVC 07200 0600 $27.46; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-dwv",
+      "variant": "pipe-3",
+      "description": "PVC DWV pipe 3in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 3.28,
+      "high_usd": 5.67,
+      "source": "Home Depot, Charlotte 3in foam core PVC 04300 0600 $32.78; Charlotte PVC073000600 / JM Eagle 531095 3in solid $56.67; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-dwv",
+      "variant": "pipe-4",
+      "description": "PVC DWV pipe 4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.63,
+      "high_usd": 7.71,
+      "source": "Home Depot, Charlotte 4in foam core PVC 04400 0600 $26.31-$42.71 (varies by snapshot); Charlotte PVC074000600 4in solid $77.13; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-sch40",
+      "variant": "pipe-1-2",
+      "description": "PVC Sch 40 pressure pipe 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.76,
+      "high_usd": 0.76,
+      "source": "Home Depot, Charlotte PVC 04005 0600 and JM Eagle 530048 1/2in x 10ft $7.56 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-sch40",
+      "variant": "pipe-3-4",
+      "description": "PVC Sch 40 pressure pipe 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.93,
+      "high_usd": 1.15,
+      "source": "Home Depot, Charlotte PVC 04007 0600 3/4in x 10ft $9.31-$11.51 (two snapshots); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-sch40",
+      "variant": "pipe-1",
+      "description": "PVC Sch 40 pressure pipe 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.35,
+      "high_usd": 1.35,
+      "source": "Home Depot, JM Eagle 531194 1in x 10ft 450 psi $13.50 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-sch40",
+      "variant": "pipe-1-1-2",
+      "description": "PVC Sch 40 pipe 1-1/2in (dual DWV/pressure), per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.07,
+      "high_usd": 2.07,
+      "source": "Home Depot, JM Eagle 531111 1-1/2in x 10ft 330 psi dual-marked $20.69 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pvc-sch40",
+      "variant": "pipe-2",
+      "description": "PVC Sch 40 pipe 2in (dual DWV/pressure), per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.75,
+      "high_usd": 3.7,
+      "source": "Home Depot, Charlotte PVC 07200 0600 2in solid dual-marked $27.46; Zoro, JM Eagle 531137 2in $36.99; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-cpvc",
+      "variant": "pipe-1-2",
+      "description": "CPVC CTS pipe 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.72,
+      "high_usd": 0.74,
+      "source": "Home Depot, Charlotte FlowGuard Gold CTS 12005 0600 1/2in x 10ft $7.18-$7.42; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-cpvc",
+      "variant": "pipe-3-4",
+      "description": "CPVC CTS pipe 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.1,
+      "high_usd": 1.3,
+      "source": "Home Depot, Charlotte CTS 12007 0600 3/4in x 10ft $10.96; HD Supply same part $12.99; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pex",
+      "variant": "pipe-1-2",
+      "description": "PEX tubing 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.33,
+      "high_usd": 0.63,
+      "source": "Home Depot, SharkBite PEX-B 1/2in x 100ft coil U860W100 $33.30; Walmart same $41.36; Home Depot Uponor AquaPEX 1/2in x 100ft F4340500R $62.68; per 100ft coil ÷100; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pex",
+      "variant": "pipe-3-4",
+      "description": "PEX tubing 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.5,
+      "high_usd": 1.3,
+      "source": "Home Depot, SharkBite PEX-B 3/4in x 100ft U870R100 $49.97; Walmart U870W100 $55.52; SupplyHouse Uponor AquaPEX 3/4in x 100ft F4340750 $102.42; Zoro Uponor F1040750 $129.99; per 100ft coil ÷100; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-pex",
+      "variant": "pipe-1",
+      "description": "PEX tubing 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.78,
+      "high_usd": 2.19,
+      "source": "Home Depot, SharkBite PEX-B 1in x 100ft U880W100 $77.97; Home Depot Uponor AquaPEX 1in x 100ft F1041000R $199.99; Zoro Uponor F1041000 $211.99-$218.99; per 100ft coil ÷100; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-copper-type-l",
+      "variant": "pipe-1-2",
+      "description": "Copper Type L pipe 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.97,
+      "high_usd": 3.89,
+      "source": "Home Depot, Mueller Streamline 1/2in x 10ft Type L LH04010 $29.67; HD Supply Mueller P650050 $38.91; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-copper-type-l",
+      "variant": "pipe-3-4",
+      "description": "Copper Type L pipe 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 4.18,
+      "high_usd": 6.3,
+      "source": "PexUniverse, Mueller 3/4in x 10ft Type L $41.75; McCoy's $42.99; Zoro Streamline LH05010 $45.25; HD Supply Mueller LH06010 $62.99; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-copper-type-l",
+      "variant": "pipe-1",
+      "description": "Copper Type L pipe 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 8.5,
+      "high_usd": 8.5,
+      "source": "Rplumber, Streamline 01075 1in x 10ft Type L $84.99 (the only price found; may be soft coil rather than a hard stick); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-abs-dwv",
+      "variant": "pipe-1-1-2",
+      "description": "ABS DWV pipe 1-1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.79,
+      "high_usd": 1.4,
+      "source": "Home Depot, Genova 80011F 1-1/2in x 10ft cell core $7.93; Busy Beaver JM Eagle $10.69; Kellogg Supply Charlotte solid $13.99; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-abs-dwv",
+      "variant": "pipe-2",
+      "description": "ABS DWV pipe 2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.08,
+      "high_usd": 1.8,
+      "source": "Home Depot, Genova 80021F and IPEX 179685 2in x 10ft cell core $10.78; Supply-OnTime IPEX $17.96; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-abs-dwv",
+      "variant": "pipe-3",
+      "description": "ABS DWV pipe 3in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.19,
+      "high_usd": 2.19,
+      "source": "Home Depot, IPEX 179686 3in x 10ft cell core $21.88 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-abs-dwv",
+      "variant": "pipe-4",
+      "description": "ABS DWV pipe 4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 3.16,
+      "high_usd": 3.16,
+      "source": "Home Depot, IPEX 179687 4in x 10ft cell core $31.55 (one price found, out of stock); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-cast-iron-no-hub",
+      "variant": "pipe-2",
+      "description": "Cast iron no-hub soil pipe 2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 8.98,
+      "high_usd": 8.98,
+      "source": "Cooney Bros (plumbing supply), Charlotte NH 00002 0800 2in x 10ft $89.77; Home Depot NHP2 showed no price; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-cast-iron-no-hub",
+      "variant": "pipe-3",
+      "description": "Cast iron no-hub soil pipe 3in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 13.01,
+      "high_usd": 13.01,
+      "source": "Cooney Bros (plumbing supply), Charlotte NH 00002 1000 3in x 10ft $130.11; Home Depot NHP3 showed no price; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-cast-iron-no-hub",
+      "variant": "pipe-4",
+      "description": "Cast iron no-hub soil pipe 4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 17.52,
+      "high_usd": 17.67,
+      "source": "Cooney Bros, Charlotte NH 00002 1200 4in x 10ft $175.21; US Supply Charlotte 4in x 10ft $176.67; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-galvanized",
+      "variant": "pipe-1-2",
+      "description": "Galvanized steel pipe 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.58,
+      "high_usd": 2.58,
+      "source": "Home Depot, Southland 563-1200HC 1/2in x 10ft $25.82 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-galvanized",
+      "variant": "pipe-3-4",
+      "description": "Galvanized steel pipe 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 3.23,
+      "high_usd": 3.23,
+      "source": "Home Depot, Southland 564-1200HC 3/4in x 10ft $32.28 (one price found); per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.pipe-galvanized",
+      "variant": "pipe-1",
+      "description": "Galvanized steel pipe 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 4.46,
+      "high_usd": 6.39,
+      "source": "Busy Beaver (Orgill) 1in x 10ft $44.55; Home Depot Southland 565-1200HC $61.33; Zoro Select 565-1200 $63.85; per 10ft length ÷10 unless noted. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-pvc",
+      "description": "PVC Sch 40 3/4in 90-degree elbow",
+      "unit": "each",
+      "low_usd": 0.5,
+      "high_usd": 1.44,
+      "source": "Home Depot, Charlotte PVC023000800HD $0.79 each, 10-pack PVC023000810HD $4.96 ($0.50 ea); Walmart Charlotte 25-pack $36.08 ($1.44 ea). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-cpvc",
+      "description": "CPVC CTS 3/4in 90-degree elbow",
+      "unit": "each",
+      "low_usd": 0.53,
+      "high_usd": 1.05,
+      "source": "Home Depot, CTS023000800HD $0.53; NIBCO slip x slip $1.05 ($0.69 ea in a 10-pack); True Value NIBCO street elbow $0.99. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-abs",
+      "description": "ABS DWV 2in hub coupling",
+      "unit": "each",
+      "low_usd": 1.92,
+      "high_usd": 2.12,
+      "source": "Home Depot, NIBCO C5801HD2 $1.92; Charlotte ABS001000800HD $2.12; IPEX 427018 $2.12. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-pex-crimp",
+      "description": "PEX 1/2in brass crimp elbow plus one copper crimp ring",
+      "unit": "each",
+      "low_usd": 1.99,
+      "high_usd": 2.61,
+      "source": "Home Depot, Apollo APXE12 1/2in brass PEX elbow $2.32 ($1.73 ea in a 10-pack); crimp rings: Zoro Apollo APXCR12100JR 100-pack $25.95 ($0.26), Home Depot $27.00 ($0.27), PLUMBFLEX $28.99 ($0.29); elbow + ring. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-copper-sweat",
+      "description": "Copper 3/4in 90-degree sweat elbow",
+      "unit": "each",
+      "low_usd": 1.32,
+      "high_usd": 2.61,
+      "source": "Home Depot, Everbilt 3/4in cup x cup elbow $2.61 each, 10-pack $18.60 ($1.86 ea), 25-pack $33.00 ($1.32 ea). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.fitting-galvanized",
+      "description": "Galvanized 3/4in 90-degree elbow",
+      "unit": "each",
+      "low_usd": 2.49,
+      "high_usd": 4.25,
+      "source": "Zoro, Southland 3/4in galvanized elbow $2.49; Home Depot, STZ street elbow $3.21, Southland FIP 510-004HN $3.76, Southland street elbow 510-304HP $4.25. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fastener.coupling-no-hub",
+      "description": "No-hub coupling 3in (shielded)",
+      "unit": "each",
+      "low_usd": 8.62,
+      "high_usd": 16.29,
+      "source": "Mission 3in standard no-hub coupling $8.62 (distributor listing); SupplyHouse, Mission C300HW 3in heavy-duty $16.29 (Home Depot sells Fernco 2in flexible couplings P1056-22 at $5.25-$5.96, which are not shielded). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.valve-ball",
+      "description": "Ball valve 3/4in brass",
+      "unit": "each",
+      "low_usd": 9.98,
+      "high_usd": 28.97,
+      "source": "Home Depot, 3/4in sweat full-port 107-854HN $9.98, Apollo 94ELF20401 $12.94, Everbilt 107-454EB $16.98, SharkBite push-fit 22185-0000LF $25.36-$28.97. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.hose-bib",
+      "description": "Frost-free sillcock",
+      "unit": "each",
+      "low_usd": 33.32,
+      "high_usd": 56.65,
+      "source": "Home Depot, Everbilt 104-515EB $33.32 and 104-519EB 12in $36.65, Prier 478-12 $42.61, Woodford Model 17 17CP-6-MH $44.47 / 17CP-8-MH $48.42 / 17CP-12-MH $56.65. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.p-trap",
+      "description": "P-trap 1-1/2in",
+      "unit": "each",
+      "low_usd": 5.19,
+      "high_usd": 7.13,
+      "source": "Home Depot, Jones Stephens slip-joint P37003 $5.19, NIBCO PVC hub x hub C4885HD112 $6.17, Oatey sink drain P-trap kit C2661C $7.13. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.air-admittance-valve",
+      "description": "Air admittance valve 1-1/2in x 2in",
+      "unit": "each",
+      "low_usd": 16.99,
+      "high_usd": 32.99,
+      "source": "Home Depot, Oatey Sure-Vent 39016 (PVC) $16.99, 39018 (ABS) $19.88; Ace Hardware $32.99. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.vent-pipe-flashing",
+      "description": "Roof vent pipe flashing 1-1/2in to 3in",
+      "unit": "each",
+      "low_usd": 8.19,
+      "high_usd": 22.3,
+      "source": "Zoro, Oatey 11919 thermoplastic $8.19-$9.19; True Value thermoplastic $9.99; Walmart, Oatey galvanized 11815 $22.30. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.toilet",
+      "description": "Two-piece toilet",
+      "unit": "each",
+      "low_usd": 99.0,
+      "high_usd": 344.5,
+      "source": "Home Depot, Glacier Bay N2428E $99.00-$109.00, American Standard Champion two-piece $249.00; Ace, American Standard Cadet 3 FloWise $219.99; Ferguson, American Standard Cadet 215TA105 $344.50. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.vanity-sink",
+      "description": "Vanity with top and sink, plus faucet",
+      "unit": "each",
+      "low_usd": 316.94,
+      "high_usd": 413.0,
+      "source": "Home Depot vanities with top: BYBLIGHT 24in $294.35, Huckleberry 24in $329.00, Glacier Bay Huckleberry 30in $349.00, Home Decorators Autumn 24in $359.00; faucets: Glacier Bay Aragon $22.59, Constructor $22.73, Moen Adler 84603 $54.00; low = $294.35 + $22.59, high = $359.00 + $54.00. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.outdoor-shower",
+      "description": "Wall-mount outdoor shower kit",
+      "unit": "each",
+      "low_usd": 359.0,
+      "high_usd": 2649.0,
+      "source": "build.com, Signature Hardware 401594/401595 wall-mount outdoor shower $359.00; Houzz, Outdoor Shower Co wall-mount model $2,649 (premium stainless); no big-box listing captured. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.water-heater-tank",
+      "description": "Water heater, 40 gal tank (electric or gas)",
+      "unit": "each",
+      "low_usd": 439.0,
+      "high_usd": 599.0,
+      "source": "Home Depot, Rheem XE40T06ST45U1 electric $439.00, XE40M06ST38U1 $469.00, XE40M09EL55U1 $539.00; A.O. Smith (Smith brand) SCG40T03ST34U1 gas $519.00; Rheem XG40S06EC34U0 gas $599.00. Unit only, not installation. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-pvc-sch40",
+      "variant": "pipe-1-2",
+      "description": "PVC Sch 40 conduit 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.63,
+      "high_usd": 0.77,
+      "source": "Home Depot, Cantex A52AE12H and JM Eagle 67447 1/2in x 10ft $7.74; Zoro, Allied 8102 $6.29; ÷10ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-pvc-sch40",
+      "variant": "pipe-3-4",
+      "description": "PVC Sch 40 conduit 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.9,
+      "high_usd": 1.09,
+      "source": "Ace, Cantex 3/4in x 10ft $8.99; Home Depot 67454 $10.32; Zoro, Allied 8103 $10.89; ÷10ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-pvc-sch40",
+      "variant": "pipe-1",
+      "description": "PVC Sch 40 conduit 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.66,
+      "high_usd": 1.2,
+      "source": "Elliott Electric (trade), Heritage A52BA12 1in x 10ft $6.57; Ace 1in x 10ft (#33202) $11.99; Home Depot and Lowe's listings showed no price; ÷10ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-emt",
+      "variant": "pipe-1-2",
+      "description": "EMT conduit 1/2in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.6,
+      "high_usd": 0.87,
+      "source": "Friedman's 1/2in x 10ft $5.99; Farm & Fleet, Allied 898302 $6.99; Elliott Electric $8.71; ÷10ft (Home Depot showed no price). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-emt",
+      "variant": "pipe-3-4",
+      "description": "EMT conduit 3/4in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.95,
+      "high_usd": 1.3,
+      "source": "Elliott Electric 3/4in x 10ft $9.46; Friedman's $10.59; Farm & Fleet, Allied $12.99; ÷10ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.conduit-emt",
+      "variant": "pipe-1",
+      "description": "EMT conduit 1in, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.86,
+      "high_usd": 2.7,
+      "source": "Elliott Electric 1in x 10ft $18.60; K&K Hardware, Wheatland 0550210000 $19.96; Acandb $21.12; Elitsac $26.99; ÷10ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.wire-thhn-12",
+      "description": "THHN 12 AWG copper, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.2,
+      "high_usd": 0.27,
+      "source": "Home Depot, Southwire 12 AWG solid THHN 500ft spools by colour: red $99, yellow $117, black $119, white $123, gray $136.99; ÷500ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.wire-thhn-10",
+      "description": "THHN 10 AWG copper, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.31,
+      "high_usd": 0.4,
+      "source": "Home Depot, Southwire 10 AWG stranded THHN 500ft: yellow $154, white $166, blue $180.42, red $198.66; Elliott Electric 10 AWG solid black $197.52; ÷500ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.cable-nm-b-14-2",
+      "description": "NM-B 14/2 with ground, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.43,
+      "high_usd": 0.56,
+      "source": "Elliott Electric, 14/2 NM-B 250ft $106.82; Home Depot, Southwire Romex SIMpull 14/2 W/G 250ft (28827469) $109-$139 by snapshot ($84 with a promotion not used); ÷250ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.cable-nm-b-12-2",
+      "description": "NM-B 12/2 with ground, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.52,
+      "high_usd": 0.73,
+      "source": "Home Depot, Southwire Romex SIMpull 12/2 W/G 250ft (28828269) $129 (category page) to $182 (product page); ÷250ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.cable-uf-b-12-2",
+      "description": "UF-B 12/2 with ground, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 0.79,
+      "high_usd": 1.24,
+      "source": "Home Depot, Southwire UF-B 12/2 W/G: 250ft (13055955) $197 ($0.79/ft), 1000ft $995.03 ($1.00/ft), 100ft $110.48 ($1.10/ft), 50ft $62.14 ($1.24/ft). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.box-old-work-1g",
+      "description": "Old-work 1-gang box",
+      "unit": "each",
+      "low_usd": 1.05,
+      "high_usd": 4.17,
+      "source": "Home Depot, Carlon B114RB 14 cu in old-work box $1.05; Elliott Electric, Carlon B114R-UPC $1.80 ($90.10 per 50); Walmart 12-pack $35.49 ($2.96 ea); SupplyHouse $4.17. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "electrical.box-weatherproof",
+      "description": "Weatherproof box with in-use cover",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "electrical.receptacle-15a",
+      "description": "15A duplex receptacle",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "electrical.receptacle-gfci-20a",
+      "description": "20A weather-resistant GFCI receptacle",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "electrical.light-exterior-wet",
+      "description": "Wet-location exterior wall light",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "electrical.light-recessed-led",
+      "description": "6in canless recessed LED light",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "electrical.subpanel-100a",
+      "description": "100A subpanel / load center",
+      "unpriced": "not researched: the web search budget ran out before this item was priced; price it in the next refresh",
+      "source": "Not searched (search budget exhausted in this pass; Home Depot, Lowe's, Menards and Ace product pages refused direct fetches); 2026-11-25"
+    },
+    {
+      "key": "masonry.brick-clay-modular",
+      "description": "Modular clay face brick, per sq ft of wall face (about 6.75 brick)",
+      "unit": "sq-ft",
+      "low_usd": 5.54,
+      "high_usd": 6.35,
+      "source": "Ernest Maier (masonry supplier), Glen-Gery 900 red matte cored $0.82 each and Glen-Gery 53-DD red molded $0.94 each, x 6.75 brick per sq ft (BIA TN 10); Home Depot modular clay brick (100676108) showed no price. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "masonry.stone-veneer-manufactured",
+      "description": "Manufactured stone veneer flats, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 9.75,
+      "high_usd": 13.7,
+      "source": "Home Depot, M-Rock Rapidan River $78.00 per 8 sq ft box ($9.75), M-Rock Shiloh ledge $99.41 per 8 sq ft ($12.43), M-Rock Elk Creek $67.15 per 4.9 sq ft ($13.70). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "masonry.flagstone",
+      "description": "Flagstone 1-1/2in, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 2.4,
+      "high_usd": 13.83,
+      "source": "Cost guides $300-$500 per ton at 75-125 sq ft/ton (low = $300/125); EarthStone Rock, PA bluestone full-color standup $695/ton and True Blue standup $1,245/ton at about 90 sq ft/ton (high = $1,245/90). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "masonry.paver-concrete",
+      "description": "Concrete pavers 4x8 Holland 60mm, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 11.18,
+      "high_usd": 11.18,
+      "source": "Home Depot, Pavestone Holland 60mm $1,158.09 per 480-piece pallet ($2.41 each) at 4.64 per sq ft (one listing found; looks high for plain pavers, so re-check at the next refresh). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "masonry.retaining-wall-block",
+      "description": "Retaining wall block, each",
+      "unit": "each",
+      "low_usd": 3.29,
+      "high_usd": 19.15,
+      "source": "True Value, Oldcastle 12in Castle wall block $3.29; Home Depot, Pavestone RockWall Small $807.21 per 144-piece pallet ($5.61 each) and RockWall Large $919 per 48-piece pallet ($19.15 each). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "opening.window-bay",
+      "description": "Vinyl bay window, about 72x48 to 72x60, each",
+      "unit": "each",
+      "low_usd": 1451.8,
+      "high_usd": 1918.0,
+      "source": "Home Depot JELD-WEN V-4500 bay vinyl window with grilles: 71.5x47.5 (THDJW244000002) $1,519.80 (was $1,788), $1,451.80-$1,630.30 by configuration; 71.5x59.5 $1,918.00. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "opening.door-bifold",
+      "description": "Interior bifold door 36x80 with track hardware, each",
+      "unit": "each",
+      "low_usd": 163.99,
+      "high_usd": 297.42,
+      "source": "Home Depot 36x80: flush hardboard primed hollow-core bifold (00222) $178.92, CALHOME flush hardboard bifold $247.66 (was $330.21), Seabrooke Shaker PVC hollow-core (SEASHK36) $297.42, louver bifolds $163.99 and $211.12. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "opening.door-barn",
+      "description": "Barn door slab 36x84 with sliding track kit, each",
+      "unit": "each",
+      "low_usd": 179.99,
+      "high_usd": 582.4,
+      "source": "Walmart Easy4Home glass barn door with 6.6ft kit $179.99-$196.99; Zoro Renin 36x84 white primed K-frame kit $234.99 (plus $115 delivery); Home Depot CALHOME Weather Oak pine with kit $582.40. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "opening.door-garage-rollup",
+      "description": "Insulated steel sectional garage door 9x7, door only (no opener), each",
+      "unit": "each",
+      "low_usd": 828.0,
+      "high_usd": 1664.3,
+      "source": "Home Depot Clopay 9x7: Classic Steel short panel R6.5 with windows (2050) $828.00 and $1,079.50, R12.9 charcoal (GDU232) $1,242.00, R12.9 wood-look (GDU066) $1,527.00, Classic Collection R12.9 (3000SP) $1,627.00, R18.4 solid $1,664.30 (was $1,958); non-insulated reference $458 excluded. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "opening.skylight",
+      "description": "Fixed deck-mount skylight, about 22x46, flashing extra, each",
+      "unit": "each",
+      "low_usd": 407.73,
+      "high_usd": 665.0,
+      "source": "Build.com VELUX FS C06 2004 $407.73; Home Depot VELUX FS C06 with solar blind $665.00 (blind included); Rona $499 CAD excluded; 2026-11-25"
+    },
+    {
+      "key": "roofing.polycarbonate-corrugated",
+      "description": "Clear corrugated polycarbonate panel 26in wide (Suntuf), per sq ft of panel",
+      "unit": "sq-ft",
+      "low_usd": 1.5,
+      "high_usd": 1.91,
+      "source": "Home Depot Suntuf 26in x 8ft clear (101697) $26.98 ÷ 17.33 sq ft = $1.56; Ace 8ft $32.99 = $1.90; Arbor Home 26in x 12ft $38.98 ÷ 26 = $1.50; DK Hardware 12ft 10-pack $495.33 ÷ 260 = $1.91; 2026-11-25"
+    },
+    {
+      "key": "roofing.tile-roof-clay",
+      "description": "Clay roof tile, material only (machine-made), per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 3.0,
+      "high_usd": 7.0,
+      "source": "Cost guides (no retail listing found): HomeAdvisor 2025 clay tile $3-$7/sq ft material, terracotta $5-$10; Angi interlocking $3-$5; Fixr machine-made $5-$15, handmade $15-$25 (excluded). Installation extra; 2026-11-25"
+    },
+    {
+      "key": "roofing.tile-roof-concrete",
+      "description": "Concrete roof tile, material only, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 3.0,
+      "high_usd": 5.0,
+      "source": "Cost guides (Eagle sells through distributors only, no retail price): roofingcalc and Fixr $3-$5/sq ft material, interlocking $3-$4. Installation extra; 2026-11-25"
+    },
+    {
+      "key": "roofing.membrane-epdm",
+      "description": "60 mil EPDM membrane, per sq ft (roll price ÷ area)",
+      "unit": "sq-ft",
+      "low_usd": 1.46,
+      "high_usd": 1.46,
+      "source": "Walmart Tego EPDM 10 x 25ft 60 mil $365.00 ÷ 250 sq ft = $1.46 (only verified price; Home Depot Henry 10x25 60 mil listed without price). Adhesive, tape and edge metal extra; 2026-11-25"
+    },
+    {
+      "key": "roofing.membrane-tpo",
+      "description": "60 mil TPO membrane, per sq ft (10x100 roll ÷ 1,000 sq ft)",
+      "unit": "sq-ft",
+      "low_usd": 0.65,
+      "high_usd": 1.25,
+      "source": "superarbor Johns Manville 60 mil TPO 10x100 $1,251.42 ÷ 1,000 = $1.25; latestcost.com guide $650-$1,050 per 10x100 roll = $0.65-$1.05. Welding and fasteners extra; 2026-11-25"
+    },
+    {
+      "key": "roofing.ridge-vent",
+      "description": "Shingle-over ridge vent, 4ft sections, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 2.87,
+      "high_usd": 6.62,
+      "source": "Home Depot GAF Cobra Rigid Vent 3 9x48 $11.48 ÷ 4 = $2.87, Cobra SnowCountry 11.5x48 $14.97 ÷ 4 = $3.74, Air Vent ShingleVent II 10-pack $181.17 ÷ 40 = $4.53; Ace ShingleVent II $19.99 ÷ 4 = $5.00; Zoro $22.99 ÷ 4 = $5.75; Do it Best Cobra SnowCountry $26.49 ÷ 4 = $6.62; 2026-11-25"
+    },
+    {
+      "key": "other.landscape-fabric",
+      "description": "Landscape fabric (DeWitt 1.5-4.1 oz), 3x100ft roll, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.12,
+      "high_usd": 0.22,
+      "source": "Walmart DeWitt 3x100ft: 1.5 oz $35.56 ÷ 300 = $0.119, 12YR $49.99 = $0.167, Pro $53.07 = $0.177, Pro Max 4.1 oz $59.99 = $0.200, Pro 3 oz $64.99 = $0.217; 2026-11-25"
+    },
+    {
+      "key": "other.drain-pipe-perforated-4in",
+      "description": "4in perforated corrugated HDPE drain pipe, 100ft coil, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 1.0,
+      "high_usd": 1.36,
+      "source": "Home Depot ADS 4in x 100ft singlewall perforated (4010100) $136.00 ÷ 100 = $1.36; Ace 4x100 $119.99 = $1.20; Ferguson $1.00/ft. Outliers excluded: DK Hardware $0.50/ft, Zoro with sock $2.02/ft; 2026-11-25"
+    },
+    {
+      "key": "fencing.chain-link-fabric-2in",
+      "description": "Galvanized chain-link fabric, 11.5 ga, 4x50ft roll, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.48,
+      "high_usd": 0.56,
+      "source": "Home Depot YARDGARD 4x50ft 11.5 ga (308704A) $112.82, $95.90 each for 5+; Fencer Wire 4x50 11.5 ga (LB115-4X50M2F38) $108.80; ÷200 sq ft. Mesh may be 2-3/8in on these rolls (not confirmed); Kent.ca 2in mesh $148 (CAD) excluded. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fencing.chain-link-fabric-mini-mesh",
+      "description": "Chain-link mini-mesh (1-1/4in) fabric",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; a specialty item, likely several times the price of 2in fabric; 2026-11-25"
+    },
+    {
+      "key": "steel.chain-link-pipe",
+      "variant": "chainlink-line-1-5-8",
+      "description": "1-5/8in galvanized chain-link line post, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.53,
+      "high_usd": 4.37,
+      "source": "Home Depot YARDGARD 1-5/8 x 8ft 16 ga line post (328923DPT) $20.22 ÷ 8 = $2.53; Everbilt (Flipp ad) $31.97 ÷ 8 = $4.00; Ace $34.99 ÷ 8 = $4.37. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "steel.chain-link-pipe",
+      "variant": "chainlink-terminal-2-3-8",
+      "description": "2-3/8in galvanized chain-link terminal post, 8ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.57,
+      "high_usd": 5.0,
+      "source": "Home Depot YARDGARD 2-3/8 x 8ft corner post (328944DPT) $20.59 ÷ 8 = $2.57; Ace YARDGARD $39.99 ÷ 8 = $5.00. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "steel.chain-link-pipe",
+      "variant": "chainlink-rail-1-3-8",
+      "description": "1-3/8in galvanized chain-link top rail, 10ft 6in, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 1.31,
+      "high_usd": 3.33,
+      "source": "Home Depot YARDGARD 1-3/8 x 10ft6in 17 ga (328913DPT) $13.77 ÷ 10.5 = $1.31; North40 YARDGARD $22.99 = $2.19; Ace $26.99 = $2.57; Big R Master Halco 18 ga $34.99 = $3.33 (black Everbilt $42.88 excluded). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "fencing.fence-panel-aluminum",
+      "description": "Aluminum pool-code fence panel 4.5x6ft (Fortress Athens), per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 6.22,
+      "high_usd": 6.67,
+      "source": "Fortress Athens 4.5ft H x 6ft W gloss black pool panel (413547144M): Home Depot $168.00, Tractor Supply $179.99; ÷27 sq ft nominal; 2026-11-25"
+    },
+    {
+      "key": "fencing.fence-post-aluminum",
+      "description": "2x2in aluminum fence post",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; Tractor Supply lists a Fortress Athens 2x2x6.5ft line post but the page timed out; 2026-11-25"
+    },
+    {
+      "key": "fencing.glass-pool-fence-panel",
+      "description": "12mm frameless tempered glass pool fence panel",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "fastener.gate-hinge-pair",
+      "description": "Gate hinge pair",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "fastener.gate-hinge-self-closing",
+      "description": "D&D TruClose self-closing gate hinges, pair",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; the D&D store lists $0.00; 2026-11-25"
+    },
+    {
+      "key": "fastener.gate-latch-gravity",
+      "description": "Gravity gate latch",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "fastener.gate-latch-magnetic",
+      "description": "D&D MagnaLatch magnetic pool gate latch",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; the D&D store lists $0.00; 2026-11-25"
+    },
+    {
+      "key": "fastener.glass-spigot",
+      "description": "Stainless glass fence spigot for 12mm glass",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search (C.R. Laurence returned 403); 2026-11-25"
+    },
+    {
+      "key": "decking.composite-decking",
+      "variant": "5-4x6",
+      "description": "Capped composite deck board 5/4x6, 16-20ft, per linear foot",
+      "unit": "linear-ft",
+      "low_usd": 2.57,
+      "high_usd": 5.16,
+      "source": "Home Depot Trex Enhance Basics Beach Dune 16ft (BD010616E2G01) $41.06 ÷ 16 = $2.57, Enhance Naturals Rocky Harbor 16ft $41.57 = $2.60; Lowe's Q&A Trex Select 16ft $70.40 = $4.40, TimberTech PRO Legacy 20ft $103.13 = $5.16. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "decking.cable-rail-infill",
+      "description": "Stainless cable railing infill (cable + fittings, no posts or rail), per linear ft of railing",
+      "unit": "linear-ft",
+      "low_usd": 10.0,
+      "high_usd": 18.0,
+      "source": "Muzata cable railing cost page: wood-post cable kits about $10-$18 per linear foot (cable and fittings only); full stainless systems with posts and rail $75-$120/ft excluded; 2026-11-25"
+    },
+    {
+      "key": "decking.glass-railing-panel",
+      "description": "Tempered 1/2in glass railing panel, 36.5in tall, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 10.76,
+      "high_usd": 12.88,
+      "source": "Home Depot Glass Warehouse 1/2in x 36.5in panels: 20in $62.27 (÷5.07 sq ft = $12.28), 30in $97.94 ($12.88), 36in $113.55 ($12.44), 44in $128.99 ($11.57), 58in $172.35 ($11.72); Peak Aluminum 30-7/16 x 36in panel $81.88 ($10.76). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "other.shade-sail-hdpe",
+      "description": "HDPE shade sail 12x12ft square, each",
+      "unit": "each",
+      "low_usd": 89.95,
+      "high_usd": 129.99,
+      "source": "Backyard City Coolaroo Coolhaven 12ft square $89.95 ($104.95 with 4-corner kit); Ace Hardware Coolaroo 12ft square $129.99 (snippet); 2026-11-25"
+    },
+    {
+      "key": "fastener.shade-sail-mount-kit",
+      "description": "Stainless shade sail hardware, one corner (pad eye, turnbuckle, snap hook)",
+      "unit": "each",
+      "low_usd": 3.75,
+      "high_usd": 11.13,
+      "source": "Backyard City 316 4-corner add-on kit $15 ÷ 4 = $3.75; Walmart 40-pc 4-corner kit $15.88 ÷ 4 = $3.97; Home Depot stainless kit $44.51 ÷ 4 = $11.13 (corner count assumed). Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "mechanical.grill-insert",
+      "description": "Built-in gas grill head, 32in 4-burner, each",
+      "unit": "each",
+      "low_usd": 1799.99,
+      "high_usd": 2699.0,
+      "source": "BBQGuys Blaze Premium LTE 32in (BLZ-4LTE2-LP) $1,799.99; Premium Home Source same $2,099; BBQGuys LTE+ propane about $2,699. Marine-grade $3,999+ excluded. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "plumbing.outdoor-sink",
+      "description": "Stainless drop-in outdoor sink about 15in, each (faucet extra)",
+      "unit": "each",
+      "low_usd": 207.9,
+      "high_usd": 799.0,
+      "source": "Fire Magic 3587 15x15 drop-in $207.90 (retailer) and $254.70 (BBQGuys); Kraus Kore KCA1801 15x22 316 sink $449.95 (AJ Madison); Delta Heat 15in drop-in $799 (Blazing Embers, $729 in a snippet); 2026-11-25"
+    },
+    {
+      "key": "finish.countertop-concrete",
+      "description": "Concrete countertop, materials only, per sq ft (installed is about $50-$150/sq ft)",
+      "unit": "sq-ft",
+      "low_usd": 5.0,
+      "high_usd": 15.0,
+      "source": "HomeGuide concrete countertops: materials $5-$15/sq ft, installed $50-$150 (labor $45-$135); Angi installed $50-$150; Houzz $70-$130; 2026-11-25"
+    },
+    {
+      "key": "masonry.pool-equipment-pad",
+      "description": "Plastic pool equipment pad 36x48x3in, each",
+      "unit": "each",
+      "low_usd": 224.0,
+      "high_usd": 224.0,
+      "source": "Pool Warehouse Diversitech ACP36483 36x48x3 black pad $224 (only verified price; Pool360 marks it obsolete); 2026-11-25"
+    },
+    {
+      "key": "masonry.coping-precast-concrete",
+      "description": "Precast concrete bullnose pool coping 12x24, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 19.9,
+      "high_usd": 19.9,
+      "source": "DK Hardware DFW 37-1106 12x24 white straight bullnose $39.79 per piece ÷ 2ft = $19.90 (only verified price, special order); 2026-11-25"
+    },
+    {
+      "key": "masonry.coping-travertine",
+      "description": "Travertine bullnose pool coping 12x24 3cm, per linear ft",
+      "unit": "linear-ft",
+      "low_usd": 7.79,
+      "high_usd": 15.14,
+      "source": "Floor & Decor Country Classic tumbled 3cm bullnose $15.58 per piece ÷ 2ft = $7.79, Silver travertine coping $15.98 = $7.99, Shell tumbled $18.78 = $9.39; Ferguson Ackland honed travertine coping $30.27 = $15.14. Home Depot MSI 5cm coping $28.35/ft excluded (thicker); 2026-11-25"
+    },
+    {
+      "key": "steel.steel-stud-20ga",
+      "description": "3-5/8in 33 mil structural steel stud (362S162-33)",
+      "unpriced": "no public price: Home Depot lists ClarkDietrich 362S162-33 (305981829, 310382679) as special order, priced through the Pro Desk",
+      "source": "Home Depot listings via search snippets; Lowe's and Menards returned nothing usable; 2026-11-25"
+    },
+    {
+      "key": "steel.steel-hss-a500",
+      "variant": "hss-2x2x1-8",
+      "description": "Square steel tube 2x2, 1/8in-class wall, per linear foot (steel service centre)",
+      "unit": "linear-ft",
+      "low_usd": 5.07,
+      "high_usd": 9.41,
+      "source": "Steel Supply LP: 2x2 11 ga (0.120in, A513) 24ft $136.29 ÷ 24 = $5.68, 40ft $228.81 = $5.72, 4ft cut $20.27 = $5.07; 2x2x.180 A500 (heavier wall, upper bound) 20ft $188.18 = $9.41. No exact 2x2x1/8 A500 listing found; 2026-11-25"
+    },
+    {
+      "key": "steel.steel-hss-a500",
+      "variant": "hss-3x3x3-16",
+      "description": "Square steel tube A500 3x3x3/16, per linear foot (steel service centre)",
+      "unit": "linear-ft",
+      "low_usd": 15.34,
+      "high_usd": 18.13,
+      "source": "Steel Supply LP 3x3x.180 A500 24ft $369.17 ÷ 24 = $15.38, 40ft $613.62 = $15.34, 4ft cut $66.10 = $16.53; Metals4U 3x3x.188 A500 72in $99.22 ÷ 6 = $16.54; Alcobra Metals 3x3x.188 94in $142 ÷ 7.83 = $18.13 (+$25 cut fee); 2026-11-25"
+    },
+    {
+      "key": "steel.steel-angle-a36",
+      "variant": "angle-2x2x3-16",
+      "description": "Steel angle A36 L2x2x3/16, per linear foot (steel service centre)",
+      "unit": "linear-ft",
+      "low_usd": 3.05,
+      "high_usd": 3.57,
+      "source": "Steel Supply LP A36 angle 2x2x.188: 10ft $35.49 = $3.55, 20ft $60.97 = $3.05, 40ft $142.95 = $3.57 (one retailer; Metals Depot blocked); 2026-11-25"
+    },
+    {
+      "key": "steel.steel-w-a992",
+      "variant": "w6x9",
+      "description": "W6x9 A992 beam, per linear foot (mill price to small-cut retail, derived)",
+      "unit": "linear-ft",
+      "low_usd": 7.88,
+      "high_usd": 16.66,
+      "source": "Low: Steel Dynamics Columbia City beam price list Oct 1 2026, W6 9-16 lb at $87.50/cwt x 9 lb/ft = $7.88 (mill/truckload). High: Metals4U W6x20 72in $222.18 ÷ 6 = $37.03/ft = $1.85/lb x 9 = $16.66. No per-foot retail W6x9 price found; 2026-11-25"
+    },
+    {
+      "key": "steel.steel-w-a992",
+      "variant": "w8x10",
+      "description": "W8x10 A992 beam, per linear foot (mill price to small-cut retail, derived)",
+      "unit": "linear-ft",
+      "low_usd": 8.75,
+      "high_usd": 18.51,
+      "source": "Low: Steel Dynamics Columbia City beam price list Oct 1 2026, W8 10-15 lb at $87.50/cwt x 10 lb/ft = $8.75 (mill/truckload). High: Metals4U W6x20 small-cut rate $1.85/lb x 10 = $18.51. No per-foot retail W8x10 price found; 2026-11-25"
+    },
+    {
+      "key": "insulation.spray-foam-closed-cell",
+      "description": "Closed-cell spray foam, DIY kit, per sq ft at 1in (board foot)",
+      "unit": "sq-ft",
+      "low_usd": 1.28,
+      "high_usd": 2.17,
+      "source": "Home Depot Touch 'n Foam 600 board ft kit (4006062600) $998 ÷ 600 = $1.66, TNFP System 600 low-GWP (62610) $979 = $1.63; HomeGuide DIY guide 600-650 board ft kits $830-$1,300 = $1.28-$2.17. Installed by a contractor: HomeGuide $1.30-$2.90 per board ft; 2026-11-25"
+    },
+    {
+      "key": "insulation.spray-foam-open-cell",
+      "description": "Open-cell spray foam, installed, per sq ft at 3.5in",
+      "unit": "sq-ft",
+      "low_usd": 1.4,
+      "high_usd": 4.55,
+      "source": "Cost guides per board ft x 3.5: HomeGuide $0.60-$1.30 = $2.10-$4.55; Fixr $0.40-$0.73 = $1.40-$2.56; Modernize $0.40-$0.65 = $1.40-$2.28; 2026-11-25"
+    },
+    {
+      "key": "envelope.vapor-barrier-6mil",
+      "description": "6 mil polyethylene sheeting, 10x100ft roll, per sq ft",
+      "unit": "sq-ft",
+      "low_usd": 0.079,
+      "high_usd": 0.079,
+      "source": "Home Depot HDX 10x100 6 mil clear (CFHD0610C) $79.48, HDX CFHK0610C $79.48, BOEN PS-610 $78.98; ÷1,000 sq ft. Search-snippet prices; 2026-11-25"
+    },
+    {
+      "key": "mechanical.mini-split-ductless",
+      "description": "12,000 BTU single-zone ductless mini-split system (indoor + outdoor + line set), equipment only, each",
+      "unit": "each",
+      "low_usd": 889.0,
+      "high_usd": 1738.0,
+      "source": "FactoryPure Pioneer WYS012AMFI19RL $889; Premium Home Source Pioneer WYS012AMFI20RL-16 $938 (was $1,069); MrCool DIY 4th Gen DIY-12-HP-WM-115C25 $1,738 (Webstaurant, Premium Home Source regular price). Installation extra; 2026-11-25"
+    },
+    {
+      "key": "mechanical.exhaust-fan-bath",
+      "description": "Bathroom exhaust fan 80 CFM (Broan-NuTone AE80B), each",
+      "unit": "each",
+      "low_usd": 79.0,
+      "high_usd": 79.0,
+      "source": "Broan-NuTone AE80B $79 (broan-nutone.com product page); only verified price; 2026-11-25"
+    },
+    {
+      "key": "mechanical.gable-vent",
+      "description": "Louvered gable vent",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "sealant.caulk-silicone",
+      "description": "100% silicone sealant, 10.1 oz",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "sealant.caulk-polyurethane",
+      "description": "Polyurethane sealant, 10.1 oz",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "sealant.adhesive-construction",
+      "description": "Construction adhesive, 10 oz",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
+    },
+    {
+      "key": "sealant.waterproofing-membrane-liquid",
+      "description": "Liquid waterproofing membrane (RedGard class)",
+      "unpriced": "no retail price could be verified on the research date; research before quoting",
+      "source": "Retailer pages (Home Depot, Lowe's, Zoro) blocked automated fetches and no price turned up in search; 2026-11-25"
     }
   ]
 }

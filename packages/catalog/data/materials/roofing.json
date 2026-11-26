@@ -124,5 +124,112 @@
     ],
     "priceKey": "roofing.downspout-2x3-aluminum",
     "source": "Approximate: computed for 0.019in aluminum sheet at 169 pcf (no published weight); 5in K-style gutter in 0.027in stock is about 0.38 lb/ft"
+  },
+  {
+    "id": "polycarbonate-corrugated",
+    "name": "Clear corrugated polycarbonate panels",
+    "description": "Clear corrugated polycarbonate panels, 26in wide (Palram Suntuf class), for patio covers and greenhouses. Fasten with the maker's EPDM-washered screws through closure strips on purlins at 24in (36in max); Palram's minimum slope is 1-1/2in in 12 (about 7 degrees).",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.2,
+    "swatch": {
+      "color": "#e8f0f2",
+      "roughness": 0.2,
+      "opacity": 0.45
+    },
+    "acceptsJoints": [
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.polycarbonate-corrugated",
+    "source": "Palram Suntuf installation guide F1409 (11.27.2018): minimum recommended slope 1-1/2in in 12, purlins no more than 36in apart with 24in recommended, Palram EPDM-washered fasteners only, closure strips under fasteners at purlins. Weight: Suntuf 26in x 12ft clear (101699), 6.4 lb per panel (Arbor Home, DK Hardware listings) over 26 sq ft = 0.246 psf; Palram publishes no weight"
+  },
+  {
+    "id": "tile-roof-clay",
+    "name": "Clay roof tile",
+    "description": "Fired clay roof tile (mission barrel or flat), about 12 psf installed. Heavy: the rafters and roof framing must be sized for it.",
+    "category": "roofing",
+    "arealMass_kg_m2": 58.1,
+    "textureSet": "roof-tile-clay",
+    "swatch": {
+      "color": "#b5562f",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "nailed-roofing",
+      "screwed-roofing"
+    ],
+    "flags": [
+      "heavy-roofing"
+    ],
+    "priceKey": "roofing.tile-roof-clay",
+    "source": "Ludowici product pages: Straight Barrel Mission 16in 1,190 lb per square (11.9 psf); LudoShake 598, Greenwich 1,575, Rustic Colonial 1,800 lb per square"
+  },
+  {
+    "id": "tile-roof-concrete",
+    "name": "Concrete roof tile",
+    "description": "Standard-weight concrete roof tile (Eagle Roofing class), about 10 psf installed. Heavy: the rafters and roof framing must be sized for it.",
+    "category": "roofing",
+    "arealMass_kg_m2": 47.36,
+    "textureSet": "roof-tile-clay",
+    "swatch": {
+      "color": "#8a8580",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-roofing",
+      "screwed-roofing"
+    ],
+    "flags": [
+      "heavy-roofing"
+    ],
+    "priceKey": "roofing.tile-roof-concrete",
+    "source": "Eagle Roofing 2026 Tech Specs: Bel Air, Golden Eagle, Ponderosa, Sequoia, Tapered Slate about 970 lb per square installed (9.7 psf); Eaglelite lightweight 720"
+  },
+  {
+    "id": "membrane-epdm",
+    "name": "EPDM rubber roof membrane (60 mil)",
+    "description": "60 mil EPDM rubber membrane for low-slope roofs, fully adhered or mechanically fastened with seam tape. Not for steep-slope roofs; follow the maker's minimum slope and edge details.",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.9,
+    "swatch": {
+      "color": "#2b2b2b",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.membrane-epdm",
+    "source": "Carlisle Sure-Seal EPDM (Kleen, non-reinforced) product data: 45 mil 0.29, 60 mil 0.39, 90 mil 0.59 lb/sq ft"
+  },
+  {
+    "id": "membrane-tpo",
+    "name": "TPO roof membrane (60 mil)",
+    "description": "60 mil white TPO single-ply membrane for low-slope roofs, heat-welded seams. Usually installed by a roofing contractor with a hot-air welder.",
+    "category": "roofing",
+    "arealMass_kg_m2": 1.57,
+    "swatch": {
+      "color": "#f2f2f0",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [
+      "screwed-roofing"
+    ],
+    "priceKey": "roofing.membrane-tpo",
+    "source": "GAF EverGuard Extreme TPO 60 mil data sheet: 10 x 100ft roll (1,000 sq ft) weighs 322 lb = 0.322 psf"
+  },
+  {
+    "id": "ridge-vent",
+    "name": "Shingle-over ridge vent",
+    "description": "Shingle-over plastic ridge vent in 4ft sections (GAF Cobra / Air Vent ShingleVent II class), capped with ridge shingles. Needs a matching intake vent area at the eaves.",
+    "category": "roofing",
+    "arealMass_kg_m2": 2.75,
+    "swatch": {
+      "color": "#2f2f2f",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "nailed-roofing"
+    ],
+    "priceKey": "roofing.ridge-vent",
+    "source": "Air Vent shingle-over ridge vent 84719, 7/8 x 12 x 48in, 2.25 lb (DK Hardware listing) = 0.5625 psf over its 4 sq ft; ShingleVent II is 12 x 48 x 0.88in (Do it Best), weight not published"
   }
 ]

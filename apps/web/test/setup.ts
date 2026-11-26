@@ -6,7 +6,7 @@ import { resetShellStore } from '../src/state/shell-store.ts';
 import { resetSiteStore } from '../src/state/site-store.ts';
 import { resetStressStore } from '../src/analysis/stress-store.ts';
 import { setStressAnalyzer } from '../src/analysis/useStressAnalysis.ts';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { indexCatalog } from '@slapdash/core';
 import { analyze } from '@slapdash/solver';
 
@@ -51,7 +51,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // jsdom has no Web Worker: the stress view analyses in-thread in tests.
-const index = indexCatalog(TIER1_CATALOG);
+const index = indexCatalog(CATALOG);
 setStressAnalyzer(async (project, siteDefaults) => analyze(project, index, { siteDefaults }));
 
 beforeEach(() => {

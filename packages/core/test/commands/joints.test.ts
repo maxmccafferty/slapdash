@@ -63,7 +63,7 @@ describe('connect', () => {
       expect(runErr(p, 'connect', { jointTypeId: 'welded-fillet', partIds: ['W1-S02', 'W1-P01'], at })[0]).toMatchObject({
         code: 'not_allowed',
         message: `SPF No.2 lumber (W1-S02) can't take a fillet weld joint.`,
-        hint: 'It accepts: 16d nails, Joist hanger, Post base, Post embedded in concrete, 8d nails, Hurricane tie, Anchor bolts.',
+        hint: expect.stringMatching(/^It accepts: 16d nails, Joist hanger, Post base, Post embedded in concrete, 8d nails, Hurricane tie, Anchor bolts, /),
       });
     });
     it('a duplicate joint of the same type between the same pair', () => {

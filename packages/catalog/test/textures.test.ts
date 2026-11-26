@@ -43,7 +43,7 @@ describe('textures', () => {
     }
   });
 
-  it('stays inside the size budget (1.5 MB a file, 25 MB in all)', () => {
+  it('stays inside the size budget (1.5 MB a file, 35 MB in all)', () => {
     let total = 0;
     for (const s of TEXTURE_SETS) {
       for (const map of s.maps) {
@@ -52,7 +52,7 @@ describe('textures', () => {
         total += size;
       }
     }
-    expect(total).toBeLessThanOrEqual(25 * 1024 * 1024);
+    expect(total).toBeLessThanOrEqual(35 * 1024 * 1024);
   });
 
   it('ATTRIBUTION.md credits every set', () => {

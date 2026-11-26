@@ -1,0 +1,57 @@
+[
+  {
+    "id": "composite-decking",
+    "name": "Capped composite decking",
+    "description": "Capped composite deck board, 5/4 x 6 (actual about 0.94 x 5.5in; Trex / TimberTech class), fastened with hidden clips or deck screws. Makers want joists at 16in on centre or closer, 12in for diagonal decking and stairs.",
+    "category": "decking",
+    "density_kg_m3": 808,
+    "textureSet": "decking-composite",
+    "swatch": {
+      "color": "#8a6f55",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "screwed-deck"
+    ],
+    "priceKey": "decking.composite-decking",
+    "source": "Trex Enhance grooved board 1.81 lb/ft (square edge 1.89; Trex customer care on Lowe's Q&A, Home Depot Canada 16ft weights) over 0.94 x 5.5in = 50.4 pcf effective. Joist spacing: Trex Academy \"How to install deck joists\" (16in OC max, 12in for diagonal); TimberTech joist-spacing guide (16in at 90°, 12in at 45° and commercial)"
+  },
+  {
+    "id": "cable-rail-infill",
+    "name": "Cable railing infill",
+    "description": "Stainless 1/8in cable railing infill per foot of railing: about 10 horizontal runs at 36in rail height with tensioners and end fittings, no posts or top rail. Posts must be stiff enough to take the cable tension, and runs must keep a 4in sphere from passing.",
+    "category": "decking",
+    "arealMass_kg_m2": 0.68,
+    "swatch": {
+      "color": "#c0c4c8",
+      "roughness": 0.3,
+      "metalness": 0.9,
+      "opacity": 0.3
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "decking.cable-rail-infill",
+    "source": "Estimate: 1/8in 1x19 316 stainless cable 3.5 lb per 100ft (lifting.com) x 10 runs = 0.35 lb per ft of railing, plus about 0.07 lb/ft of fittings = 0.42 lb/ft over a 3ft-tall infill face (0.14 psf)"
+  },
+  {
+    "id": "glass-railing-panel",
+    "name": "Glass railing panel (tempered)",
+    "description": "Tempered 1/2in (12mm) glass railing infill panel about 36in tall, set in a post-and-rail system or base shoe. Safety glazing is required for guards.",
+    "category": "decking",
+    "arealMass_kg_m2": 31.75,
+    "swatch": {
+      "color": "#cfe3ea",
+      "roughness": 0.05,
+      "opacity": 0.3
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "flags": [
+      "safety-glazing"
+    ],
+    "priceKey": "decking.glass-railing-panel",
+    "source": "Estimate: 12.7mm x typical glass density about 2,500 kg/m³ = 31.75 kg/m² (about 6.5 psf); maker weight not retrieved"
+  }
+]

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { ASSEMBLY_KINDS, buildStepGroups, stepOfAssembly, type AssemblyKind, type StepKey } from '@slapdash/core';
 import { isContextPart } from '../../src/renderer/bounds.ts';
 import {
@@ -88,7 +88,7 @@ describe('Build steps', () => {
   };
 
   it('stepsUpTo gives every step up to and including the index', () => {
-    const groups = buildStepGroups(sampleProject(), TIER1_CATALOG);
+    const groups = buildStepGroups(sampleProject(), CATALOG);
     expect(groups.map((g) => g.title)).toEqual(['Slab', 'Walls', 'Roof']);
     expect([...stepsUpTo(groups, 0)]).toEqual(['slab']);
     expect([...stepsUpTo(groups, 1)]).toEqual(['slab', 'walls']);

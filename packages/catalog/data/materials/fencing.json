@@ -1,0 +1,225 @@
+[
+  {
+    "id": "chain-link-fabric-2in",
+    "name": "Chain-link fabric, 2in mesh",
+    "description": "Galvanized chain-link fabric, 2in mesh, 11.5 gauge, tied to galvanized framework. A child can climb 2in mesh, so it is not treated as a pool barrier; IRC AG105.2(6) and ISPSC 305 cap chain-link mesh at 2-1/4in, and many pool jurisdictions require 1-1/4in mini-mesh, so check locally.",
+    "category": "fencing",
+    "arealMass_kg_m2": 1.86,
+    "swatch": {
+      "color": "#a9adb0",
+      "roughness": 0.5,
+      "metalness": 0.8,
+      "opacity": 0.35
+    },
+    "acceptsJoints": [
+      "bolted-through"
+    ],
+    "flags": [
+      "not-pool-barrier"
+    ],
+    "priceKey": "fencing.chain-link-fabric-2in",
+    "source": "Estimate 0.38 psf, between Midwest Air 48in x 50ft 11.5 ga 2-3/8in mesh at 72.1 lb (0.36 psf, eBay listing) and Kent 48in x 2in x 11 ga roll at 78.09 lb (0.39 psf); no maker spec for 2in 11.5 ga found. Mesh limit per IRC AG105.2(6) as summarized by local pool-barrier handouts (Hamilton, MA)"
+  },
+  {
+    "id": "chain-link-fabric-mini-mesh",
+    "name": "Chain-link fabric, mini-mesh (1-1/4in)",
+    "description": "Galvanized chain-link fabric with 1-1/4in or smaller mesh, too small for a child's foothold: usable for a pool barrier at 4ft or taller with the bottom within 2in of grade.",
+    "category": "fencing",
+    "arealMass_kg_m2": 3.03,
+    "swatch": {
+      "color": "#a9adb0",
+      "roughness": 0.5,
+      "metalness": 0.8,
+      "opacity": 0.4
+    },
+    "acceptsJoints": [
+      "bolted-through"
+    ],
+    "flags": [
+      "pool-barrier"
+    ],
+    "priceKey": "fencing.chain-link-fabric-mini-mesh",
+    "source": "Estimate: wire per area scales roughly with 1/mesh, so 2in 11.5 ga fabric at 0.38 psf x 2/1.25 = about 0.62 psf; no maker weight found"
+  },
+  {
+    "id": "chain-link-pipe",
+    "name": "Chain-link fence pipe (galvanized)",
+    "description": "Galvanized steel chain-link framework: 1-5/8in line posts, 2-3/8in terminal posts and 1-3/8in top rail. Retail residential pipe is light gauge; strength shown is the ASTM F1083 regular-grade minimum.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 200000,
+      "yield_MPa": 207.0
+    },
+    "density_kg_m3": 7850,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#b9bdbf",
+      "roughness": 0.45,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "bolted-through",
+      "post-embedded",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "steel.chain-link-pipe",
+    "source": "Wheatland F1083 Schedule 40 specifications: regular grade minimum yield 30,000 psi (high-strength grade and Allied Tube / Wheatland SS-20 / WT-20 pipe: 50,000 psi). E 29,000 ksi and density 490 pcf for carbon steel (rounded to 200,000 MPa and 7,850 kg/m³)"
+  },
+  {
+    "id": "fence-panel-aluminum",
+    "name": "Aluminum pool fence panel",
+    "description": "Powder-coated aluminum fence panel, 54in tall x 6ft wide, flat top and bottom, pickets under 4in apart for pool-code barriers; the gate must also be self-closing and self-latching.",
+    "category": "fencing",
+    "arealMass_kg_m2": 6.35,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#222222",
+      "roughness": 0.4,
+      "metalness": 0.5,
+      "opacity": 0.6
+    },
+    "acceptsJoints": [
+      "screwed-structural",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic"
+    ],
+    "flags": [
+      "pool-barrier"
+    ],
+    "priceKey": "fencing.fence-panel-aluminum",
+    "source": "Approximate: 1.3 lb per sq ft from an Ace Hardware Fortress Athens listing (product it applies to unclear), about 35 lb per 4.5 x 6ft panel; Fortress publishes no weight. Panel is 71in actual width (Fortress Athens brochure)"
+  },
+  {
+    "id": "fence-post-aluminum",
+    "name": "Aluminum fence post, 2x2in",
+    "description": "2 x 2in powder-coated aluminum fence post for aluminum panels and gates, set in concrete or on a surface mount.",
+    "category": "fencing",
+    "density_kg_m3": 2700,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#222222",
+      "roughness": 0.4,
+      "metalness": 0.5
+    },
+    "acceptsJoints": [
+      "screwed-structural",
+      "post-embedded",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic"
+    ],
+    "priceKey": "fencing.fence-post-aluminum",
+    "source": "Aluminum density 2,700 kg/m³ (6063 alloy about 0.0975 lb/in³); applied to the solid post bounding box this overstates the weight of a hollow post (about 0.55 lb/ft at 0.060in wall)"
+  },
+  {
+    "id": "glass-pool-fence-panel",
+    "name": "Frameless glass pool fence panel (12mm tempered)",
+    "description": "Frameless 12mm (1/2in) tempered glass panel held by stainless spigots, for pool barriers at least 4ft tall. Gaps between panels must stay under 4in and the gate needs self-closing hinges and a magnetic latch.",
+    "category": "fencing",
+    "density_kg_m3": 2500,
+    "swatch": {
+      "color": "#cfe3ea",
+      "roughness": 0.05,
+      "opacity": 0.3
+    },
+    "acceptsJoints": [
+      "glass-spigot",
+      "gate-hinge-self-closing",
+      "gate-latch-magnetic"
+    ],
+    "flags": [
+      "safety-glazing",
+      "pool-barrier"
+    ],
+    "priceKey": "fencing.glass-pool-fence-panel",
+    "source": "Estimate: typical soda-lime float glass density about 2,500 kg/m³ (12mm = 30 kg/m², 6.1 psf); no maker figure retrieved"
+  },
+  {
+    "id": "gate-hinge-pair",
+    "name": "Gate hinges (pair)",
+    "description": "A pair of galvanized or black steel strap or T-hinges for a wood or metal gate. Not self-closing, so not for pool gates.",
+    "category": "fastener",
+    "density_kg_m3": 1297,
+    "swatch": {
+      "color": "#3a3a3a",
+      "roughness": 0.5,
+      "metalness": 0.6
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.gate-hinge-pair",
+    "source": "Estimate: about 1.5 lb for a pair of 8in heavy strap hinges over an 8 x 4 x 1in box (no maker weight found)"
+  },
+  {
+    "id": "gate-hinge-self-closing",
+    "name": "Self-closing gate hinges (pair)",
+    "description": "Adjustable self-closing gate hinges (D&D TruClose class) that swing a pool gate shut from any open position. Regular TruClose is rated for gates up to 66 lb, heavy duty to 154 lb.",
+    "category": "fastener",
+    "density_kg_m3": 1230,
+    "swatch": {
+      "color": "#1f1f1f",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "pool-gate-hardware"
+    ],
+    "priceKey": "fastener.gate-hinge-self-closing",
+    "source": "D&D Technologies TruClose: Regular self-closes gates up to 66 lb (30 kg), Heavy Duty up to 154 lb (70 kg) (D&D store). Weight estimate: about 1 lb per pair over a 6 x 2.5 x 1.5in box"
+  },
+  {
+    "id": "gate-latch-gravity",
+    "name": "Gravity gate latch",
+    "description": "Galvanized steel gravity latch that drops into its catch when the gate closes. Not a pool-gate latch: it can be reached from outside and is not self-latching from any position.",
+    "category": "fastener",
+    "density_kg_m3": 1153,
+    "swatch": {
+      "color": "#3a3a3a",
+      "roughness": 0.5,
+      "metalness": 0.6
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.gate-latch-gravity",
+    "source": "Estimate: about 0.75 lb over a 6 x 2 x 1.5in box (no maker weight found)"
+  },
+  {
+    "id": "gate-latch-magnetic",
+    "name": "Magnetic pool gate latch",
+    "description": "Magnetic self-latching pool gate latch (D&D MagnaLatch class), mounted with its release at least 54in above grade (or on the pool side) as pool barrier codes require.",
+    "category": "fastener",
+    "density_kg_m3": 721,
+    "swatch": {
+      "color": "#1f1f1f",
+      "roughness": 0.6
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "pool-gate-hardware"
+    ],
+    "priceKey": "fastener.gate-latch-magnetic",
+    "source": "D&D Technologies MagnaLatch Series 3 Top Pull and Vertical Pull (D&D store). Weight estimate: about 1.25 lb over an 8 x 3 x 2in box (no maker weight found)"
+  },
+  {
+    "id": "glass-spigot",
+    "name": "Glass fence spigot",
+    "description": "Stainless steel (2205 or 316) spigot clamping a 12mm glass panel, core-drilled into concrete or bolted on a base plate. Usually two per panel.",
+    "category": "fastener",
+    "density_kg_m3": 2076,
+    "swatch": {
+      "color": "#c8ccd0",
+      "roughness": 0.25,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.glass-spigot",
+    "source": "Estimate: about 3 lb (2205 stainless, 0.285 lb/in³, on a 50mm square body about 10in long including the core) over a 2 x 2 x 10in box"
+  }
+]

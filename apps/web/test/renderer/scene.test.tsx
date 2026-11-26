@@ -13,7 +13,7 @@ import { STRESS_FILL } from '../../src/renderer/PartBatch.tsx';
 import { stressSpec } from '../../src/renderer/stress-spec.ts';
 import { MAX_STRESS_MARKS } from '../../src/renderer/StressCallout.tsx';
 import { indexCatalog } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { groupParts } from '../../src/renderer/batches.ts';
 import { createCutUniforms } from '../../src/renderer/CutFaces.ts';
 import { SceneContent, type ViewSpec } from '../../src/renderer/SceneContent.tsx';
@@ -21,7 +21,7 @@ import { setTextureLoadingEnabled } from '../../src/renderer/textures.ts';
 import { sampleProject } from './fixtures.ts';
 
 const project = sampleProject();
-const catalog = indexCatalog(TIER1_CATALOG);
+const catalog = indexCatalog(CATALOG);
 const base: ViewSpec = { mode: 'textured', floor: 'roof', lookFrom: 'outside', dimensions: false, outlined: [], proposal: null };
 
 // jsdom has no 2D canvas; labels and the compass skip drawing.

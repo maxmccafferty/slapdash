@@ -55,6 +55,7 @@ After the commands and history tools come the agent tools, in this order:
 | `get_part` | One part (size, position, joints) or one assembly (its builder recipe, part counts, bounds). |
 | `measure` | Centre-to-centre distance, dx/dy/dz and the clear gap (or overlap) between two ids or points. |
 | `list_materials` | Pieces and linear feet, sheet goods, concrete volume and fasteners. Quantities only. |
+| `search_catalog` | Catalog materials by words, category or code flag: a count and `id · name · category · flags` rows with a clipped description. Claude uses it to find an id before using one. |
 | `snapshot` | A picture from the offscreen renderer. Refused in Node, where there is no renderer. |
 | `propose_plan` | Shows a one-line plan with Build it / Change something. |
 | `request_photo` | Asks the person for a photo. |
@@ -65,6 +66,13 @@ To add one: give it a strict Zod schema and description in `src/tools/schemas.ts
 `agentToolDefs`; the order is prompt-cached), run it in `src/dispatch.ts`, and add it to the
 order test in `test/tools.test.ts`. Use `zLength` for lengths so Claude passes `"16ft 6in"`.
 Bus commands become tools automatically through `commandJsonSchemas()`.
+
+Code notes (`codeNotes` in `@slapdash/core`: safety glazing near a pool, GFCI, pool
+barriers, licensed trades, wet areas, thermal barriers, heavy roofing) appear in the
+`<project>` summary when it is given the catalog (the loop passes `bus.catalog`), at most six
+with "…N more". After a bus command, `dispatch.ts` diffs the notes before and after and
+appends each new one to the tool result ("New code note: …", at most three), so Claude
+raises it once.
 
 ## Big changes and caps
 

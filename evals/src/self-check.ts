@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { KeyholeRequestError, type KeyholeClient } from '@slapdash/agent';
 import { BUDGET, call, scriptedClient, say } from '@slapdash/agent/testing';
-import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
+import { DESIGN_LOAD_TABLE, CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, formatErrors, GROUND, indexCatalog, type Project } from '@slapdash/core';
 import {
   answered,
@@ -38,6 +38,8 @@ import {
   jointsValid,
   noClashes,
   noClashesWith,
+  pergolaPolycarbonate,
+  poolFence,
   slabFootprint,
   soundBuild,
 } from './checks.ts';
@@ -45,11 +47,11 @@ import { questionNoChange } from './cases/question-no-change.ts';
 import { SCENARIOS } from './cases/index.ts';
 import { budgetStatus, classifyToolError, inProcessKeyhole } from './harness.ts';
 import { scenarioLines, summaryLines, totalsOf, turnLine } from './report.ts';
-import { POOL_HOUSE_WALLS, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
+import { POOL_HOUSE_WALLS, POOL_IN_YARD, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
 import { defineScenario } from './scenario.ts';
 import { runSuite } from './suite.ts';
 
-const catalog = indexCatalog(TIER1_CATALOG);
+const catalog = indexCatalog(CATALOG);
 let failures = 0;
 let passes = 0;
 
@@ -69,13 +71,13 @@ const passesCheck = (what: string, f: string | null | ReadonlyArray<string | nul
 };
 
 /** Expect a check to fail. */
-const failsCheck = (what: string, f: string | null | readonly string[]) => {
+const failsCheck = (what: string, f: string | null | ReadonlyArray<string | null>) => {
   const list = Array.isArray(f) ? f : [f];
   check(`${what} should be caught`, list.some((x) => x !== null));
 };
 
 function build(commands: SeedCommands): Project {
-  const bus = new CommandBus({ project: createProject({ name: 'Self-check' }), catalog: TIER1_CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
+  const bus = new CommandBus({ project: createProject({ name: 'Self-check' }), catalog: CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
   for (const [name, input] of commands) {
     const res = bus.execute(name, input);
     if (!res.ok) throw new Error(`${name}: ${formatErrors(res.errors)}`);
@@ -104,6 +106,7 @@ const goodModels = section('Checks pass on correct builder output', () => {
     ['POOL_HOUSE_WALLS', POOL_HOUSE_WALLS],
     ['SHED_WALLS_8x10', SHED_WALLS_8x10],
     ['TREE_ON_LINE', TREE_ON_LINE],
+    ['POOL_IN_YARD', POOL_IN_YARD],
   ] as const) {
     passesCheck(`seed ${name} is sound`, soundBuild(build(seed), catalog));
   }
@@ -133,6 +136,29 @@ const goodModels = section('Checks pass on correct builder output', () => {
   const shed = build([...SHED_WALLS_8x10, ['build_roof', { type: 'shed', from: { x: 0, z: 0 }, to: { x: '10ft', z: '8ft' }, pitch: '3 in 12', lowSide: 'north' }]]);
   passesCheck('shed roof is sound', soundBuild(shed, catalog));
   passesCheck('8ft walls have 91 1/2in studs', commonStudLength(build([...SHED_WALLS_8x10.slice(0, 2)]), 91.5));
+
+  // pergola-polycarbonate (LOC-117)
+  const pergola = build([['build_pergola', { from: { x: 0, z: 0 }, to: { x: '16ft', z: '12ft' }, roofing: 'polycarbonate' }]]);
+  passesCheck('polycarbonate pergola is sound', soundBuild(pergola, catalog));
+  passesCheck('polycarbonate pergola passes its checks', pergolaPolycarbonate(pergola));
+  failsCheck('an open pergola (no polycarbonate roof)', pergolaPolycarbonate(build([['build_pergola', { from: { x: 0, z: 0 }, to: { x: '16ft', z: '12ft' } }]])));
+
+  // pool-fence (LOC-117): around the seeded pool with the gate on the north (house) side.
+  const poolPath = [
+    { x: '6ft', z: '4ft' },
+    { x: '34ft', z: '4ft' },
+    { x: '34ft', z: '48ft' },
+    { x: '6ft', z: '48ft' },
+    { x: '6ft', z: '4ft' },
+  ];
+  for (const style of ['aluminum', 'picket', 'chain-link', 'glass'] as const) {
+    const fenced = build([...POOL_IN_YARD, ['build_fence', { path: poolPath, style, height: '4ft', poolBarrier: true, gates: [{ centerAt: '14ft' }] }]]);
+    passesCheck(`${style} pool fence is sound`, soundBuild(fenced, catalog));
+    passesCheck(`${style} pool fence passes its checks`, poolFence(fenced));
+  }
+  const bad = build([...POOL_IN_YARD, ['build_fence', { path: poolPath, style: 'chain-link', height: '3ft', gates: [{ centerAt: '14ft' }] }]]);
+  failsCheck('a 36in 2in-mesh chain-link fence (not a pool barrier)', poolFence(bad));
+  failsCheck('a pool barrier along one side only', poolFence(build([...POOL_IN_YARD, ['build_fence', { path: poolPath.slice(0, 2), style: 'aluminum', height: '4ft', poolBarrier: true, gates: [{ centerAt: '14ft' }] }]])));
 
   // plan-revision
   const floor = build([['frame_floor', { from: { x: 0, z: 0 }, to: { x: '14ft', z: '10ft' }, support: 'piers' }]]);
@@ -391,7 +417,7 @@ const badInput = section('Input-parse rejections are told apart from refusals', 
     ['a fence through the tree', TREE_ON_LINE, ['build_fence', { path: [{ x: 0, z: 0 }, { x: '30ft', z: 0 }], height: '4ft', style: 'picket' }]],
     ['a 20ft opening', POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W3', kind: 'door', centerAt: '10ft', width: '20ft' }]],
   ] as const) {
-    const bus = new CommandBus({ project: build(seed), catalog: TIER1_CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
+    const bus = new CommandBus({ project: build(seed), catalog: CATALOG, siteDefaults: () => ({ table: DESIGN_LOAD_TABLE }) });
     const res = bus.execute(cmd[0], cmd[1]);
     check(`${what} is refused by the bus`, !res.ok);
     if (!res.ok) check(`${what} is classed a refusal, not bad input`, classifyToolError(formatErrors(res.errors)) === 'refusal', formatErrors(res.errors));

@@ -215,7 +215,7 @@ shell's first paint doesn't wait for it. Without WebGL 2 (and in jsdom) the mode
 the CSS dot-grid floor, labelled as "3D isn't available".
 
 - **Where the model comes from.** The open project's `ProjectSession` (see Projects above)
-  makes the `CommandBus` on `TIER1_CATALOG`; `src/state/model-store.ts` mirrors `bus.project` (it follows every execute,
+  makes the `CommandBus` on `CATALOG`; `src/state/model-store.ts` mirrors `bus.project` (it follows every execute,
   undo, redo and restore) and holds renderer-only state: the selection and its label, parts in
   progress, and a proposal. `?sample=pool-house` builds the 16 × 20 shell from the core acceptance test
   (`src/model/sample-shell.ts`); add `&context=1` for a stippled house and tree.

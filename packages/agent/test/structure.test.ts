@@ -1,5 +1,5 @@
 import { indexCatalog } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { analyze } from '@slapdash/solver';
 import { describe, expect, it } from 'vitest';
 import {
@@ -13,7 +13,7 @@ import {
 } from '../src/index.ts';
 import { exec, poolHouseBus } from './helpers.ts';
 
-const INDEX = indexCatalog(TIER1_CATALOG);
+const INDEX = indexCatalog(CATALOG);
 
 /** The pool house at 50 psf (the person's number) with 2x4 plies over the sliding door. */
 export function weakHeaderBus() {

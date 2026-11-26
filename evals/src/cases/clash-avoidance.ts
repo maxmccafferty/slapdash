@@ -18,10 +18,8 @@ export const clashAvoidance = defineScenario({
       ctx.expect(oneUndoStep(ctx.session, ctx.baseline, t));
       ctx.expect(jointsValid(p, ctx.session.catalog));
       ctx.expect(framingConnected(p));
-      // Not a check: build_fence overlaps its own boards and rails at every corner of the path
-      // (a builder defect, not model behaviour), so any route around the tree has some.
-      const own = noClashes(p);
-      if (own) ctx.log(`    (fence's own corner overlaps, builder issue: ${own})`);
+      // build_fence trims its boards at inside corners now, so a route around the tree is clash-free.
+      ctx.expect(noClashes(p));
     } else {
       ctx.log('    (not built: asked instead)');
       ctx.expect(nothingChanged(ctx.session, ctx.baseline));

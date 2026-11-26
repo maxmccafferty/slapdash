@@ -1,7 +1,7 @@
 import { act, render } from '@testing-library/react';
 import { scriptedClient, BUDGET, type ScriptStep } from '@slapdash/agent/testing';
 import type { BudgetStatus, KeyholeClient, KeyholeEvent, KeyholeStatus } from '@slapdash/agent';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject } from '@slapdash/core';
 import { App } from '../../src/App.tsx';
 import { createChatController, type ChatController, type ChatControllerDeps } from '../../src/agent/chat-controller.ts';
@@ -20,7 +20,7 @@ export const status = (budget: Partial<BudgetStatus> = {}, configured = true): K
 });
 
 export function newBus(sample = false): CommandBus {
-  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: TIER1_CATALOG, siteDefaults: () => useSiteStore.getState().siteDefaults });
+  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: CATALOG, siteDefaults: () => useSiteStore.getState().siteDefaults });
   if (sample) buildSampleShell(bus);
   return bus;
 }

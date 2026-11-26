@@ -20,3 +20,13 @@ we credit the authors anyway. The sources were downscaled to 1K and encoded to K
 | `shingles-asphalt` | Roofing Tiles 003 (dark tabbed shingles) | Lennart Demes (ambientCG) | [ambientCG: RoofingTiles003](https://ambientcg.com/view?id=RoofingTiles003) | CC0 1.0 | 2026-11-25 |
 | `siding-painted-wood` | White Planks Clean | Rob Tuytel | [Poly Haven: white_planks_clean](https://polyhaven.com/a/white_planks_clean) | CC0 1.0 | 2026-11-25 |
 | `house-wrap` | Fabric 048 (white polyester) | Lennart Demes (ambientCG) | [ambientCG: Fabric048](https://ambientcg.com/view?id=Fabric048) | CC0 1.0 | 2026-11-25 |
+| `brick` | Bricks 086 (red-orange running bond) | Lennart Demes (ambientCG) | [ambientCG: Bricks086](https://ambientcg.com/view?id=Bricks086) | CC0 1.0 | 2026-11-25 |
+| `stone-veneer` | Rustic Stone Wall 02 | Amal Kumar | [Poly Haven: rustic_stone_wall_02](https://polyhaven.com/a/rustic_stone_wall_02) | CC0 1.0 | 2026-11-25 |
+| `flagstone` | Stone Pathway | Amal Kumar | [Poly Haven: stone_pathway](https://polyhaven.com/a/stone_pathway) | CC0 1.0 | 2026-11-25 |
+| `pavers` | Paving Stones 099 (grey interlocking pavers) | Lennart Demes (ambientCG) | [ambientCG: PavingStones099](https://ambientcg.com/view?id=PavingStones099) | CC0 1.0 | 2026-11-25 |
+| `tile-ceramic` | Tiles 107 (white square ceramic) | Lennart Demes (ambientCG) | [ambientCG: Tiles107](https://ambientcg.com/view?id=Tiles107) | CC0 1.0 | 2026-11-25 |
+| `tile-stone` | Tiles 143 (beige limestone tile) | Lennart Demes (ambientCG) | [ambientCG: Tiles143](https://ambientcg.com/view?id=Tiles143) | CC0 1.0 | 2026-11-25 |
+| `wood-floor` | Wood Floor 051 (light oak planks) | Lennart Demes (ambientCG) | [ambientCG: WoodFloor051](https://ambientcg.com/view?id=WoodFloor051) | CC0 1.0 | 2026-11-25 |
+| `plaster` | Plastered Wall 04 | Rob Tuytel | [Poly Haven: plastered_wall_04](https://polyhaven.com/a/plastered_wall_04) | CC0 1.0 | 2026-11-25 |
+| `roof-tile-clay` | Clay Roof Tiles 02 | Amal Kumar | [Poly Haven: clay_roof_tiles_02](https://polyhaven.com/a/clay_roof_tiles_02) | CC0 1.0 | 2026-11-25 |
+| `decking-composite` | Wood Floor Deck | Dimitrios Savva | [Poly Haven: wood_floor_deck](https://polyhaven.com/a/wood_floor_deck) | CC0 1.0 | 2026-11-25 |

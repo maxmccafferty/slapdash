@@ -94,7 +94,7 @@ export {
   type StressContext,
   type StructureReportOptions,
 } from './tools/structure.ts';
-export { QUERY_TOOLS, findParts, getPartInfo, listMaterials, measure, type QueryResult } from './tools/queries.ts';
+export { QUERY_TOOLS, findParts, getPartInfo, listMaterials, measure, searchCatalog, type QueryResult } from './tools/queries.ts';
 export {
   SNAPSHOT_ANGLES,
   SNAPSHOT_MODES,

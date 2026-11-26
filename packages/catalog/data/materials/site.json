@@ -9,5 +9,33 @@
       "roughness": 1
     },
     "acceptsJoints": []
+  },
+  {
+    "id": "landscape-fabric",
+    "name": "Landscape fabric",
+    "description": "Woven or spun polypropylene weed-barrier fabric laid under gravel, pavers or mulch; lets water through.",
+    "category": "other",
+    "arealMass_kg_m2": 0.1,
+    "swatch": {
+      "color": "#2a2a2a",
+      "roughness": 1
+    },
+    "acceptsJoints": [],
+    "priceKey": "other.landscape-fabric",
+    "source": "DeWitt weed-barrier fabric listings: Basic 1.0 oz/sq yd, 6-year 1.5 oz, Pro 3 oz, Pro Max 4.1 oz; 3 oz/sq yd = 0.102 kg/m²"
+  },
+  {
+    "id": "drain-pipe-perforated-4in",
+    "name": "Perforated drain pipe, 4in corrugated",
+    "description": "4in perforated corrugated HDPE drain pipe (ADS class, about 4.6in OD) for French drains and footing drains, laid in gravel, often with a filter sock.",
+    "category": "other",
+    "density_kg_m3": 32,
+    "swatch": {
+      "color": "#1e1e1e",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [],
+    "priceKey": "other.drain-pipe-perforated-4in",
+    "source": "Effective density for a part drawn as a solid 4.6in-square bar: ADS 4in perforated pipe 0.29 lb/ft (Lowe's 4x100 with sock 29.66 lb; Tractor Supply 4x10 perforated 2.87 lb) over 4.6 x 4.6 x 12in per ft; OD about 4.6in (Ferguson)"
   }
 ]

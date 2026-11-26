@@ -37,6 +37,15 @@ export const SHED_WALLS_8x10: SeedCommands = [
  */
 export const TREE_ON_LINE: SeedCommands = [['place_structure', { kind: 'tree', at: { x: '15ft', z: 0 } }]];
 
+/**
+ * A house along the north edge and a 16ft × 32ft pool south of it, 10ft clear on every side
+ * of the pool: room for a pool barrier all the way around.
+ */
+export const POOL_IN_YARD: SeedCommands = [
+  ['place_structure', { kind: 'house', at: { x: 0, z: '-30ft' }, width: '40ft', depth: '30ft' }],
+  ['place_structure', { kind: 'pool', at: { x: '12ft', z: '10ft' }, width: '16ft', depth: '32ft' }],
+];
+
 /** Runs the commands as the person, in one undo step. Throws if any is refused. */
 export function applySeed(bus: CommandBus, commands: SeedCommands): void {
   bus.group({ label: 'Eval seed', source: 'user', turnId: 'seed' }, () => {

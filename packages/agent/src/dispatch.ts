@@ -4,6 +4,7 @@
  * Zod; errors come back as plain sentences with `is_error`. No tool throws into the loop.
  */
 import {
+  codeNotes,
   formatErrors,
   historyToolDefs,
   notFound,
@@ -214,9 +215,21 @@ async function run(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {
     return runHistory(name, p.data as Record<string, unknown>, ctx.bus);
   }
 
+  const before = new Set(codeNotes(ctx.bus.project, ctx.bus.catalog).map((n) => n.key));
   const res = ctx.bus.execute(name, input);
   if (!res.ok) return fail(res.errors, '\nNothing has changed.');
-  return ok(res.summary + listCreated(res.created), { created: res.created, changeSummary: res.summary });
+  return ok(res.summary + listCreated(res.created) + newCodeNotes(ctx, before), { created: res.created, changeSummary: res.summary });
+}
+
+const MAX_NEW_NOTES = 3;
+
+/** Code notes the command just created, for Claude to raise once. */
+function newCodeNotes(ctx: DispatchContext, before: ReadonlySet<string>): string {
+  const fresh = codeNotes(ctx.bus.project, ctx.bus.catalog).filter((n) => !before.has(n.key));
+  if (fresh.length === 0) return '';
+  const shown = fresh.slice(0, MAX_NEW_NOTES).map((n) => `\nNew code note: ${n.text}`);
+  const more = fresh.length - MAX_NEW_NOTES;
+  return shown.join('') + (more > 0 ? `\n…and ${more} more in the project summary.` : '');
 }
 
 export async function dispatchTool(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {

@@ -1,0 +1,212 @@
+[
+  {
+    "id": "conduit-pvc-sch40",
+    "name": "PVC Schedule 40 electrical conduit",
+    "description": "Gray rigid PVC Schedule 40 conduit in 10ft lengths, solvent-welded; for underground and exposed runs, 1/2in to 1in. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 1400,
+    "swatch": {
+      "color": "#8e9194",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [
+      "glued-pvc"
+    ],
+    "priceKey": "electrical.conduit-pvc-sch40",
+    "source": "PVC specific gravity 1.40 ± 0.02 (ASTM D792), pvcpipesupplies.com PVC/CPVC physical properties sheet; Cantex safety data sheet gives 1.4-1.6 g/cm3. Weighed as solid material."
+  },
+  {
+    "id": "conduit-emt",
+    "name": "EMT conduit",
+    "description": "Thin-wall steel electrical metallic tubing (EMT) in 10ft lengths with set-screw or compression fittings, for exposed indoor runs; 1/2in to 1in. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 7850,
+    "swatch": {
+      "color": "#b6babd",
+      "roughness": 0.5,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.conduit-emt",
+    "source": "Steel density 7.85 g/cm3 (handbook). EMT weighs 30 lb per 100 ft at 1/2in (Wheatland EMT brochure, wall 0.042in), 46 lb at 3/4in and 67 lb at 1in (distributor tables)."
+  },
+  {
+    "id": "wire-thhn-12",
+    "name": "THHN wire 12 AWG",
+    "description": "Single-conductor 12 AWG copper THHN/THWN-2 building wire, pulled through conduit for 20A circuits. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 4690,
+    "swatch": {
+      "color": "#1f1f1f",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.wire-thhn-12",
+    "source": "Southwire THHN spec 10003: 12 AWG solid about 23 lb per 1000 ft, OD 0.12in; 10.4 kg over a 0.12in round x 1000 ft volume (0.00222 m3) = about 4,690 kg/m3."
+  },
+  {
+    "id": "wire-thhn-10",
+    "name": "THHN wire 10 AWG",
+    "description": "Single-conductor 10 AWG copper THHN/THWN-2 building wire, pulled through conduit for 30A circuits. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 5550,
+    "swatch": {
+      "color": "#1f1f1f",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.wire-thhn-10",
+    "source": "Southwire THHN spec 10003: 10 AWG solid about 37 lb per 1000 ft (table text was garbled; stranded is 38-39 lb). Estimate: OD about 0.14in (0.102in conductor plus insulation and nylon jacket), giving about 5,550 kg/m3."
+  },
+  {
+    "id": "cable-nm-b-14-2",
+    "name": "NM-B cable 14/2 with ground",
+    "description": "Romex-type NM-B 14/2 with ground for dry indoor 15A lighting and outlet circuits, stapled to framing. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 2180,
+    "swatch": {
+      "color": "#f2f2ee",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.cable-nm-b-14-2",
+    "source": "Southwire Romex SIMpull spec 10028: 14/2 W/G 61 lb per 1000 ft. Estimate: flat cable about 0.38 x 0.17in, giving about 2,180 kg/m3."
+  },
+  {
+    "id": "cable-nm-b-12-2",
+    "name": "NM-B cable 12/2 with ground",
+    "description": "Romex-type NM-B 12/2 with ground for dry indoor 20A circuits (kitchen, bath and outlet circuits). Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 2520,
+    "swatch": {
+      "color": "#e8d34a",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.cable-nm-b-12-2",
+    "source": "Southwire Romex SIMpull spec 10028: 12/2 W/G 87 lb per 1000 ft. Estimate: flat cable about 0.42 x 0.19in, giving about 2,520 kg/m3."
+  },
+  {
+    "id": "cable-uf-b-12-2",
+    "name": "UF-B cable 12/2 with ground",
+    "description": "Underground feeder UF-B 12/2 with ground, rated for direct burial and wet locations, for 20A circuits out to a pool house or outdoor outlet. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 2520,
+    "swatch": {
+      "color": "#8e9194",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.cable-uf-b-12-2",
+    "source": "Southwire UF-B spec 10036 (13055955): 12/2 W/G 96-97 lb per 1000 ft. Estimate: flat cable about 0.44 x 0.20in, giving about 2,520 kg/m3."
+  },
+  {
+    "id": "box-old-work-1g",
+    "name": "Old-work electrical box (1-gang)",
+    "description": "A single-gang PVC old-work (remodel) box with swing-out clamps, for adding an outlet or switch to a finished wall. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 136,
+    "swatch": {
+      "color": "#2a5aa8",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.box-old-work-1g",
+    "source": "Carlon B114R-UPC: 0.125 lb (Elliott Electric) over 4-1/8 x 2-1/4 x 2-3/4in."
+  },
+  {
+    "id": "box-weatherproof",
+    "name": "Weatherproof box with in-use cover",
+    "description": "A weatherproof outdoor box with an in-use (bubble) cover, which NEC 406.9 requires for receptacles in wet locations. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 290,
+    "swatch": {
+      "color": "#8e9194",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.box-weatherproof",
+    "source": "Estimate: about 1 lb box and cover over a 6x4x4in envelope (not researched in this pass)."
+  },
+  {
+    "id": "receptacle-15a",
+    "name": "Duplex receptacle (15A)",
+    "description": "An ordinary 15A duplex receptacle. Outdoors, in bathrooms and near a pool it needs GFCI protection, from a GFCI receptacle upstream or a GFCI breaker. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 420,
+    "swatch": {
+      "color": "#f2f0ea",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "receptacle-needs-gfci"
+    ],
+    "priceKey": "electrical.receptacle-15a",
+    "source": "Estimate: about 0.1 lb over a 1.3x1.2x4.2in device (not researched in this pass)."
+  },
+  {
+    "id": "receptacle-gfci-20a",
+    "name": "GFCI receptacle (20A, weather-resistant)",
+    "description": "A 20A weather-resistant GFCI receptacle; it protects itself and the outlets wired downstream of it. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 750,
+    "swatch": {
+      "color": "#f2f0ea",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "gfci"
+    ],
+    "priceKey": "electrical.receptacle-gfci-20a",
+    "source": "Estimate: about 0.3 lb over a 1.75x1.5x4.2in device (not researched in this pass)."
+  },
+  {
+    "id": "light-exterior-wet",
+    "name": "Exterior wall light (wet-location)",
+    "description": "A wet-location rated exterior wall light, e.g. an LED lantern or wall pack beside a door. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 144,
+    "swatch": {
+      "color": "#2b2b2b",
+      "roughness": 0.5,
+      "metalness": 0.4
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.light-exterior-wet",
+    "source": "Estimate: about 3 lb over a 12x8x6in envelope (not researched in this pass)."
+  },
+  {
+    "id": "light-recessed-led",
+    "name": "Recessed LED light (6in canless)",
+    "description": "A 6in canless wafer LED downlight that clips into a ceiling hole and wires to a remote junction box; pick an IC-rated, wet-location one over a tub or in a damp room. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 295,
+    "swatch": {
+      "color": "#f4f4f2",
+      "roughness": 0.5
+    },
+    "acceptsJoints": [],
+    "priceKey": "electrical.light-recessed-led",
+    "source": "Estimate: about 0.6 lb over a 7.5x7.5x1in envelope (not researched in this pass)."
+  },
+  {
+    "id": "subpanel-100a",
+    "name": "Subpanel (100A)",
+    "description": "A 100A load center fed from the main panel, e.g. to serve a pool house. Usually installed by a licensed electrician with a permit; the feeder size and grounding need a pro. Electrical work is for the materials list only, not simulated.",
+    "category": "electrical",
+    "density_kg_m3": 370,
+    "swatch": {
+      "color": "#9a9c9e",
+      "roughness": 0.5,
+      "metalness": 0.5
+    },
+    "acceptsJoints": [],
+    "flags": [
+      "licensed-trade"
+    ],
+    "priceKey": "electrical.subpanel-100a",
+    "source": "Estimate: about 20 lb over a 14.25x26x4in enclosure (not researched in this pass)."
+  }
+]

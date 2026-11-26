@@ -1,4 +1,4 @@
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { AgentMemory } from '@slapdash/agent';
 import { CommandBus, createProject } from '@slapdash/core';
 import { createLocalBackend } from '@slapdash/storage/local';
@@ -35,7 +35,7 @@ function setup(extra: Partial<ProjectsControllerDeps> = {}, factory = new IDBFac
   const controller = createProjectsController({
     store: backend.store,
     device: backend.device,
-    catalog: TIER1_CATALOG,
+    catalog: CATALOG,
     loadSample: async () => SAMPLE,
     renderThumbnail: async () => null,
     notify: (t) => notes.push(t),
@@ -158,7 +158,7 @@ describe('the projects controller', () => {
     const log = controller.chatLogFor(useModelStore.getState().bus!);
     expect(new AgentMemory(log!).transcript()).toEqual([{ turnId: 't1', asked: 'How tall are the walls?', reply: '9 feet.' }]);
     // Another bus isn't this project's.
-    expect(controller.chatLogFor(new CommandBus({ project: createProject({ name: 'Other' }), catalog: TIER1_CATALOG }))).toBeNull();
+    expect(controller.chatLogFor(new CommandBus({ project: createProject({ name: 'Other' }), catalog: CATALOG }))).toBeNull();
   });
 
   it('stores a card picture for a built project and lists it', async () => {

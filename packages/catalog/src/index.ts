@@ -1,5 +1,5 @@
 /**
- * @slapdash/catalog — the tier-1 catalog (ADR-0001 Appendix A), the dated price table
+ * @slapdash/catalog — the catalog, tiers 1–3 (ADR-0001 Appendix A), the dated price table
  * (§11) and the CC0 texture manifest (§6). Plain JSON under `data/` and `textures/`,
  * validated against the `@slapdash/core` schema once, at import: a broken catalog
  * throws here, so the app can never start on one.
@@ -21,6 +21,17 @@ import envelope from '../data/materials/envelope.json' with { type: 'json' };
 import insulation from '../data/materials/insulation.json' with { type: 'json' };
 import openings from '../data/materials/openings.json' with { type: 'json' };
 import site from '../data/materials/site.json' with { type: 'json' };
+import interior from '../data/materials/interior.json' with { type: 'json' };
+import tile from '../data/materials/tile.json' with { type: 'json' };
+import flooring from '../data/materials/flooring.json' with { type: 'json' };
+import plumbing from '../data/materials/plumbing.json' with { type: 'json' };
+import electrical from '../data/materials/electrical.json' with { type: 'json' };
+import stoneBrick from '../data/materials/stone-brick.json' with { type: 'json' };
+import fencing from '../data/materials/fencing.json' with { type: 'json' };
+import decking from '../data/materials/decking.json' with { type: 'json' };
+import outdoor from '../data/materials/outdoor.json' with { type: 'json' };
+import steel from '../data/materials/steel.json' with { type: 'json' };
+import hvacSealants from '../data/materials/hvac-sealants.json' with { type: 'json' };
 import prices from '../data/prices.json' with { type: 'json' };
 import textureManifest from '../textures/manifest.json' with { type: 'json' };
 import { zTextureManifest, type TextureSet } from './textures.ts';
@@ -39,7 +50,10 @@ export { TEXTURE_MAPS, texturePath, zTextureManifest, zTextureSet, type TextureM
 /** The data version: the day the catalog and its prices were last researched. */
 export const CATALOG_VERSION = '2026-11-25';
 
-/** The Appendix A groups, one JSON file each, in load order. */
+/**
+ * The Appendix A groups, one JSON file each, in load order. Tier 1 first, then tiers 2 and
+ * 3, so `opening-unit` stays the first opening.
+ */
 export const MATERIAL_GROUPS = {
   lumber,
   'engineered-wood': engineeredWood,
@@ -51,6 +65,19 @@ export const MATERIAL_GROUPS = {
   insulation,
   openings,
   site,
+  // Tier 2 (finishing a pool house).
+  interior,
+  tile,
+  flooring,
+  plumbing,
+  electrical,
+  'stone-brick': stoneBrick,
+  // Tier 3 (the rest of the backyard).
+  fencing,
+  decking,
+  outdoor,
+  steel,
+  'hvac-sealants': hvacSealants,
 } as const;
 
 function invalid(what: string, errors: readonly string[]): never {
@@ -64,12 +91,16 @@ const catalogResult = validateCatalog({
   sections,
   jointTypes,
 });
-if (!catalogResult.ok) invalid('tier-1 catalog', catalogResult.errors);
+if (!catalogResult.ok) invalid('catalog', catalogResult.errors);
 
-/** The tier-1 catalog: enough to build a pool-house shell. */
-export const TIER1_CATALOG: Catalog = catalogResult.catalog;
+/**
+ * The whole catalog, tiers 1–3: the pool-house shell, finishing it (interiors, tile,
+ * flooring, plumbing, electrical, stone and brick) and the rest of the backyard (fencing,
+ * decking, outdoor living, steel, HVAC and sealants).
+ */
+export const CATALOG: Catalog = catalogResult.catalog;
 
-const priceResult = validatePriceTable(prices, TIER1_CATALOG);
+const priceResult = validatePriceTable(prices, CATALOG);
 if (!priceResult.ok) invalid('price table', priceResult.errors);
 
 /** Low–high US retail prices, researched once on `researchedOn`. Planning estimates, not quotes. */

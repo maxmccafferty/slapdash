@@ -3,7 +3,7 @@
  * resize_header (what Claude offers as the fix) brings every header back under it.
  */
 import { CommandBus, formatErrors, type Project } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { describe, expect, it } from 'vitest';
 import { analyze } from '../src/index.ts';
 import { INDEX, poolHouse } from './helpers.ts';
@@ -19,7 +19,7 @@ function exec(bus: CommandBus, name: string, input: unknown) {
 
 describe('header fix', () => {
   it('2x4 plies over the sliding door at 50 psf fail under D+S; resize_header clears every header', () => {
-    const bus = new CommandBus({ project: poolHouse(), catalog: TIER1_CATALOG });
+    const bus = new CommandBus({ project: poolHouse(), catalog: CATALOG });
     exec(bus, 'set_design_load', { key: 'groundSnow', value: '50 psf', source: 'user' });
     for (const h of headersOf(bus.project, 'O1')) exec(bus, 'update_part', { id: h.id, sectionId: '2x4' });
 
@@ -39,7 +39,7 @@ describe('header fix', () => {
   });
 
   it('records what a 70 psf override alone does to the 30 psf header', () => {
-    const bus = new CommandBus({ project: poolHouse(), catalog: TIER1_CATALOG });
+    const bus = new CommandBus({ project: poolHouse(), catalog: CATALOG });
     exec(bus, 'set_design_load', { key: 'groundSnow', value: '70 psf', source: 'user' });
     const r = analyze(bus.project, INDEX);
     const u = Math.max(...headersOf(bus.project, 'O1').map((h) => r.parts[h.id]!.utilization));

@@ -5,9 +5,11 @@
  */
 import {
   DESIGN_LOAD_KEYS,
+  codeNotes,
   formatLoad,
   resolveDesignLoads,
   type Assembly,
+  type CatalogIndex,
   type DesignLoadKey,
   type Part,
   type Project,
@@ -26,7 +28,12 @@ export interface SummaryOptions {
   confirmBigChanges?: boolean;
   /** Assembly lines before "…N more". Default 40. */
   maxAssemblies?: number;
+  /** The catalog, for code notes. Without it the summary has none. */
+  catalog?: CatalogIndex;
 }
+
+const MAX_CODE_NOTES = 6;
+const REMINDER_PREFIX = 'Reminder (not a code check): ';
 
 const LOAD_WORDS: Record<DesignLoadKey, string> = { groundSnow: 'snow', windSpeed: 'wind', frostDepth: 'frost' };
 
@@ -78,7 +85,25 @@ function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
       let run = 0;
       for (let i = 1; i < path.length; i++) run += Math.hypot(path[i]!.x - path[i - 1]!.x, path[i]!.z - path[i - 1]!.z);
       const h = num(p.height);
-      return `${ft(run)} run${h ? ` · ${ft(h)} high` : ''} · ${String(p.style ?? '')}`.trim();
+      const gates = Array.isArray(p.gates) && p.gates.length > 0 ? ` · ${plural(p.gates.length, 'gate')}` : '';
+      return `${ft(run)} run${h ? ` · ${ft(h)} high` : ''} · ${String(p.style ?? '')}${gates}${p.poolBarrier === true ? ' · pool barrier' : ''}`.trim();
+    }
+    case 'build_pergola': {
+      if (p.part === 'roof') return `roof of ${String(p.frame)}`;
+      if (isPt(p.from) && isPt(p.to)) {
+        const h = num(p.height);
+        const roof = p.roofing && p.roofing !== 'none' ? ` · ${String(p.roofing)} roof` : ' · open';
+        return `${ft(Math.abs(p.to.x - p.from.x))} × ${ft(Math.abs(p.to.z - p.from.z))}${h ? ` · ${ft(h)} high` : ''}${roof}`;
+      }
+      break;
+    }
+    case 'build_deck': {
+      if (p.part === 'railing' || p.part === 'stairs') return `${String(p.part)} of ${String(p.deck)}`;
+      if (isPt(p.from) && isPt(p.to)) {
+        const h = num(p.height);
+        return `${ft(Math.abs(p.to.x - p.from.x))} × ${ft(Math.abs(p.to.z - p.from.z))}${h !== undefined ? ` · ${ft(h)} up` : ''} · ${String(p.joistSize)} joists · ${String(p.railing)} guard`;
+      }
+      break;
     }
     case 'place_structure':
       return `${String(p.kind)} at ${isPt(p.at) ? pt(p.at) : '?'} (site context)`;
@@ -130,6 +155,14 @@ export function projectSummary(project: Project, opts: SummaryOptions = {}): str
       lines.push(`- ${asm.id} ${asm.name} (${asm.kind}) ${keyDimensions(asm, own)} · ${plural(own.length, 'part')}`);
     }
     if (assemblies.length > max) lines.push(`- …${assemblies.length - max} more; use find_parts`);
+  }
+  if (opts.catalog) {
+    const notes = codeNotes(project, opts.catalog);
+    if (notes.length > 0) {
+      lines.push('Code notes (reminders, not a code check):');
+      for (const n of notes.slice(0, MAX_CODE_NOTES)) lines.push(`- ${n.text.startsWith(REMINDER_PREFIX) ? n.text.slice(REMINDER_PREFIX.length) : n.text} (${n.source})`);
+      if (notes.length > MAX_CODE_NOTES) lines.push(`- …${notes.length - MAX_CODE_NOTES} more`);
+    }
   }
   if (opts.versions && opts.versions.length > 0) lines.push(`Saved versions: ${opts.versions.join(', ')}`);
   if (opts.pendingPlan) lines.push(`Pending plan: "${clip(opts.pendingPlan, 300)}"`);

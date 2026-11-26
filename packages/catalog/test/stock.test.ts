@@ -5,14 +5,14 @@
  */
 import { describe, expect, it } from 'vitest';
 import { BUILDER_DEFAULTS, HEADER_TABLE, MM_PER_FOOT, MM_PER_INCH } from '@slapdash/core';
-import { TIER1_CATALOG } from '../src/index.ts';
+import { CATALOG } from '../src/index.ts';
 
-const sections = new Map(TIER1_CATALOG.sections.map((s) => [s.id, s]));
+const sections = new Map(CATALOG.sections.map((s) => [s.id, s]));
 const lengths = (id: string) => (sections.get(id)?.stock ?? []).map((s) => s.length_mm);
 
 describe('stock lengths', () => {
   it('every lumber, LVL and I-joist section has stock', () => {
-    for (const s of TIER1_CATALOG.sections) {
+    for (const s of CATALOG.sections) {
       const sawn = s.materialCategories.includes('lumber');
       const engineered = s.materialCategories.includes('engineered-wood') && !s.id.startsWith('glulam-');
       if (sawn || engineered) expect(s.stock?.length ?? 0, s.id).toBeGreaterThan(0);
@@ -20,7 +20,7 @@ describe('stock lengths', () => {
   });
 
   it('glulam is cut to length', () => {
-    for (const s of TIER1_CATALOG.sections.filter((x) => x.id.startsWith('glulam-'))) expect(s.stock, s.id).toBeUndefined();
+    for (const s of CATALOG.sections.filter((x) => x.id.startsWith('glulam-'))) expect(s.stock, s.id).toBeUndefined();
   });
 
   it('2x4 and 2x6 come as 104 5/8in precut studs', () => {
@@ -31,18 +31,27 @@ describe('stock lengths', () => {
   });
 
   it('no stock is longer than 24ft, and each list is sorted and unique', () => {
-    for (const s of TIER1_CATALOG.sections) {
+    for (const s of CATALOG.sections) {
       const l = lengths(s.id);
       for (const mm of l) expect(mm, s.id).toBeLessThanOrEqual(24 * MM_PER_FOOT + 1e-6);
       for (let i = 1; i < l.length; i++) expect(l[i]!, s.id).toBeGreaterThan(l[i - 1]!);
     }
   });
 
-  it('the builder default sections and every header section have stock', () => {
-    const ids = new Set<string>([
-      ...Object.values(BUILDER_DEFAULTS.sections),
-      ...Object.values(HEADER_TABLE).flatMap((rows) => rows.map((r) => r.sectionId)),
-    ]);
+  it('the builder default wood sections and every header section have stock (steel and aluminum are cut to length)', () => {
+    const ids = new Set<string>(
+      [...Object.values(BUILDER_DEFAULTS.sections), ...Object.values(HEADER_TABLE).flatMap((rows) => rows.map((r) => r.sectionId))].filter((id) =>
+        sections.get(id)!.materialCategories.includes('lumber'),
+      ),
+    );
     for (const id of ids) expect(lengths(id).length, id).toBeGreaterThan(0);
+  });
+
+  it('pipe, steel and fence sections are cut to length; deck boards and steel studs come in lengths', () => {
+    for (const s of CATALOG.sections.filter((x) => x.id.startsWith('pipe-') || x.id.startsWith('chainlink-') || x.id.startsWith('hss-') || x.id.startsWith('w'))) {
+      expect(s.stock, s.id).toBeUndefined();
+    }
+    expect(lengths('5-4x6').length).toBeGreaterThan(0);
+    expect(lengths('steel-stud-3-5-8').length).toBeGreaterThan(0);
   });
 });

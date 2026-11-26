@@ -24,8 +24,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -34,7 +36,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "priceKey": "lumber.spf-no2",
     "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Spruce-Pine-Fir No.1/No.2 row (NLGA): Fb 875, Ft 450, Fv 135, Fc⊥ 425, Fc 1150, E 1,400,000 psi; G 0.42; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
@@ -64,8 +71,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -74,7 +83,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "priceKey": "lumber.df-l-no2",
     "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Douglas Fir-Larch No.2 row: Fb 900, Ft 575, Fv 180, Fc⊥ 625, Fc 1350, E 1,600,000 psi; G 0.50; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
@@ -104,8 +118,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -114,7 +130,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "priceKey": "lumber.syp-no2",
     "source": "NDS 2018 Supplement Table 4B (Southern Pine, size-specific), No.2, 8\" wide row: Fb 925, Ft 550, Fv 175, Fc⊥ 565, Fc 1350, E 1,400,000 psi (the 2\"–4\" wide row is higher: Fb 1100, Ft 675, Fc 1450); G 0.55; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
@@ -144,8 +165,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -154,7 +177,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "flags": [
       "ground-contact"
@@ -187,8 +215,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -197,7 +227,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "flags": [
       "ground-contact"
@@ -230,8 +265,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -240,7 +277,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "priceKey": "lumber.cedar-wrc",
     "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Western Cedars No.2 row: Fb 700, Ft 425, Fv 155, Fc⊥ 425, Fc 650, E 1,000,000 psi; G 0.36; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"
@@ -270,8 +312,10 @@
       "nailed-8d",
       "nailed-10d",
       "nailed-16d",
+      "nailed-roofing",
       "screwed-structural",
       "screwed-deck",
+      "screwed-roofing",
       "bolted-through",
       "lag-screw",
       "anchor-bolt",
@@ -280,7 +324,12 @@
       "post-base",
       "post-embedded",
       "notched",
-      "mortise-tenon"
+      "mortise-tenon",
+      "gate-hinge",
+      "gate-hinge-self-closing",
+      "gate-latch",
+      "gate-latch-magnetic",
+      "shade-sail-mount"
     ],
     "priceKey": "lumber.redwood-construction",
     "source": "NDS 2018 Supplement Table 4A (visually graded dimension lumber, 2\"–4\" thick, 2\" & wider), Redwood Construction row (2\"–4\" wide): Fb 825, Ft 475, Fv 160, Fc⊥ 425, Fc 925, E 900,000 psi; G 0.37; density ≈ 1000·G × 1.12 ÷ 1.06 at about 12% moisture, G from NDS 2018 Table 12.3.3A"

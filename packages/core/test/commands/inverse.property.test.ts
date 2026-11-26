@@ -121,10 +121,37 @@ const generators: Gen[] = [
     const [material, size] = key.split('|');
     return { name: 'clear_price', input: size === undefined ? { material } : { material, size } };
   },
+  // Tier 2/3 builders (indices 20–22), out east of everything else so they rarely clash.
+  (_p, r) => {
+    const x = 120 + Math.floor(r() * 200);
+    const z = Math.floor(r() * 200);
+    return {
+      name: 'build_fence',
+      input: {
+        path: [{ x: `${x}ft`, z: `${z}ft` }, { x: `${x + 16}ft`, z: `${z}ft` }, { x: `${x + 16}ft`, z: `${z + 10}ft` }],
+        style: pick(['privacy', 'picket', 'chain-link', 'aluminum', 'glass'], r),
+        height: '4ft',
+        ...(r() < 0.5 ? { gates: [{ centerAt: '8ft' }] } : {}),
+      },
+    };
+  },
+  (_p, r) => {
+    const x = 120 + Math.floor(r() * 200);
+    const z = -60 - Math.floor(r() * 200);
+    return { name: 'build_pergola', input: { from: { x: `${x}ft`, z: `${z}ft` }, to: { x: `${x + 12}ft`, z: `${z + 10}ft` }, roofing: pick(['none', 'polycarbonate'], r) } };
+  },
+  (_p, r) => {
+    const x = -120 - Math.floor(r() * 200);
+    const z = -60 - Math.floor(r() * 200);
+    return {
+      name: 'build_deck',
+      input: { from: { x: `${x}ft`, z: `${z}ft` }, to: { x: `${x + 12}ft`, z: `${z + 10}ft` }, height: pick(['2ft', '4ft'], r), ...(r() < 0.5 ? { stairs: { side: 'south', at: '3ft' } } : {}) },
+    };
+  },
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19, 20, 21, 22].map((i) => generators[i]!);
 
 const builtAnySeed = new Set<string>();
 
@@ -172,6 +199,6 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
 
 describe('builder coverage across seeds', () => {
   it('every builder generator succeeded at least once', () => {
-    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'place_structure']) expect(builtAnySeed, name).toContain(name);
+    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'place_structure', 'build_fence', 'build_pergola', 'build_deck']) expect(builtAnySeed, name).toContain(name);
   });
 });

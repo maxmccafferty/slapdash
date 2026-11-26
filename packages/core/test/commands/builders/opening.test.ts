@@ -94,6 +94,34 @@ describe('add_opening', () => {
     expect(findAllClashes(p)).toEqual([]);
   });
 
+  it('a specific product, nailed through its fin, and a safety-glazing tag; neither changes the recipe unless given', () => {
+    const plain = runOk(wallProject(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '8ft' }).project;
+    const params = plain.assemblies.O1!.builder!.params;
+    expect(params).not.toHaveProperty('product');
+    expect(params).not.toHaveProperty('safetyGlazing');
+
+    const res = expectRoundTrip(wallProject(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '8ft', product: 'window-casement', safetyGlazing: true });
+    const unit = Object.values(res.project.parts).find((x) => x.role === 'panel')!;
+    expect(unit).toMatchObject({ assemblyId: 'O1', materialId: 'window-casement' });
+    expect(unit.tags).toContain('safety-glazing');
+    const unitJoints = Object.values(res.project.joints).filter((j) => j.partIds.includes(unit.id));
+    expect(unitJoints.length).toBeGreaterThanOrEqual(2);
+    expect(unitJoints.every((j) => j.jointTypeId === 'nailed-roofing')).toBe(true);
+    expect(res.project.assemblies.O1!.builder!.params).toMatchObject({ product: 'window-casement', safetyGlazing: true });
+
+    const inline = runOk(createProject({ name: 't' }), 'build_wall', {
+      start: { x: 0, z: 0 },
+      end: { x: '20ft', z: 0 },
+      height: '9ft',
+      openings: [{ kind: 'window', centerAt: '8ft', product: 'window-casement' }],
+    }).project;
+    expect(Object.values(inline.parts).find((x) => x.role === 'panel')!.materialId).toBe('window-casement');
+  });
+
+  it('refuses a product that is not an opening', () => {
+    expect(runErr(wallProject(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '8ft', product: 'spf-no2' })[0]!.message).toContain('needs opening');
+  });
+
   describe('refusals', () => {
     const p = wallProject();
     it('wall not found', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { projectSummary } from '../src/index.ts';
+import { AgentMemory, dispatchTool, projectSummary } from '../src/index.ts';
 import { exec, makeBus, poolHouseBus } from './helpers.ts';
 
 describe('project summary', () => {
@@ -48,5 +48,33 @@ describe('project summary', () => {
     const s = projectSummary(poolHouseBus().project, { maxAssemblies: 3 });
     expect(s.split('\n').filter((l) => /^- [A-Z]+\d/.test(l))).toHaveLength(3);
     expect(s).toContain('- …4 more; use find_parts');
+  });
+
+  it('lists code notes when given the catalog: a pool without a barrier and a window near it', () => {
+    const bus = poolHouseBus();
+    exec(bus, 'place_structure', { kind: 'pool', at: { x: '24ft', z: '2ft' }, width: '12ft', depth: '20ft' });
+    exec(bus, 'add_opening', { wallId: 'W2', kind: 'window', centerAt: '8ft' });
+    const without = projectSummary(bus.project);
+    expect(without).not.toContain('Code notes');
+    const s = projectSummary(bus.project, { catalog: bus.catalog });
+    expect(s).toContain('Code notes (reminders, not a code check):');
+    expect(s).toMatch(/- The pool \(X1\) needs a barrier at least 4ft tall .* \(IRC Appendix AG105\.2 \/ ISPSC 305\)/);
+    expect(s).toMatch(/- O2-PN01 \(window or door unit \(generic\)\) is within 5ft of the pool .* \(IRC R308\.4\.5\)/);
+    // The shell alone (no pool) has no notes.
+    expect(projectSummary(poolHouseBus().project, { catalog: bus.catalog })).not.toContain('Code notes');
+  });
+
+  it('dispatch appends a new code note to the result of the command that created it, once', async () => {
+    const bus = poolHouseBus();
+    const memory = new AgentMemory();
+    const pool = await dispatchTool({ id: 't1', name: 'place_structure', input: { kind: 'pool', at: { x: '24ft', z: '2ft' }, width: '12ft', depth: '20ft' } }, { bus, memory });
+    expect(pool.isError).toBe(false);
+    expect(String(pool.content)).toContain('\nNew code note: Reminder (not a code check): The pool (X1) needs a barrier');
+    const window = await dispatchTool({ id: 't2', name: 'add_opening', input: { wallId: 'W2', kind: 'window', centerAt: '8ft' } }, { bus, memory });
+    const text = String(window.content);
+    expect(text).toContain('New code note: Reminder (not a code check): O2-PN01');
+    expect(text).not.toContain('needs a barrier');
+    const tree = await dispatchTool({ id: 't3', name: 'place_structure', input: { kind: 'tree', at: { x: '-30ft', z: '30ft' } } }, { bus, memory });
+    expect(String(tree.content)).not.toContain('New code note');
   });
 });

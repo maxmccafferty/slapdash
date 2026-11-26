@@ -1,0 +1,89 @@
+[
+  {
+    "id": "drywall-gypsum",
+    "name": "Drywall (gypsum board)",
+    "description": "Paper-faced gypsum board in 4x8 sheets for interior walls and ceilings: 1/2in regular, or 5/8in Type X where a fire-rated assembly is needed (e.g. a wall or ceiling between a garage and living space). Not for tub surrounds or other wet areas; use cement board there.",
+    "category": "sheet",
+    "density_kg_m3": 600,
+    "textureSet": "plaster",
+    "swatch": {
+      "color": "#eceae4",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "nailed-8d",
+      "screwed-structural"
+    ],
+    "flags": [
+      "not-for-wet-areas"
+    ],
+    "priceKey": "sheet.drywall-gypsum",
+    "source": "National Gypsum Gold Bond data sheet (hosted by Home Depot/Lowe's): 1/2in regular 1.3-1.4 lb/sq ft (about 520 kg/m3); USG Sheetrock Firecode X submittal: 5/8in Type X 2.2 lb/sq ft nominal (about 677 kg/m3). 600 kg/m3 is a midpoint for both thicknesses."
+  },
+  {
+    "id": "cement-board",
+    "name": "Cement backer board (1/2in)",
+    "description": "Cement backer board, 1/2in in 3x5 sheets, screwed to studs as the base for tile in tub surrounds and other wet areas. Needs a waterproofing membrane over it where it gets soaked.",
+    "category": "finish",
+    "arealMass_kg_m2": 11.72,
+    "textureSet": "plaster",
+    "swatch": {
+      "color": "#b9b7b0",
+      "roughness": 0.95
+    },
+    "acceptsJoints": [
+      "screwed-structural",
+      "nailed-roofing"
+    ],
+    "flags": [
+      "wet-area-rated"
+    ],
+    "priceKey": "finish.cement-board",
+    "source": "USG Durock Cement Board Technical Notes and ASTM-verified EPD: 1/2in 2.4 psf (x 4.88243). HardieBacker 1/2in is similar (Lowe's lists 39 lb per 3x5 sheet, about 2.6 psf)."
+  },
+  {
+    "id": "paint-interior-latex",
+    "name": "Interior latex paint",
+    "description": "Water-based acrylic latex wall paint, priced per sq ft of wall covered by one coat (a gallon covers about 250-400 sq ft). Plan on primer plus two coats over new drywall.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.072,
+    "textureSet": "plaster",
+    "swatch": {
+      "color": "#efece6",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.paint-interior-latex",
+    "source": "Estimate: Behr Premium Plus Interior Eggshell No. 2050 technical data sheet (rev 05/25): 11.0 lb/gal, 54% solids by weight, so about 5.9 lb of dry film per gallon; at 400 sq ft/gal that is about 0.015 psf (0.072 kg/m2) per coat."
+  },
+  {
+    "id": "paint-exterior-acrylic",
+    "name": "Exterior acrylic paint",
+    "description": "100% acrylic exterior house paint, priced per sq ft covered by one coat (a gallon covers about 250-400 sq ft). Rough siding takes more.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.075,
+    "textureSet": "plaster",
+    "swatch": {
+      "color": "#e8e4da",
+      "roughness": 0.75
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.paint-exterior-acrylic",
+    "source": "Estimate: no dry-film weight published. Assumed similar to Behr Premium Plus interior latex (11.0 lb/gal, 54% solids by weight per its technical data sheet), about 0.015 psf per coat at 400 sq ft/gal; coverage 250-400 sq ft/gal from Behr Premium Plus Exterior product pages."
+  },
+  {
+    "id": "stain-exterior",
+    "name": "Exterior wood stain",
+    "description": "Semi-transparent or solid exterior wood stain and sealer for siding, fences and decks, priced per sq ft covered by one coat (about 250-350 sq ft per gallon on the first coat). Recoat every few years.",
+    "category": "finish",
+    "arealMass_kg_m2": 0.03,
+    "textureSet": "wood-cedar",
+    "swatch": {
+      "color": "#8a5a3a",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [],
+    "priceKey": "finish.stain-exterior",
+    "source": "Estimate: stain soaks into the wood and leaves a thin film; no weight published. About 0.006 psf assumed (low-solids stain at roughly 300 sq ft/gal). Coverage from Behr Premium Semi-Transparent Waterproofing Stain & Sealer (250-300 sq ft/gal first coat) and Olympic Elite Solid (350 sq ft/gal) product pages."
+  }
+]

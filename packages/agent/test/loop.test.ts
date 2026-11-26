@@ -12,7 +12,7 @@ import {
 } from '../src/index.ts';
 import { call, say, scriptedClient, type ScriptStep } from '../testing/scripted-client.ts';
 import { SHELL, expectValidMessages, makeBus, poolHouseBus } from './helpers.ts';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { indexCatalog } from '@slapdash/core';
 import { analyze } from '@slapdash/solver';
 
@@ -363,7 +363,7 @@ describe('the automatic stress turn', () => {
       overCount: 1,
       unstable: [],
     };
-    const index = indexCatalog(TIER1_CATALOG);
+    const index = indexCatalog(CATALOG);
     let analysed = 0;
     const { deps, script, events } = setup(
       [

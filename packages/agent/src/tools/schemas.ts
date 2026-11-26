@@ -4,7 +4,7 @@
  * and validates their input with these schemas, because eager input streaming means the
  * API no longer validates tool input. Lengths use `zLength`, so Claude passes "16ft 6in".
  */
-import { LENGTH_DESCRIPTION, PART_ROLES, zLength, zPositiveLength } from '@slapdash/core';
+import { LENGTH_DESCRIPTION, MATERIAL_CATEGORIES, PART_ROLES, zLength, zPositiveLength } from '@slapdash/core';
 import { z } from 'zod';
 import { zId } from './ids.ts';
 import { zSnapshotRequest } from './snapshot.ts';
@@ -50,6 +50,13 @@ export const zMeasure = z.strictObject({
 
 export const zListMaterials = z.strictObject({
   assembly: zId('Only this assembly, e.g. W1. Default: the whole project.').optional(),
+});
+
+export const zSearchCatalog = z.strictObject({
+  text: z.string().trim().min(1).optional().describe('Words to match in the id, name or description, e.g. pool fence or gfci. All words must match.'),
+  category: z.enum(MATERIAL_CATEGORIES).optional().describe('Only this category, e.g. fencing, plumbing or roofing.'),
+  flag: z.string().min(1).optional().describe('Only materials with this code flag, e.g. pool-barrier, safety-glazing or licensed-trade.'),
+  limit: z.number().int().min(1).max(100).default(25).describe('How many rows to list. Default 25.'),
 });
 
 export const zProposePlan = z.strictObject({
@@ -122,6 +129,12 @@ export const agentToolDefs = [
     description:
       'A materials list for the project or one assembly: pieces and linear feet per material and size, sheet goods in square feet and sheets, concrete in cubic yards, and fasteners from the joints. Quantities only.',
     schema: zListMaterials,
+  },
+  {
+    name: 'search_catalog',
+    description:
+      'Search the material catalog by words, category or code flag. Returns a count and one row per material: id · name · category · flags, with a short description. Use it to find a material id before using one you have not seen.',
+    schema: zSearchCatalog,
   },
   {
     name: 'snapshot',

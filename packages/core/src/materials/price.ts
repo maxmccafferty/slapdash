@@ -44,8 +44,10 @@ export function priceUnitsFor(material: Material): PriceUnit[] {
     case 'concrete':
       return ['cu-yd'];
     case 'masonry':
-    case 'fastener':
+      return ['each', 'sq-ft', 'linear-ft'];
     case 'opening':
+      return ['each', 'sq-ft'];
+    case 'fastener':
       return ['each'];
     case 'site':
       return [];

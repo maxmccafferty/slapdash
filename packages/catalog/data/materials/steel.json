@@ -1,0 +1,97 @@
+[
+  {
+    "id": "steel-stud-20ga",
+    "name": "Steel stud, 20 ga structural (33 mil)",
+    "description": "Cold-formed steel C-stud 3-5/8in, 33 mil (20 ga structural, 362S162-33), screwed to steel track. Steel members aren't checked by the solver yet: planning only.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 200000,
+      "yield_MPa": 228.0
+    },
+    "density_kg_m3": 7850,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#c4c8ca",
+      "roughness": 0.45,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "steel.steel-stud-20ga",
+    "source": "ICC-ES ESR-4062 (Marino\\WARE, 2025): ASTM A1003 ST33H or A653 SS Grade 33; Table 4, 362S162-33: Fy 33 ksi, 0.0346in design thickness, 0.89 lb/ft. E 29,000 ksi (AISC 360) and 490 pcf, rounded to 200,000 MPa and 7,850 kg/m³"
+  },
+  {
+    "id": "steel-hss-a500",
+    "name": "Steel square tube (HSS), A500 Gr C",
+    "description": "Hot-formed or cold-formed square hollow structural section, ASTM A500 Grade C, for posts and frames; welded or bolted. Steel members aren't checked by the solver yet: planning only.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 200000,
+      "yield_MPa": 345.0
+    },
+    "density_kg_m3": 7850,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#5f6368",
+      "roughness": 0.5,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "welded-steel",
+      "bolted-through",
+      "post-base",
+      "concrete-anchor"
+    ],
+    "priceKey": "steel.steel-hss-a500",
+    "source": "Steel Tube Institute, ASTM A500 (2021): Grade C yield 50 ksi, tensile 62 ksi for all HSS shapes. E 29,000 ksi (AISC 360) and 490 pcf, rounded to 200,000 MPa and 7,850 kg/m³"
+  },
+  {
+    "id": "steel-angle-a36",
+    "name": "Steel angle, A36",
+    "description": "Hot-rolled equal-leg steel angle, ASTM A36, for ledgers, lintels and bracing; welded, bolted or lagged. Steel members aren't checked by the solver yet: planning only.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 200000,
+      "yield_MPa": 248.0
+    },
+    "density_kg_m3": 7850,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#5f6368",
+      "roughness": 0.5,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "welded-steel",
+      "bolted-through",
+      "lag-screw"
+    ],
+    "priceKey": "steel.steel-angle-a36",
+    "source": "ASTM A36: minimum yield 36 ksi for shapes (via secondary sources; AISC Steel Construction Manual). E 29,000 ksi (AISC 360) and 490 pcf, rounded to 200,000 MPa and 7,850 kg/m³"
+  },
+  {
+    "id": "steel-w-a992",
+    "name": "Steel wide-flange beam, A992",
+    "description": "Hot-rolled wide-flange (W) beam, ASTM A992, for long spans and headers; usually cut and delivered by a steel service centre. Steel members aren't checked by the solver yet: planning only.",
+    "category": "steel",
+    "strength": {
+      "E_MPa": 200000,
+      "yield_MPa": 345.0
+    },
+    "density_kg_m3": 7850,
+    "textureSet": "metal-galvanized",
+    "swatch": {
+      "color": "#5f6368",
+      "roughness": 0.5,
+      "metalness": 0.7
+    },
+    "acceptsJoints": [
+      "welded-steel",
+      "bolted-through",
+      "post-base"
+    ],
+    "priceKey": "steel.steel-w-a992",
+    "source": "ASTM A992: Fy 50 ksi, Fu 65 ksi (AISC \"What is ASTM A992?\", via secondary sources). E 29,000 ksi (AISC 360) and 490 pcf, rounded to 200,000 MPa and 7,850 kg/m³"
+  }
+]

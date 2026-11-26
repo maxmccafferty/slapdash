@@ -22,7 +22,7 @@ import {
   type TurnResult,
   type UserInput,
 } from '@slapdash/agent';
-import { DESIGN_LOAD_TABLE, TIER1_CATALOG } from '@slapdash/catalog';
+import { DESIGN_LOAD_TABLE, CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject, indexCatalog, type CatalogIndex, type Project, type SiteDefaults } from '@slapdash/core';
 import { analyze } from '@slapdash/solver';
 import { createKeyholeFromEnv, readConfig, type Env, type KeyholeHandler } from '@slapdash/keyhole';
@@ -226,9 +226,9 @@ export interface EvalSessionOptions {
 
 export function evalSession(client: KeyholeClient, opts: EvalSessionOptions = {}): EvalSession {
   const siteDefaults: SiteDefaults = { table: DESIGN_LOAD_TABLE };
-  const bus = new CommandBus({ project: opts.project ?? createProject({ name: 'Eval' }), catalog: TIER1_CATALOG, siteDefaults: () => siteDefaults });
+  const bus = new CommandBus({ project: opts.project ?? createProject({ name: 'Eval' }), catalog: CATALOG, siteDefaults: () => siteDefaults });
   if (opts.seed && opts.seed.length > 0) applySeed(bus, opts.seed);
-  const catalog = indexCatalog(TIER1_CATALOG);
+  const catalog = indexCatalog(CATALOG);
   const analysis = async (p: Project) => analyze(p, catalog, { siteDefaults });
   const memory = new AgentMemory();
   if (opts.prefs?.confirmBigChanges !== undefined) memory.setPrefs({ confirmBigChanges: opts.prefs.confirmBigChanges });

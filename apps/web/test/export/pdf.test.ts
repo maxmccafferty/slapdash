@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { PDFDocument } from 'pdf-lib';
 import { indexCatalog, type MaterialsReport, type MaterialsRow } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { pdfInput, projectSlug } from '../../src/export/export-pdf.ts';
 import { FOOTER_NOTE, layoutPdf, type PdfInput } from '../../src/export/pdf-layout.ts';
@@ -20,7 +20,7 @@ const geist = (): FontBytes => ({
   semibold: readFileSync(join(FONTS, 'Geist-SemiBold.ttf')),
 });
 
-const catalog = indexCatalog(TIER1_CATALOG);
+const catalog = indexCatalog(CATALOG);
 const NOW = new Date(Date.UTC(2026, 10, 25, 12));
 const texts = (items: readonly PdfItem[]) => items.flatMap((i) => (i.type === 'text' ? [i.text] : []));
 

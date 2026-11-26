@@ -1,0 +1,145 @@
+[
+  {
+    "id": "shade-sail-hdpe",
+    "name": "Shade sail, 12ft square HDPE",
+    "description": "Knitted HDPE shade sail, 12 x 12ft square (Coolaroo class, 220 gsm), tensioned between posts or walls. Sails pull hard on their mounts in wind: anchor posts must be sized and footed for it.",
+    "category": "other",
+    "arealMass_kg_m2": 0.22,
+    "swatch": {
+      "color": "#d9cfb8",
+      "roughness": 0.9,
+      "opacity": 0.85
+    },
+    "acceptsJoints": [
+      "shade-sail-mount"
+    ],
+    "priceKey": "other.shade-sail-hdpe",
+    "source": "Coolaroo Coolhaven 12ft square: 220 gsm (6.5 oz/sq yd) 100% HDPE knit (Backyard City product page)"
+  },
+  {
+    "id": "shade-sail-mount-kit",
+    "name": "Shade sail mounting kit (one corner)",
+    "description": "Stainless hardware for one shade sail corner: pad eye, turnbuckle and snap hook, with screws or anchors.",
+    "category": "fastener",
+    "density_kg_m3": 554,
+    "swatch": {
+      "color": "#c8ccd0",
+      "roughness": 0.3,
+      "metalness": 0.9
+    },
+    "acceptsJoints": [],
+    "priceKey": "fastener.shade-sail-mount-kit",
+    "source": "Walmart 4-corner kit 0.88 lb (0.22 lb per corner); Yescom kit 1.65 lb net (about 0.41 lb per corner, Newegg). Estimate 0.4 lb over a 10 x 2 x 1in box"
+  },
+  {
+    "id": "grill-insert",
+    "name": "Built-in gas grill head",
+    "description": "Built-in stainless gas grill head, 32in 4-burner (Blaze Premium LTE class), dropped into a masonry or steel-frame island. For the materials list only, not simulated; the gas line is usually run by a licensed plumber or gas fitter.",
+    "category": "mechanical",
+    "density_kg_m3": 177,
+    "swatch": {
+      "color": "#c0c4c8",
+      "roughness": 0.35,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "flags": [
+      "licensed-trade"
+    ],
+    "priceKey": "mechanical.grill-insert",
+    "source": "Blaze Premium LTE+ 32in propane: 114 lb, 32.5 W x 25.75 D x 21.25 H in (BBQ Galore); effective density 114 lb over that box"
+  },
+  {
+    "id": "outdoor-sink",
+    "name": "Outdoor stainless sink",
+    "description": "Stainless steel drop-in outdoor sink (about 15in, 304 or 316 stainless) for an outdoor kitchen island, with faucet holes. Needs a supply line and a drain; winterize where it freezes.",
+    "category": "plumbing",
+    "density_kg_m3": 206,
+    "swatch": {
+      "color": "#c0c4c8",
+      "roughness": 0.3,
+      "metalness": 0.8
+    },
+    "acceptsJoints": [
+      "screwed-structural"
+    ],
+    "priceKey": "plumbing.outdoor-sink",
+    "source": "Delta Heat 15in drop-in outdoor sink: 12 lb, 15 W x 20 D x 5.38 H in, 304 stainless (Blazing Embers product page); effective density 12 lb over that box"
+  },
+  {
+    "id": "countertop-concrete",
+    "name": "Concrete countertop",
+    "description": "Cast concrete countertop, typically 1-1/2 to 2in thick, sealed. Usually fabricated and installed by a specialist at about $50-$150 per sq ft; the price here is materials only.",
+    "category": "finish",
+    "arealMass_kg_m2": 91.55,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#9e9a94",
+      "roughness": 0.7
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "finish.countertop-concrete",
+    "source": "Remodeling Calculator: 1.5in concrete countertop about 18.75 psf (150 pcf)"
+  },
+  {
+    "id": "pool-equipment-pad",
+    "name": "Pool equipment pad (3 x 4ft)",
+    "description": "Plastic/rubber equipment pad, 36 x 48 x 3in, set on compacted gravel under a pool pump, filter or heater.",
+    "category": "masonry",
+    "density_kg_m3": 203,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#3a3a3a",
+      "roughness": 0.9
+    },
+    "acceptsJoints": [
+      "cast-in-place"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "masonry.pool-equipment-pad",
+    "source": "Diversitech The Black Pad ACP36483, 36 x 48 x 3in: 38 lb (Pool Warehouse; Ferguson lists 125 lb for the same part, conflicting); 38 lb over that box"
+  },
+  {
+    "id": "coping-precast-concrete",
+    "name": "Precast concrete pool coping",
+    "description": "Precast concrete bullnose pool coping, 12 x 24in pieces about 2in thick, mortared on the bond beam.",
+    "category": "masonry",
+    "density_kg_m3": 2261,
+    "textureSet": "concrete",
+    "swatch": {
+      "color": "#d8d4cc",
+      "roughness": 0.85
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "flags": [
+      "ground-contact"
+    ],
+    "priceKey": "masonry.coping-precast-concrete",
+    "source": "DFW 12x24 straight bullnose coping: 50 lb (white, tan), 48 lb (gray), 2.125in thick (DFW / Pool360); 50 lb over 12 x 24 x 2.125in"
+  },
+  {
+    "id": "coping-travertine",
+    "name": "Travertine pool coping",
+    "description": "Tumbled travertine bullnose pool coping, 12 x 24in, about 1-1/4in (3cm) thick, mortared on the bond beam. Seal it; travertine stays cooler underfoot than concrete.",
+    "category": "masonry",
+    "density_kg_m3": 2523,
+    "textureSet": "tile-stone",
+    "swatch": {
+      "color": "#d9c6a5",
+      "roughness": 0.8
+    },
+    "acceptsJoints": [
+      "mortared"
+    ],
+    "priceKey": "masonry.coping-travertine",
+    "source": "Floor & Decor Casa Antica Country Classic tumbled travertine bullnose 3cm coping (100934512): 31.17 lb per 12 x 24in piece, 30.16mm thick; 31.17 lb over 12 x 24 x 1.19in"
+  }
+]

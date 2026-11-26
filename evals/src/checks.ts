@@ -27,7 +27,7 @@ export const IN = MM_PER_INCH;
 export const FT = MM_PER_FOOT;
 const TOL = IN;
 
-type Fail = string | null;
+export type Fail = string | null;
 type TurnLike = TurnResult & { record: TurnRecord };
 type Count = number | { min?: number; max?: number };
 
@@ -439,4 +439,62 @@ export const isSiteContext = (x: Part): boolean => x.tags.includes('site-context
 /** Valid joints, nothing floating, nothing running through anything. Every building scenario runs it. */
 export function soundBuild(p: Project, catalog: CatalogIndex): Fail[] {
   return [...jointsValid(p, catalog), framingConnected(p), noClashes(p)];
+}
+
+// ── Tier 3: pergolas and pool fences ────────────────────────────────────────
+
+/** The project's pool water parts (site context tagged kind:pool and water). */
+export const poolWater = (p: Project): Part[] => Object.values(p.parts).filter((x) => x.tags.includes('kind:pool') && x.tags.includes('water'));
+
+/**
+ * One build_pergola with a roof of clear polycarbonate panels on at least four posts, sloped
+ * at least 1 in 12.
+ */
+export function pergolaPolycarbonate(p: Project): Fail[] {
+  const pergolas = Object.values(p.assemblies).filter((a) => a.builder?.name === 'build_pergola' && a.builder.params.part === undefined);
+  if (pergolas.length !== 1) return [`one pergola (got ${pergolas.length})`];
+  const main = pergolas[0]!;
+  const roof = Object.values(p.assemblies).find((a) => a.kind === 'roof' && a.builder?.name === 'build_pergola' && a.builder.params.frame === main.id);
+  const fails: Fail[] = [];
+  if (!roof) return ['the pergola should have a roof assembly'];
+  const panels = partsIn(p, roof.id).filter((x) => x.role === 'sheathing');
+  fails.push(panels.length > 0 ? null : 'the pergola roof has no panels');
+  const notPoly = panels.filter((x) => x.materialId !== 'polycarbonate-corrugated');
+  fails.push(notPoly.length === 0 ? null : `roof panels should be polycarbonate-corrugated (got ${[...new Set(notPoly.map((x) => x.materialId))].join(', ')})`);
+  const posts = partsIn(p, main.id).filter((x) => x.role === 'post').length;
+  fails.push(posts >= 4 ? null : `at least 4 posts (got ${posts})`);
+  const rise = Number(main.builder!.params.slopeRise);
+  fails.push(rise >= 1 - 1e-6 ? null : `slope at least 1 in 12 (got ${rise} in 12)`);
+  return fails;
+}
+
+/**
+ * A build_fence pool barrier at least 4ft tall that encloses the pool, with a gate on
+ * self-closing hinges and a magnetic latch at least 54in up, and nothing running through
+ * the pool.
+ */
+export function poolFence(p: Project): Fail[] {
+  const pools = poolWater(p);
+  if (pools.length === 0) return ['there is no pool to fence'];
+  const fences = Object.values(p.assemblies).filter((a) => a.builder?.name === 'build_fence' && a.builder.params.poolBarrier === true);
+  if (fences.length === 0) return ['a build_fence with "poolBarrier": true'];
+  const fails: Fail[] = [];
+  const ids = new Set(fences.flatMap((f) => partsIn(p, f.id).map((x) => x.id)));
+  for (const f of fences) {
+    const b = assemblyBounds(p, f.id);
+    fails.push(b && b.max.y >= 48 * IN - TOL ? null : `${f.id} should stand at least 4ft above grade (got ${b ? fi(b.max.y) : 'nothing'})`);
+  }
+  const joints = Object.values(p.joints).filter((j) => j.partIds.some((id) => ids.has(id)));
+  const hinges = joints.filter((j) => j.jointTypeId === 'gate-hinge-self-closing');
+  const latches = joints.filter((j) => j.jointTypeId === 'gate-latch-magnetic');
+  fails.push(hinges.length > 0 ? null : 'a gate on self-closing hinges (gate-hinge-self-closing)');
+  fails.push(latches.length > 0 ? null : 'a magnetic self-latching gate latch (gate-latch-magnetic)');
+  fails.push(latches.every((j) => j.at.y >= 54 * IN - 0.5) ? null : 'the pool gate latch should be at least 54in up');
+  fails.push(noClashesWith(p, (x) => x.tags.includes('kind:pool'), 'the pool'));
+  // Encloses: the fence's plan bounds contain the pool footprint.
+  const fb = boundsOf(Object.values(p.parts).filter((x) => ids.has(x.id)));
+  const pb = boundsOf(pools);
+  const encloses = fb !== null && pb !== null && fb.min.x <= pb.min.x && fb.max.x >= pb.max.x && fb.min.z <= pb.min.z && fb.max.z >= pb.max.z;
+  fails.push(encloses ? null : 'the pool barrier should go all the way around the pool');
+  return fails;
 }

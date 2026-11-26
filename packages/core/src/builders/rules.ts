@@ -289,3 +289,107 @@ export const RIDGE_FOR_RAFTER: Record<string, string> = { '2x6': '2x8', '2x8': '
 
 export const FENCE_MAX_POST_SPACING_MM = 8 * FT;
 export const FENCE_MAX_HEIGHT_MM = 8 * FT;
+
+// ── Pool barriers: IRC 2021 Appendix AG105.2 / ISPSC 2021 §305 ──────────────
+//
+// IRC Appendix AG105.2 (the same rules as ISPSC 305.2–305.4): the top of the barrier at
+// least 48 in above grade (AG105.2(1)); at most 2 in between grade and the bottom of the
+// barrier (AG105.2(2)); openings must not pass a 4 in sphere (AG105.2(3)); where the
+// horizontal members are less than 45 in apart (top of one to top of the next), they
+// go on the pool side and the vertical spacing is at most 1 3/4 in (AG105.2(4)); chain
+// link mesh at most 2 1/4 in (AG105.2(6)) — the fence builder goes further and uses
+// 1 1/4 in mini-mesh, since 2 in mesh is easy to climb and many places require it; gates open outward, away from the pool, and
+// are self-closing and self-latching, with the release at least 54 in above the bottom of
+// the gate (AG105.2(8)). Reminders for the builder, not a code check.
+
+export const POOL_BARRIER_MIN_HEIGHT_MM = 48 * IN;
+/** Openings must be under this (a 4 in sphere must not pass). */
+export const POOL_BARRIER_MAX_GAP_MM = 4 * IN;
+/** Horizontal members closer than this: they go on the pool side and pickets are ≤ 1 3/4 in apart. */
+export const POOL_BARRIER_RAIL_RULE_MM = 45 * IN;
+export const POOL_BARRIER_CLOSE_RAIL_GAP_MM = 1.75 * IN;
+export const POOL_BARRIER_MAX_BOTTOM_GAP_MM = 2 * IN;
+/** Mesh the fence builder uses for a chain-link pool barrier (stricter than AG105.2(6)'s 2 1/4 in). */
+export const POOL_BARRIER_MAX_MESH_MM = 1.25 * IN;
+/** Release mechanism of a pool gate latch, above the bottom of the gate. */
+export const POOL_GATE_LATCH_MIN_MM = 54 * IN;
+
+// ── Fence styles ────────────────────────────────────────────────────────────
+
+/** Chain-link line posts at most 10 ft apart (ASTM F567 installation practice). */
+export const CHAIN_LINK_MAX_POST_SPACING_MM = 10 * FT;
+/** Aluminum fence panels are sold 6 ft wide between posts (common maker size). */
+export const ALUMINUM_PANEL_WIDTH_MM = 6 * FT;
+/** Frameless glass pool fence: panels up to 4 ft wide with a gap under 4 in between them. */
+export const GLASS_PANEL_MAX_WIDTH_MM = 4 * FT;
+export const GLASS_PANEL_GAP_MM = 1.5 * IN;
+export const GLASS_FENCE_MAX_HEIGHT_MM = 6 * FT;
+export const GATE_MIN_WIDTH_MM = 3 * FT;
+export const GATE_MAX_WIDTH_MM = 6 * FT;
+export const GATE_DEFAULT_WIDTH_MM = 48 * IN;
+
+// ── Guards: IRC 2021 R312.1 ─────────────────────────────────────────────────
+//
+// R312.1.1: guards on open sides of walking surfaces more than 30 in above the floor or
+// grade below. R312.1.2: at least 36 in tall. R312.1.3: openings must not pass a 4 in
+// sphere.
+export const DECK_GUARD_TRIGGER_MM = 30 * IN;
+export const DECK_GUARD_HEIGHT_MM = 36 * IN;
+export const GUARD_MAX_OPENING_MM = 4 * IN;
+
+// ── Deck stairs: IRC 2021 R311.7.5 ──────────────────────────────────────────
+//
+// R311.7.5.1: risers at most 7 3/4 in. R311.7.5.2: treads at least 10 in deep.
+// R311.7.8: a handrail on flights with four or more risers.
+export const STAIR_MAX_RISER_MM = 7.75 * IN;
+export const STAIR_MIN_TREAD_MM = 10 * IN;
+export const STAIR_HANDRAIL_RISERS = 4;
+/** Stringers at most 16 in on centre under wood or composite treads (AWC DCA 6 §Stairs, common maker spec). */
+export const STAIR_MAX_STRINGER_SPACING_MM = 16 * IN;
+
+// ── Polycarbonate roofing ───────────────────────────────────────────────────
+//
+// Manufacturer install guides for clear corrugated polycarbonate (Palram Suntuf / Tuftex):
+// minimum slope 1 in 12 (about 5°) so water drains; purlins at most 24 in apart for
+// typical snow and wind loads.
+export const POLYCARBONATE_MIN_SLOPE = 1 / 12;
+export const POLYCARBONATE_MAX_PURLIN_MM = 24 * IN;
+/** Cover width of one 26 in sheet after one corrugation of side lap. */
+export const POLYCARBONATE_COVER_MM = 24 * IN;
+/** Cover width of one corrugated metal panel modelled on a pergola. */
+export const METAL_PANEL_COVER_MM = 36 * IN;
+
+// ── Pergola beams ───────────────────────────────────────────────────────────
+//
+// Doubled 2x beams between posts, for an open or lightly roofed pergola (10 psf dead
+// + 20 psf live/snow): conservative spans drawn from AWC DCA 6 Table 3 (deck beam spans,
+// southern pine / SPF No.2, which assume 40 psf live + 10 psf dead) at its shortest joist
+// span column, rounded down to whole feet. The solver checks the real loads.
+export const PERGOLA_BEAM_MAX_SPAN_MM: Record<string, number> = {
+  '2x8': 8 * FT,
+  '2x10': 10 * FT,
+  '2x12': 12 * FT,
+};
+
+// ── Decks: IRC 2021 R507 ────────────────────────────────────────────────────
+//
+// IRC 2021 Table R507.6 "Deck joist spans for common lumber species", Douglas fir-larch /
+// hem-fir / spruce-pine-fir No.2 row (the governing row for the default pt-spf-no2), 40 psf
+// live + 10 psf dead, L/360, no cantilever. Spans by joist spacing. Transcribed from memory
+// of the 2021 table while web lookups were unavailable: VERIFY against the printed code.
+export const DECK_JOIST_SPAN_MM: Record<string, Record<'12in' | '16in', number>> = {
+  '2x6': { '12in': 9 * FT + 6 * IN, '16in': 8 * FT + 8 * IN },
+  '2x8': { '12in': 12 * FT + 6 * IN, '16in': 11 * FT + 1 * IN },
+  '2x10': { '12in': 15 * FT + 8 * IN, '16in': 13 * FT + 7 * IN },
+  '2x12': { '12in': 18 * FT, '16in': 15 * FT + 9 * IN },
+};
+export const DECK_JOIST_SIZES = ['2x6', '2x8', '2x10', '2x12'] as const;
+/**
+ * IRC 2021 Table R507.5 (deck beam spans), doubled 2x10 hem-fir/SPF No.2 under joists
+ * spanning up to 12 ft: about 7 ft; capped at 8 ft between posts for the builder's doubled
+ * 2x10 beam with spans up to 8 ft (joist span ≤ 8 ft column: 8 ft 2 in). Conservative:
+ * the builder picks post spacing from this and the solver checks the rest.
+ */
+export const DECK_BEAM_MAX_SPAN_MM = 8 * FT;
+/** Railing posts at most 6 ft apart (common guard-post spacing, AWC DCA 6 Figure 15 detail). */
+export const DECK_RAIL_POST_MAX_SPACING_MM = 6 * FT;

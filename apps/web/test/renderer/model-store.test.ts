@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CommandBus, createProject, formatErrors } from '@slapdash/core';
-import { TIER1_CATALOG } from '@slapdash/catalog';
+import { CATALOG } from '@slapdash/catalog';
 import { bootstrapModel } from '../../src/model/bootstrap.ts';
 import { floorStops, projectSummary } from '../../src/model/floor-stops.ts';
 import { PLACEHOLDER_FLOORS, PLACEHOLDER_PROJECT } from '../../src/placeholder.ts';
@@ -14,7 +14,7 @@ afterEach(() => {
 
 describe('model store', () => {
   it('follows the bus through execute and undo', () => {
-    const bus = new CommandBus({ project: createProject({ name: 'T' }), catalog: TIER1_CATALOG });
+    const bus = new CommandBus({ project: createProject({ name: 'T' }), catalog: CATALOG });
     const detach = useModelStore.getState().attachBus(bus);
     expect(useModelStore.getState().project).toBe(bus.project);
     expect(useModelStore.getState().lastEvent).toBe('load');
@@ -97,7 +97,7 @@ describe('floor stops and the header', () => {
   });
 
   it('keep the placeholder for a stop with nothing built', () => {
-    const bus = new CommandBus({ project: createProject({ name: 'T' }), catalog: TIER1_CATALOG });
+    const bus = new CommandBus({ project: createProject({ name: 'T' }), catalog: CATALOG });
     bus.execute('pour_slab', { from: { x: 0, z: 0 }, to: { x: '10ft', z: '10ft' } });
     const stops = floorStops(bus.project);
     expect(stops[0]).toBe(PLACEHOLDER_FLOORS[0]);

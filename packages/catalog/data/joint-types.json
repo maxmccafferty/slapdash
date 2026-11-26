@@ -277,5 +277,199 @@
     },
     "defaultFastenerCount": 1,
     "source": "Estimate: a pegged mortise and tenon in softwood, 500 lbf; rare in a shell and not a design value."
+  },
+  {
+    "id": "glued-pvc",
+    "name": "PVC solvent-weld fitting",
+    "category": "glued",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "PVC fitting, primer and cement",
+    "hardwareId": "fitting-pvc",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "glued-cpvc",
+    "name": "CPVC solvent-weld fitting",
+    "category": "glued",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "CPVC fitting and one-step cement",
+    "hardwareId": "fitting-cpvc",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "glued-abs",
+    "name": "ABS solvent-weld fitting",
+    "category": "glued",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "ABS fitting and cement",
+    "hardwareId": "fitting-abs",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "crimped-pex",
+    "name": "PEX crimp fitting",
+    "category": "crimped",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "PEX brass insert fitting and copper crimp ring",
+    "hardwareId": "fitting-pex-crimp",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "sweated-copper",
+    "name": "Sweated copper fitting",
+    "category": "sweated",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Wrought copper fitting, flux and lead-free solder",
+    "hardwareId": "fitting-copper-sweat",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "threaded-galvanized",
+    "name": "Threaded galvanized fitting",
+    "category": "threaded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Galvanized malleable iron fitting and thread sealant",
+    "hardwareId": "fitting-galvanized",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "clamped-no-hub",
+    "name": "No-hub coupling",
+    "category": "clamped",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Neoprene sleeve with stainless shield and band clamps",
+    "hardwareId": "coupling-no-hub",
+    "source": "Estimate: plumbing joints carry no structural rating; listed so the materials list counts one fitting per joint. The 50 lbf is a nominal placeholder so the solver can hold a pipe's own weight, not a design value."
+  },
+  {
+    "id": "welded-steel",
+    "name": "Welded steel connection",
+    "category": "welded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 4448,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: weld capacity depends on the weld size and length, which aren't modelled; 1000 lbf is a placeholder for a small fillet-welded connection, not a design value. Steel members aren't checked by the solver."
+  },
+  {
+    "id": "gate-hinge",
+    "name": "Gate hinges",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 667,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Heavy-duty gate hinge pair with screws",
+    "hardwareId": "gate-hinge-pair",
+    "source": "Estimate: residential gate hinges publish no lateral rating; 150 lbf per pair is a planning number for a 4ft gate leaf hanging from two hinges."
+  },
+  {
+    "id": "gate-hinge-self-closing",
+    "name": "Self-closing gate hinges",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 667,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Self-closing gate hinge pair (pool rated) with screws",
+    "hardwareId": "gate-hinge-self-closing",
+    "source": "Estimate: spring and adjustable-tension self-closing hinges publish no lateral rating; 150 lbf per pair is a planning number for a 4ft gate leaf."
+  },
+  {
+    "id": "gate-latch",
+    "name": "Gate latch",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Gravity gate latch with screws",
+    "hardwareId": "gate-latch-gravity",
+    "source": "Estimate: a gravity latch only holds the gate shut; 50 lbf is a placeholder, not a rating."
+  },
+  {
+    "id": "gate-latch-magnetic",
+    "name": "Magnetic pool gate latch",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 222,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Magnetic self-latching pool gate latch, top-pull, with screws",
+    "hardwareId": "gate-latch-magnetic",
+    "source": "Estimate: a magnetic self-latching pool latch only holds the gate shut; 50 lbf is a placeholder, not a rating."
+  },
+  {
+    "id": "glass-spigot",
+    "name": "Glass fence spigot",
+    "category": "embedded",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 2224,
+      "basis": "per-fastener"
+    },
+    "defaultFastenerCount": 2,
+    "fastener": "Stainless steel core-drilled glass spigot",
+    "hardwareId": "glass-spigot",
+    "source": "Estimate: frameless glass spigots are sized by the maker for the panel and the barrier load (often 50 lbf at the top rail); 500 lbf lateral per spigot is a planning number. The spigot core-drills into a concrete deck or bolts to a base plate."
+  },
+  {
+    "id": "shade-sail-mount",
+    "name": "Shade sail mounting kit",
+    "category": "tie",
+    "behaviour": "pinned",
+    "capacity": {
+      "shear_N": 2224,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "fastener": "Stainless pad eye, turnbuckle and snap hook",
+    "hardwareId": "shade-sail-mount-kit",
+    "source": "Estimate: shade-sail turnbuckle and pad-eye kits publish breaking loads, not working loads; 500 lbf is a conservative planning number per corner. Sail corner loads in wind can be much higher: check the post with a pro."
   }
 ]
