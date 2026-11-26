@@ -11,18 +11,15 @@ import { priceUnitsFor, sheetVariant, unitWord } from '../materials/price.ts';
 import { userPriceKey, type Project, type UserPrice } from '../model/schema.ts';
 import { formatFeetInches, parseLength } from '../units/length.ts';
 import { zPositiveLength } from '../units/zod.ts';
-import { zNonBlank } from './common.ts';
+import { zId } from './common.ts';
 import { commandError, notFound, type CommandError } from './errors.ts';
 import { defineCommand } from './types.ts';
 
 const MEMBER_CATEGORIES = new Set<Material['category']>(['lumber', 'engineered-wood', 'steel']);
 const THICKNESS_CATEGORIES = new Set<Material['category']>(['sheet', 'insulation']);
 
-const zMaterialId = zNonBlank('Catalog material id, e.g. spf-no2 or osb-7-16.');
-const zSize = z
-  .string()
-  .trim()
-  .min(1)
+const zMaterialId = zId.describe('Catalog material ID, e.g. spf-no2 or osb-7-16.');
+const zSize = zId
   .optional()
   .describe('Only this size: a section like 2x4, or a sheet thickness like 23/32in. Leave out to price every size.');
 
@@ -36,7 +33,7 @@ function resolveSize(material: Material, size: string, catalog: CatalogIndex): S
     if (!parsed.ok || !(parsed.value > 0)) {
       return {
         ok: false,
-        error: commandError('invalid_input', `Couldn't read "${size}" as a thickness; try "23/32in" or "1/2in".`, { path: 'size' }),
+        error: commandError('invalid_input', `Couldn't read "${size}" as a thickness; try 23/32in or 1/2in.`, { path: 'size' }),
       };
     }
     return { ok: true, variant: sheetVariant(parsed.value) };
@@ -79,10 +76,10 @@ export const setPrice = defineCommand({
     size: zSize,
     price: z.number().positive().describe('The price in US dollars, e.g. 0.52 or 6.98.'),
     per: zPriceUnit.describe(
-      'What the price is for: "each", "linear-ft", "sheet", "cu-yd", "sq-ft" or "lb". Lumber priced "each" (per board) needs "length".',
+      'What the price is for: each, linear-ft, sheet, cu-yd, sq-ft or lb. Lumber priced each (per board) needs a length.',
     ),
-    length: zPositiveLength.optional().describe('The board length a per-board ("each") lumber price is for, e.g. "8ft".'),
-    note: z.string().optional().describe('Where the price came from, e.g. "Miller Lumber quote".'),
+    length: zPositiveLength.optional().describe('The board length a per-board (each) lumber price is for, e.g. 8ft.'),
+    note: z.string().optional().describe('Where the price came from, e.g. Miller Lumber quote.'),
   }),
   check(_project, input, ctx) {
     const material = ctx.catalog.materials.get(input.material);
@@ -104,9 +101,9 @@ export const setPrice = defineCommand({
         ),
       );
     } else if (input.per === 'each' && MEMBER_CATEGORIES.has(material.category) && input.length === undefined) {
-      errors.push(commandError('invalid_input', 'A price per board needs the board length, e.g. length: "8ft".', { path: 'length' }));
+      errors.push(commandError('invalid_input', 'A price per board needs the board length, e.g. length: 8ft.', { path: 'length' }));
     } else if (input.length !== undefined && input.per !== 'each') {
-      errors.push(commandError('invalid_input', 'A length only goes with a price per board (per: "each").', { path: 'length' }));
+      errors.push(commandError('invalid_input', 'A length only goes with a price per board (per: each).', { path: 'length' }));
     }
     return errors;
   },
