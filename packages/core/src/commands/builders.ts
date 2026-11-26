@@ -22,6 +22,7 @@ import { describeClashes, findClashes } from '../model/clash.ts';
 import { jointsForParts } from '../model/queries.ts';
 import type { Project } from '../model/schema.ts';
 import { LENGTH_DESCRIPTION, zLength, zPitch, zPositiveLength } from '../units/zod.ts';
+import { zId } from './common.ts';
 import { commandError, formatErrors, notFound, type CommandError } from './errors.ts';
 import { patchWithInverse } from './internal.ts';
 import { defineCommand, type CommandContext } from './types.ts';
@@ -174,13 +175,13 @@ const buildWallSchema = z.strictObject({
   start: zPlanPoint.describe('Start of the wall: a plan point on the outside face of the framing (a building corner).'),
   end: zPlanPoint.describe('End of the wall: a plan point on the outside face of the framing.'),
   height: zPositiveLength.describe(
-    `Overall framed height, bottom of the bottom plate to the top of the double top plate (e.g. "9ft" → 103 1/2in studs). ${LENGTH_DESCRIPTION}`,
+    `Overall framed height, bottom of the bottom plate to the top of the double top plate (e.g. 9ft → 103 1/2in studs). ${LENGTH_DESCRIPTION}`,
   ),
   studLength: zPositiveLength.optional().describe(`Use this stud length instead (e.g. precut "104 5/8in"); the height follows from it. ${LENGTH_DESCRIPTION}`),
-  exterior: z.enum(['left', 'right']).optional().describe('Which side is outside, walking from start to end in a north-up plan. Default "left".'),
+  exterior: z.enum(['left', 'right']).optional().describe('Which side is outside, walking from start to end in a north-up plan. Default left.'),
   baseElevation: zLength.optional().describe(`Bottom of the bottom plate. Default: top of the slab or floor under the wall, else the ground. ${LENGTH_DESCRIPTION}`),
-  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default "2x4".'),
-  spacing: z.enum(SPACINGS).optional().describe('Stud spacing on center, measured from the wall start. Default "16in".'),
+  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default 2x4.'),
+  spacing: z.enum(SPACINGS).optional().describe('Stud spacing on center, measured from the wall start. Default 16in.'),
   loadBearing: z.boolean().optional().describe('Whether the wall carries the roof. Sets header sizes. Default true.'),
   buildingWidth: zPositiveLength
     .optional()
@@ -204,7 +205,7 @@ export const buildWall = builderCommand({
 // ── add_opening ─────────────────────────────────────────────────────────────
 
 const addOpeningSchema = z.strictObject({
-  wallId: z.string().min(1).describe('The wall to frame the opening in, e.g. "W2". Must have been made with build_wall.'),
+  wallId: zId.describe('The wall to frame the opening in, e.g. W2. Must have been made with build_wall.'),
   ...zOpeningFields,
 });
 
@@ -280,8 +281,8 @@ export const frameFloor = builderCommand({
     top: zLength
       .optional()
       .describe(`Top of the subfloor. Default: sits on the foundation; with piers, 2ft above grade. ${LENGTH_DESCRIPTION}`),
-    joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default "2x8".'),
-    spacing: z.enum(SPACINGS).optional().describe('Joist spacing on center. Default "16in".'),
+    joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default 2x8.'),
+    spacing: z.enum(SPACINGS).optional().describe('Joist spacing on center. Default 16in.'),
     joistDirection: z.enum(['x', 'z']).optional().describe('Direction the joists run: "x" east-west, "z" north-south. Default: across the shorter side.'),
     support: z
       .enum(['foundation', 'piers'])
@@ -303,11 +304,11 @@ export const buildRoof = builderCommand({
     type: z.enum(['gable', 'shed']).describe('Roof type.'),
     from: zPlanPoint.describe('One corner of the wall footprint (outside face of the framing).'),
     to: zPlanPoint.describe('The opposite corner.'),
-    pitch: zPitch.describe('Roof pitch, 1 in 12 to 24 in 12, e.g. "6 in 12".'),
+    pitch: zPitch.describe('Roof pitch, 1 in 12 to 24 in 12, e.g. 6 in 12.'),
     ridgeAxis: z.enum(['x', 'z']).optional().describe('Gable only: direction of the ridge, "x" east-west or "z" north-south. Default: along the longer side.'),
     lowSide: z.enum(['north', 'south', 'east', 'west']).optional().describe('Shed only: the low eave side.'),
-    rafterSize: z.enum(['2x6', '2x8', '2x10']).optional().describe('Rafter size. Default "2x6".'),
-    spacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing on center. Default "16in".'),
+    rafterSize: z.enum(['2x6', '2x8', '2x10']).optional().describe('Rafter size. Default 2x6.'),
+    spacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing on center. Default 16in.'),
     overhang: zLength.optional().describe(`Eave overhang, measured level from the outside face of the framing. Default 12in. ${LENGTH_DESCRIPTION}`),
     rake: zLength.optional().describe(`Gable-end overhang (adds fly rafters). Default 0. ${LENGTH_DESCRIPTION}`),
     bearingHeight: zLength.optional().describe(`Top of the wall plates the rafters sit on. Default: from the walls under the eaves. ${LENGTH_DESCRIPTION}`),
