@@ -13,7 +13,9 @@
  *
  * Stored content uses the API's blocks plus a few of our own (`slapdash_*`), which are
  * converted, or dropped, when messages are built. Old messages are never rewritten while
- * they are sent, so the prompt-cache prefix holds within a turn.
+ * they are sent, so the prompt-cache prefix holds within a turn. `thinking` and
+ * `redacted_thinking` blocks are sent only for the turn in progress: their signatures are
+ * bound to the prefix, which changes between turns.
  */
 import type { BetaContentBlockParam, BetaMessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
 import { clip } from './format.ts';
@@ -304,13 +306,17 @@ export class AgentMemory {
     for (let s = 0; s < spans.length; s++) {
       const span = spans[s]!;
       const recent = spans.length - 1 - s < this.#opts.imageKeepTurns;
+      // Thinking signatures are bound to the exact prefix before them, and older turns are
+      // rewritten between turns (stubs, folding), so finished turns drop their thinking.
+      // The turn in progress keeps it: its tool-use loop needs it.
+      const inProgress = this.#current !== null && span.key === this.#current;
       for (const m of this.#messages.slice(span.start, span.end)) {
         const content =
           typeof m.content === 'string'
             ? m.content.trim() === ''
               ? []
               : [{ type: 'text', text: m.content } as BetaContentBlockParam]
-            : await this.#convert(blocksOf(m), recent);
+            : await this.#convert(inProgress ? blocksOf(m) : blocksOf(m).filter((b) => b.type !== 'thinking' && b.type !== 'redacted_thinking'), recent);
         if (content.length === 0) continue;
         const prev = out.at(-1);
         if (prev && prev.role === m.role) prev.content.push(...content);
