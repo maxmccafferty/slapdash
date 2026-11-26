@@ -235,3 +235,74 @@
 .note code {
   font-size: inherit;
 }
+
+/* Talk held: the listening strip takes the field's place, in the same box. */
+.listening {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  min-height: var(--size-talk);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-paper);
+  border: 1px solid var(--color-key-line);
+  border-radius: var(--radius-field);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-ink-soft);
+}
+
+.wave {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: var(--space-4);
+}
+
+.bar {
+  width: var(--space-1);
+  height: 100%;
+  background: var(--color-signal);
+  border-radius: var(--radius-full);
+}
+
+.bar:nth-child(even) {
+  transform: scaleY(0.6);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar {
+    animation: wave calc(var(--motion-sheet-duration) * 2) ease-in-out infinite alternate;
+  }
+
+  .bar:nth-child(2) {
+    animation-delay: calc(var(--motion-sheet-duration) * 0.4);
+  }
+
+  .bar:nth-child(3) {
+    animation-delay: calc(var(--motion-sheet-duration) * 0.8);
+  }
+
+  .bar:nth-child(4) {
+    animation-delay: calc(var(--motion-sheet-duration) * 1.2);
+  }
+
+  .bar:nth-child(5) {
+    animation-delay: calc(var(--motion-sheet-duration) * 1.6);
+  }
+}
+
+@keyframes wave {
+  from {
+    transform: scaleY(0.3);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Words heard but not yet confirmed. */
+.unconfirmed {
+  color: var(--color-muted);
+}

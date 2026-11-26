@@ -27,6 +27,7 @@ describe('colour contrast of the pairs the shell uses', () => {
     expect(ratio('muted', 'paper')).toBeGreaterThanOrEqual(5.7);
     // The note rounds to one decimal place (5.09 -> 5.1).
     expect(Math.round(ratio('muted', 'unit') * 10) / 10).toBeGreaterThanOrEqual(5.1);
+    // Also the unconfirmed words in the user's bubble while Talk is held: muted on unit.
     expect(ratio('muted', 'unit')).toBeGreaterThanOrEqual(4.5);
   });
 

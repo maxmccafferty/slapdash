@@ -22,6 +22,12 @@ export interface ChatState {
   changingPlan: boolean;
   /** Bumped to move focus to the message field. */
   focusRequest: number;
+  /** What this browser can do. Talk is hidden when `listen` is false. */
+  voice: { listen: boolean; speak: boolean };
+  /** Hold-to-talk in progress: confirmed words and the unconfirmed tail. */
+  listening: { heard: string; unconfirmed: string } | null;
+  /** Claude's reply is being read aloud. */
+  speaking: boolean;
 }
 
 export interface ChatStoreActions {
@@ -38,6 +44,9 @@ export const initialChatState: ChatState = {
   pendingPhotos: [],
   changingPlan: false,
   focusRequest: 0,
+  voice: { listen: false, speak: false },
+  listening: null,
+  speaking: false,
 };
 
 export const useChatStore = create<ChatState & ChatStoreActions>()((set) => ({

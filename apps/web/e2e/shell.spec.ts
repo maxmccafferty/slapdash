@@ -1,5 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { installFakeVoice } from './fake-voice.ts';
 
 const isDesktop = (name: string) => name === 'desktop';
 
@@ -44,6 +45,8 @@ async function expectNoAxeViolations(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
+  // Talk only shows where speech recognition works; headless Chromium's doesn't.
+  await installFakeVoice(page);
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
 });

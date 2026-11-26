@@ -27,6 +27,8 @@ import { useModelStore } from '../state/model-store.ts';
 import { addNote, answerPending, finishTurn, updateClaude, useChatStore, type ChatState } from '../state/chat-store.ts';
 import { emptyClaudeItem, type ChatItem, type PointerChip } from './chat-types.ts';
 import type { PhotoStore, PreparedPhoto } from './photos.ts';
+import { speechText } from '../voice/speech-text.ts';
+import type { Listening, VoiceError, VoiceProvider } from '../voice/voice-provider.ts';
 
 /** The outline height when a plan gives a footprint but no height: 9 ft. */
 export const DEFAULT_PLAN_HEIGHT_MM = 2743;
@@ -44,18 +46,32 @@ export interface ChatControllerDeps {
   onChatChanged?: (log: ChatLogLike) => void;
   caps?: Partial<TurnCaps>;
   newTurnId?: () => string;
+  /** Hold-to-talk and spoken replies; without it Talk is hidden. */
+  voice?: VoiceProvider;
+}
+
+export interface SendOptions {
+  approvePlan?: boolean;
+  /** The message was spoken: Claude's reply is read aloud. */
+  spoken?: boolean;
 }
 
 export interface ChatController {
   start(): Promise<void>;
-  send(text: string, opts?: { approvePlan?: boolean }): Promise<TurnResult | null>;
+  send(text: string, opts?: SendOptions): Promise<TurnResult | null>;
   approvePlan(): Promise<TurnResult | null>;
   changePlan(): void;
   chooseOption(itemId: string, text: string): Promise<TurnResult | null>;
   undoTurn(itemId: string): void;
   /** Whether a turn's Undo key can be used now: its step is the latest and nothing is running. */
   canUndo(entryId: number): boolean;
+  /** Stops the turn in flight and any reply being read aloud. */
   stop(): void;
+  /** Talk pressed. Runs synchronously inside the gesture: iOS needs `listen` called there. */
+  startTalking(): void;
+  /** Talk let go: sends what was heard as a spoken message. */
+  stopTalking(): Promise<void>;
+  stopSpeaking(): void;
   attachPhoto(file: File): Promise<void>;
   removePhoto(fileId: string): void;
   openSample(): void;
@@ -94,6 +110,16 @@ function topEntryId(bus: CommandBus): number | null {
   return live.at(-1)?.id ?? null;
 }
 
+export const NOTHING_HEARD = "Didn't catch that. Hold Talk while you speak.";
+
+export const VOICE_ERROR_NOTES: Record<VoiceError, string> = {
+  'not-allowed': "Slapdash can't use the microphone. Allow it in your browser's settings, or type instead.",
+  unavailable: "Talking isn't available here. Type instead.",
+  'no-mic': 'No microphone found. Type instead.',
+  network: "Couldn't reach speech recognition. Try again or type.",
+  failed: 'Talking stopped working. Try again or type.',
+};
+
 function errorNote(error: unknown): string {
   if (error instanceof KeyholeRequestError) {
     const f = error.failure;
@@ -113,6 +139,20 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
   let memory = newMemory();
   let abort: AbortController | null = null;
 
+  const voice = deps.voice;
+  /** The hold-to-talk session in progress, if any. */
+  let talking: Listening | null = null;
+  set({ voice: voice ? { ...voice.support } : { listen: false, speak: false } });
+  const offSpeaking = voice?.onSpeakingChange((speaking) => set({ speaking })) ?? (() => {});
+
+  /** Drop any listening and any speech: Stop, a new project, dispose. */
+  function silence() {
+    talking?.cancel();
+    talking = null;
+    voice?.stopSpeaking();
+    set({ listening: null });
+  }
+
   function newMemory() {
     return new AgentMemory(undefined, { loadFile: (id) => deps.photos.loadFile(id) });
   }
@@ -123,6 +163,7 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     bus = s.bus;
     abort?.abort();
     abort = null;
+    silence();
     memory = newMemory();
     deps.photos.revokeAll();
     set({ items: [], running: null, pendingPhotos: [], changingPlan: false, draft: '' });
@@ -158,12 +199,18 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     return { id: m.selectedPartId, label: m.selectedPartLabel, swatch: swatch ? { color: swatch.color } : null };
   }
 
-  async function send(rawText: string, opts: { approvePlan?: boolean } = {}): Promise<TurnResult | null> {
+  async function send(rawText: string, opts: SendOptions = {}): Promise<TurnResult | null> {
     const s = get();
     const text = rawText.trim();
     if (s.running || !bus) return null;
     if (s.connection !== 'ready' && s.connection !== 'checking') return null;
     if (text === '' && s.pendingPhotos.length === 0) return null;
+
+    // A new message interrupts a reply being read aloud; only a spoken one gets a spoken reply.
+    voice?.stopSpeaking();
+    const speak = (t: string) => {
+      if (voice && opts.spoken && get().voice.speak) voice.speak(speechText(t));
+    };
 
     const turnBus = bus;
     const turnMemory = memory;
@@ -212,7 +259,10 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
           break;
         case 'assistant_message': {
           const t = textOf(e.content);
-          if (t.trim() !== '') said.push(t);
+          if (t.trim() !== '') {
+            said.push(t);
+            speak(t);
+          }
           current = '';
           showText();
           break;
@@ -222,6 +272,7 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
           break;
         case 'plan': {
           const plan = e.plan;
+          speak(plan.text);
           set((st) => ({ items: updateClaude(st.items, claudeId, (item) => ({ ...item, plan: { text: plan.text, state: 'pending' } })) }));
           if (plan.footprint) {
             useModelStore.getState().setProposal({ footprint: plan.footprint, height_mm: plan.height_mm ?? DEFAULT_PLAN_HEIGHT_MM });
@@ -315,6 +366,55 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     set((st) => ({ items: addNote(st.items, errorNote(error)) }));
   }
 
+  function voiceError(session: Listening, error: VoiceError) {
+    if (talking !== session) return;
+    talking = null;
+    set((st) => ({
+      listening: null,
+      items: addNote(st.items, VOICE_ERROR_NOTES[error]),
+      ...(error === 'unavailable' ? { voice: { ...st.voice, listen: false } } : {}),
+    }));
+  }
+
+  function startTalking() {
+    const s = get();
+    if (!voice || !s.voice.listen || s.running || talking || !bus) return;
+    if (s.connection !== 'ready' && s.connection !== 'checking') return;
+    // No await before `listen`: iOS only allows the microphone and speech inside the gesture.
+    const session: Listening = voice.listen({
+      onHeard: (heard) => {
+        if (talking === session) set({ listening: { heard: heard.final, unconfirmed: heard.interim } });
+      },
+      onError: (error) => voiceError(session, error),
+      onStopped: () => {
+        if (talking !== session) return;
+        talking = null;
+        set({ listening: null });
+      },
+    });
+    talking = session;
+    set({ listening: { heard: '', unconfirmed: '' } });
+  }
+
+  async function stopTalking() {
+    const session = talking;
+    if (!session) return;
+    const text = await session.finish();
+    // Cancelled, failed or replaced while finishing: nothing to send.
+    if (talking !== session) return;
+    talking = null;
+    set({ listening: null });
+    if (text.trim() === '') {
+      set((st) => ({ items: addNote(st.items, NOTHING_HEARD) }));
+      return;
+    }
+    // The typed draft stays as it was.
+    const draft = get().draft;
+    const sending = send(text, { spoken: true });
+    if (draft !== '') set({ draft });
+    await sending;
+  }
+
   function canUndo(entryId: number): boolean {
     return bus !== null && get().running === null && topEntryId(bus) === entryId;
   }
@@ -368,6 +468,14 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
 
     stop() {
       abort?.abort();
+      voice?.stopSpeaking();
+    },
+
+    startTalking,
+    stopTalking,
+
+    stopSpeaking() {
+      voice?.stopSpeaking();
     },
 
     async attachPhoto(file) {
@@ -393,7 +501,9 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
 
     dispose() {
       offModel();
+      offSpeaking();
       abort?.abort();
+      silence();
     },
   };
 }
