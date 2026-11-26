@@ -116,7 +116,10 @@ const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 1
 const builtAnySeed = new Set<string>();
 
 describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
-  it('every recorded inverse restores the previous state; full undo/redo round-trips', () => {
+  // Each seed runs a long random command sequence and checks every inverse, which
+  // takes about 3 s on the full stack and can pass vitest's 5 s default when every
+  // package runs in parallel (as in CI). 30 s leaves plenty of headroom.
+  it('every recorded inverse restores the previous state; full undo/redo round-trips', { timeout: 30_000 }, () => {
     const r = rng(seed);
     const bus = makeBus();
     let project = createProject({ name: 'Test' });

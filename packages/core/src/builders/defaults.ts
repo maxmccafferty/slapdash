@@ -4,6 +4,7 @@
  * checks the sample catalog does.
  */
 import { z } from 'zod';
+import { zId } from '../commands/common.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../units/length.ts';
 
 const IN = MM_PER_INCH;
@@ -57,15 +58,13 @@ export const BUILDER_DEFAULTS = {
 
 export const zBuilderMaterials = z
   .strictObject({
-    lumber: z.string().min(1).optional().describe('Framing lumber material ID. Default "spf-no2".'),
-    treatedLumber: z
-      .string()
-      .min(1)
+    lumber: zId.optional().describe('Framing lumber material ID. Default spf-no2.'),
+    treatedLumber: zId
       .optional()
-      .describe('Pressure-treated lumber for parts on concrete or in the ground. Default "pt-spf-no2".'),
-    sheathing: z.string().min(1).optional().describe('Wall/roof sheathing sheet material ID. Default "osb-7-16".'),
-    subfloor: z.string().min(1).optional().describe('Subfloor sheet material ID. Default "plywood-cdx".'),
-    concrete: z.string().min(1).optional().describe('Concrete material ID. Default "concrete-3000".'),
+      .describe('Pressure-treated lumber for parts on concrete or in the ground. Default pt-spf-no2.'),
+    sheathing: zId.optional().describe('Wall/roof sheathing sheet material ID. Default osb-7-16.'),
+    subfloor: zId.optional().describe('Subfloor sheet material ID. Default plywood-cdx.'),
+    concrete: zId.optional().describe('Concrete material ID. Default concrete-3000.'),
   })
   .describe('Optional catalog material overrides. Leave out to use the defaults.');
 
