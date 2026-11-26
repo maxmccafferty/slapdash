@@ -17,6 +17,7 @@ export default defineConfig(
       'apps/web/test-results/**',
       'evals/results/**',
       '.data/**',
+      '**/.vercel/**',
       '.sully/**',
       'supabase/.temp/**',
     ],
