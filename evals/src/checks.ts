@@ -302,6 +302,71 @@ export function distanceFromWallEnd(p: Project, o: OpeningInfo, end: Side): numb
   return Math.hypot(o.center.x - pt.x, o.center.z - pt.z);
 }
 
+/** Where a scenario can ask for a new window: a wall, a corner to measure from, and the centre's distance from it. */
+export interface WindowSpot {
+  wallId: string;
+  side: Side;
+  /** The wall end the distance is measured from (west for north/south walls, north for east/west walls). */
+  corner: Side;
+  /** Plan distance from that end of the wall to the window's centre, in whole feet. */
+  fromCornerFt: number;
+}
+
+/**
+ * Finds a place for a new window of `widthFt` on an outside wall: centred on a whole foot, with
+ * `clearFt` of wall around the centre clear of every opening (each widened by 6in for its jack
+ * and king studs) and the centre at least `cornerFt` from either end of the wall. Tries the
+ * north, east, south and west walls in turn and prefers 4ft from the corner, so the same model
+ * always gives the same spot. Fails when there is no such span, so a scenario can stop cleanly
+ * instead of asking for a window that would overlap one.
+ */
+export function freeWindowSpot(p: Project, opts: { clearFt?: number; cornerFt?: number } = {}): { spot: WindowSpot | null; fail: Fail } {
+  const half = ((opts.clearFt ?? 4) * FT) / 2;
+  const cornerFt = opts.cornerFt ?? 3;
+  const ws = walls(p);
+  const ops = openings(p);
+  for (const side of ['north', 'east', 'south', 'west'] as const) {
+    for (const w of ws.filter((x) => x.side === side)) {
+      const corner: Side = side === 'north' || side === 'south' ? 'west' : 'north';
+      const key = corner === 'west' ? 'x' : 'z';
+      // u runs from the wall's start; measure from whichever end is the corner (smaller x or z).
+      const fromStart = w.start[key] <= w.end[key];
+      const taken = ops.filter((o) => o.wallId === w.id).map((o) => [o.centerU - o.roWidth / 2 - 6 * IN, o.centerU + o.roWidth / 2 + 6 * IN] as const);
+      const maxFt = Math.floor(w.length / FT - cornerFt);
+      // 4ft from the corner first, then further along, then 3ft if the corner margin allows it.
+      const tries: number[] = [];
+      for (let d = Math.max(4, Math.ceil(cornerFt)); d <= maxFt; d++) tries.push(d);
+      if (cornerFt <= 3 && maxFt >= 3) tries.push(3);
+      for (const d of tries) {
+        const u = fromStart ? d * FT : w.length - d * FT;
+        if (taken.every(([a, b]) => u + half <= a || u - half >= b)) return { spot: { wallId: w.id, side, corner, fromCornerFt: d }, fail: null };
+      }
+    }
+  }
+  const got = ops.map((o) => `${o.kind} on ${o.side ?? o.wallId}`).join(', ') || 'none';
+  return { spot: null, fail: `no outside wall has ${fi(2 * half)} clear of openings at least ${fi(cornerFt * FT)} from its corners, so there is nowhere to ask for a new window (walls: ${ws.length}, openings: ${got})` };
+}
+
+/** The request for a 3ft window at the spot, e.g. "Add a 3ft window to the north wall, centred 4ft from the west corner". */
+export const windowSpotPrompt = (s: WindowSpot): string => `Add a 3ft window to the ${s.side} wall, centred ${s.fromCornerFt}ft from the ${s.corner} corner`;
+
+/** Exactly one opening is new since `before` (opening assembly ids): a window of `widthIn` on the spot's wall, centred where asked ±1in. */
+export function newWindowAt(p: Project, before: ReadonlySet<string>, spot: WindowSpot, widthIn = 36): Fail {
+  const added = openings(p).filter((o) => !before.has(o.asmId));
+  const where = `the ${spot.side} wall, ${spot.fromCornerFt}ft from the ${spot.corner} corner`;
+  if (added.length !== 1) return `exactly one new opening on ${where} (got ${added.length}: ${added.map((o) => `${o.kind} on ${o.side ?? o.wallId}`).join(', ') || 'none'})`;
+  const o = added[0]!;
+  if (o.kind !== 'window') return `the new opening on ${where} should be a window (got ${o.kind})`;
+  if (o.wallId !== spot.wallId) return `the new window should be on the ${spot.side} wall ${spot.wallId} (got ${o.side ?? '?'} ${o.wallId})`;
+  if (!near(o.roWidth, widthIn * IN)) return `the new window should be ${fi(widthIn * IN)} wide ±1in (got ${fi(o.roWidth)})`;
+  const d = distanceFromWallEnd(p, o, spot.corner);
+  if (!near(d, spot.fromCornerFt * FT)) return `the new window's centre should be ${fi(spot.fromCornerFt * FT)} from the ${spot.corner} corner ±1in (got ${fi(d)})`;
+  return null;
+}
+
+/** Opening assembly ids now, to pass to `newWindowAt` after the turn. */
+export const openingIds = (p: Project): Set<string> => new Set(assembliesOf(p, 'opening').map((a) => a.id));
+
 // ── Joints ──────────────────────────────────────────────────────────────────
 
 /**

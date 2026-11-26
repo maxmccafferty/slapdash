@@ -23,6 +23,10 @@ import {
   assemblyCount,
   feetRe,
   commonStudLength,
+  freeWindowSpot,
+  newWindowAt,
+  openingIds,
+  windowSpotPrompt,
   distanceFromWallEnd,
   FT,
   framingConnected,
@@ -145,6 +149,45 @@ const goodModels = section('Checks pass on correct builder output', () => {
   // W4 runs south → north, 16ft long: centre 12ft from its start is 4ft from the north corner.
   check('door centre is 4ft from the north corner', d.opening !== null && Math.abs(distanceFromWallEnd(door, d.opening, 'north') - 4 * FT) < 1);
   failsCheck('a door looked for on the wrong wall', hasOpening(door, { kind: 'door', wall: 'east' }).fail);
+
+  // follow-ups-after-build: T4 asks for a window on a span the build left clear.
+  const bare = build(POOL_HOUSE_WALLS);
+  const spot = freeWindowSpot(bare);
+  passesCheck('a bare shell has a free window spot', spot.fail);
+  check('the spot is the north wall, 4ft from the west corner', spot.spot?.wallId === 'W1' && spot.spot.corner === 'west' && spot.spot.fromCornerFt === 4, spot.spot);
+  check('the T4 prompt names the wall and position', spot.spot !== null && windowSpotPrompt(spot.spot) === 'Add a 3ft window to the north wall, centred 4ft from the west corner', spot.spot && windowSpotPrompt(spot.spot));
+  if (spot.spot) {
+    const before = openingIds(bare);
+    passesCheck('a window built where T4 asks is found', newWindowAt(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '4ft', width: '3ft' }]]), before, spot.spot));
+    passesCheck('the window where T4 asks is sound', soundBuild(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '4ft', width: '3ft' }]]), catalog));
+    failsCheck('no new window', newWindowAt(bare, before, spot.spot));
+    failsCheck('a window 1ft off', newWindowAt(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '5ft', width: '3ft' }]]), before, spot.spot));
+    failsCheck('a 4ft window', newWindowAt(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '4ft', width: '4ft' }]]), before, spot.spot));
+    failsCheck('a door instead', newWindowAt(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W1', kind: 'door', centerAt: '4ft' }]]), before, spot.spot));
+    failsCheck('the window on another wall', newWindowAt(build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W3', kind: 'window', centerAt: '4ft', width: '3ft' }]]), before, spot.spot));
+  }
+  // The LOC-98 run: the build put a 3ft window centred on the east wall. Block 4ft on the north wall too.
+  const busyCommands: SeedCommands = [
+    ...POOL_HOUSE_WALLS,
+    ['add_opening', { wallId: 'W2', kind: 'window', centerAt: '8ft', width: '3ft' }],
+    ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '5ft', width: '3ft' }],
+  ];
+  const busy = build(busyCommands);
+  const busySpot = freeWindowSpot(busy);
+  check('a free spot steps past an existing window', busySpot.spot?.wallId === 'W1' && busySpot.spot.fromCornerFt === 9, busySpot);
+  if (busySpot.spot) {
+    passesCheck('a window at the stepped spot is sound', soundBuild(build([...busyCommands, ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '9ft', width: '3ft' }]]), catalog));
+  }
+  // Every wall too busy: the scenario fails with a reason instead of asking for an overlap.
+  const full = build([
+    ...SHED_WALLS_8x10,
+    ['add_opening', { wallId: 'W1', kind: 'window', centerAt: '5ft', width: '4ft' }],
+    ['add_opening', { wallId: 'W2', kind: 'window', centerAt: '4ft', width: '3ft' }],
+    ['add_opening', { wallId: 'W3', kind: 'window', centerAt: '5ft', width: '4ft' }],
+    ['add_opening', { wallId: 'W4', kind: 'window', centerAt: '4ft', width: '3ft' }],
+  ]);
+  const none = freeWindowSpot(full);
+  check('no free spot is a clear failure', none.spot === null && /nowhere to ask for a new window/.test(none.fail ?? ''), none);
 
   // just-do-it
   const shed12 = build([
