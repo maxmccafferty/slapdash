@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { ASSEMBLY_KINDS, type AssemblyKind } from '@slapdash/core';
-import { FLOOR_KINDS, INSIDE_CUT_HEIGHT_MM, cutPlaneFor, isCuttable, isKindVisible, isPartVisible, type FloorId, type LookFrom } from '../../src/renderer/visibility.ts';
-import { sampleProject } from './fixtures.ts';
+import { TIER1_CATALOG } from '@slapdash/catalog';
+import { ASSEMBLY_KINDS, buildStepGroups, stepOfAssembly, type AssemblyKind, type StepKey } from '@slapdash/core';
+import { isContextPart } from '../../src/renderer/bounds.ts';
+import {
+  FLOOR_KINDS,
+  INSIDE_CUT_HEIGHT_MM,
+  cutPlaneFor,
+  isCuttable,
+  isKindVisible,
+  isPartVisible,
+  stepsUpTo,
+  type FloorId,
+  type LookFrom,
+} from '../../src/renderer/visibility.ts';
+import { sampleBus, sampleProject } from './fixtures.ts';
 
 const FLOORS: FloorId[] = ['roof', 'floor-1', 'foundation'];
 const LOOKS: LookFrom[] = ['outside', 'inside'];
@@ -61,5 +73,46 @@ describe('the Inside cut', () => {
   it('cuts walls, openings, structures and misc; never the slab, foundation or floor', () => {
     expect(['wall', 'opening', 'structure', 'misc'].every((k) => isCuttable(k as AssemblyKind))).toBe(true);
     expect(['foundation', 'floor', 'roof', 'site'].some((k) => isCuttable(k as AssemblyKind))).toBe(false);
+  });
+});
+
+describe('Build steps', () => {
+  const visibleSteps = (steps: ReadonlySet<StepKey> | null, context = false) => {
+    const p = sampleBus({ context }).project;
+    const shown = new Set<string>();
+    for (const part of Object.values(p.parts)) {
+      if (!isPartVisible(part, p.assemblies[part.assemblyId], { floor: 'roof', lookFrom: 'outside', steps })) continue;
+      shown.add(isContextPart(part) ? 'context' : stepOfAssembly(p.assemblies[part.assemblyId]));
+    }
+    return [...shown].sort();
+  };
+
+  it('stepsUpTo gives every step up to and including the index', () => {
+    const groups = buildStepGroups(sampleProject(), TIER1_CATALOG);
+    expect(groups.map((g) => g.title)).toEqual(['Slab', 'Walls', 'Roof']);
+    expect([...stepsUpTo(groups, 0)]).toEqual(['slab']);
+    expect([...stepsUpTo(groups, 1)]).toEqual(['slab', 'walls']);
+    expect([...stepsUpTo(groups, 2)]).toEqual(['slab', 'walls', 'roof']);
+    expect([...stepsUpTo(groups, 9)]).toEqual(['slab', 'walls', 'roof']);
+  });
+
+  it('hides the walls and roof at Slab, and the roof at Walls', () => {
+    expect(visibleSteps(new Set(['slab']))).toEqual(['slab']);
+    expect(visibleSteps(new Set(['slab', 'walls']))).toEqual(['slab', 'walls']);
+    expect(visibleSteps(new Set(['slab', 'walls', 'roof']))).toEqual(['roof', 'slab', 'walls']);
+    expect(visibleSteps(null)).toEqual(['roof', 'slab', 'walls']);
+  });
+
+  it('always shows site context', () => {
+    expect(visibleSteps(new Set(['slab']), true)).toEqual(['context', 'slab']);
+    expect(visibleSteps(new Set(), true)).toEqual(['context']);
+  });
+
+  it('combines with Floors: Foundation at the Roof step still hides the walls', () => {
+    const p = sampleProject();
+    const wall = Object.values(p.parts).find((part) => p.assemblies[part.assemblyId]?.kind === 'wall')!;
+    const all = new Set<StepKey>(['slab', 'walls', 'roof']);
+    expect(isPartVisible(wall, p.assemblies[wall.assemblyId], { floor: 'roof', lookFrom: 'outside', steps: all })).toBe(true);
+    expect(isPartVisible(wall, p.assemblies[wall.assemblyId], { floor: 'foundation', lookFrom: 'outside', steps: all })).toBe(false);
   });
 });

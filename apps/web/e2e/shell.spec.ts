@@ -98,7 +98,8 @@ test.describe('desktop 1440 × 900', () => {
 
   test('focus is always visible while tabbing through the shell', async ({ page }) => {
     const seen: string[] = [];
-    for (let i = 0; i < 14; i++) {
+    // A fresh install is a first run: the chat's three starters and the sample key come before the field.
+    for (let i = 0; i < 18; i++) {
       await page.keyboard.press('Tab');
       const focus = await page.evaluate(() => {
         const el = document.activeElement as HTMLElement;

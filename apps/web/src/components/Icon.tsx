@@ -1,6 +1,8 @@
 import {
   ArrowUp,
   Camera,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Eye,
   FileDown,
@@ -12,10 +14,12 @@ import {
   ListOrdered,
   MessageCircle,
   Mic,
+  Plus,
   Redo2,
   Square,
   TriangleAlert,
   Undo2,
+  Upload,
   X,
   type LucideIcon,
 } from 'lucide-react';
@@ -39,6 +43,10 @@ const ICONS = {
   stop: Square,
   pdf: FileDown,
   warning: TriangleAlert,
+  plus: Plus,
+  upload: Upload,
+  back: ChevronLeft,
+  next: ChevronRight,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

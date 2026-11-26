@@ -9,6 +9,7 @@ import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
 import { DrawingSheet } from './DrawingSheet.tsx';
 import { fitView, panBy, viewBoxFor, zoomAt, zoomPercentOf, type ViewState, type Viewport } from './pan-zoom.ts';
+import { useStepFilter } from '../steps/useBuildSteps.ts';
 import { buildSheet } from './sheet.ts';
 import { useSheetViewStore } from './sheet-view-store.ts';
 import { sheetToSvg } from './svg.ts';
@@ -25,7 +26,8 @@ export function SheetView() {
   const loadId = useModelStore((s) => s.loadId);
   const floor = useShellStore((s) => s.floor);
   const dimensions = useShellStore((s) => s.dimensions);
-  const sheet = useMemo(() => buildSheet(project, { floor, dimensions }), [project, floor, dimensions]);
+  const steps = useStepFilter();
+  const sheet = useMemo(() => buildSheet(project, { floor, dimensions, steps }), [project, floor, dimensions, steps]);
   const hasParts = !!project && Object.keys(project.parts).length > 0;
 
   const ref = useRef<HTMLDivElement>(null);

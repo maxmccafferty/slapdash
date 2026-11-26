@@ -10,13 +10,15 @@ export interface BottomSheetProps {
   onClose: () => void;
   triggerRef: RefObject<HTMLElement | null>;
   children: ReactNode;
+  /** Extra class on the sheet, e.g. to size it to its content. */
+  className?: string;
 }
 
 /**
  * A phone bottom sheet. Not modal: the model stays visible and usable above it. Focus moves
  * in on open; Escape or the close key closes it and returns focus to the trigger.
  */
-export function BottomSheet({ id, title, open, onClose, triggerRef, children }: BottomSheetProps) {
+export function BottomSheet({ id, title, open, onClose, triggerRef, children, className }: BottomSheetProps) {
   const titleId = useId();
   const ref = useRef<HTMLDivElement>(null);
   // Only Escape and the close key dismiss it: touching the model above keeps the chat open.
@@ -30,7 +32,7 @@ export function BottomSheet({ id, title, open, onClose, triggerRef, children }: 
     triggerRef.current?.focus();
   };
   return (
-    <div ref={ref} id={id} className={styles.sheet} role="dialog" aria-modal="false" aria-labelledby={titleId}>
+    <div ref={ref} id={id} className={[styles.sheet, className].filter(Boolean).join(' ')} role="dialog" aria-modal="false" aria-labelledby={titleId}>
       <div className={styles.header}>
         <h2 id={titleId} className={styles.title}>
           {title}

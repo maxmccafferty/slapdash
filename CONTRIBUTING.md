@@ -333,12 +333,20 @@ sizes and motion come only from `docs/design/tokens.json`:
 2. In component CSS use only `var(--…)`. `apps/web/test/no-raw-values.test.ts` fails on hex,
    `rgb()`, named colours, raw font sizes, raw durations and `px` values other than 1px hairlines.
 3. Keep text at 14px or more and every control at least 44 × 44 (`--size-touch`).
-4. Modals (Materials, and later Steps and Projects) mount inside `<main>` with
+4. Modals (Materials, Build steps and Projects) mount inside `<main>` with
    `aria-modal="false"` and never make the chat inert; `test/chat/chat.test.tsx` checks it.
    The Materials modal and the PDF export are described in the web README.
+   So are Projects, first run and Build steps.
 5. Run `pnpm --filter @slapdash/web test`, and `pnpm --filter @slapdash/web e2e` for layout,
    focus, axe and reduced-motion checks (install Chromium once with
    `pnpm --filter @slapdash/web exec playwright install chromium`).
+
+### The shipped sample project
+
+`apps/web/src/samples/pool-house.slapdash` is what **Open the sample pool house** imports. It
+is generated from `SAMPLE_SHELL_COMMANDS` (`apps/web/src/model/sample-shell.ts`). After
+changing a builder, the catalog defaults or the sample, run `pnpm --filter @slapdash/web
+sample` and commit the file; `apps/web/test/projects/sample.test.ts` fails until you do.
 
 ## Renderer
 
@@ -349,8 +357,8 @@ The 3D view lives in `apps/web/src/renderer` (see the web app's README for its a
   optionally, its `textureSet` (KTX2 maps at `tileSize_mm`). Add those to the material (see
   "How to add a material") and it appears with grain along the board's length. There is no
   per-material renderer code. A material without a swatch is drawn neutral grey.
-- **The view rules live in one place:** `visibility.ts` decides what Floors and Look from
-  show and where Inside cuts. Change it there, and update `test/renderer/visibility.test.ts`.
+- **The view rules live in one place:** `visibility.ts` decides what Floors, Look from and
+  Build steps show and where Inside cuts. Change it there, and update `test/renderer/visibility.test.ts`.
   The user's view and snapshots both use it.
 - **Colour.** The model is the only colour. Orange (`signal`) is for outlines of the selection
   and parts being worked on, never fill. Scene colours come from `SCENE_COLORS` in the generated

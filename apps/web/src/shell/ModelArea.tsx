@@ -4,6 +4,7 @@ import { SheetView } from '../drawing/SheetView.tsx';
 import { frameStats, useRendererStore } from '../renderer/renderer-store.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { useShellStore } from '../state/shell-store.ts';
+import { useBuildSteps } from '../steps/useBuildSteps.ts';
 import { useStressAnalysis } from '../analysis/useStressAnalysis.ts';
 import styles from './ModelArea.module.css';
 
@@ -21,8 +22,18 @@ export function supportsWebGL2(): boolean {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-/** What the canvas shows, for screen readers: "3D model: Pool house, 4 walls, roof. …" */
-export function modelDescription(project: Project | null, selectedLabel: string | null): string {
+/** The step Build steps is showing, for the description. */
+export interface ShownStep {
+  index: number;
+  count: number;
+  title: string;
+}
+
+/**
+ * What the canvas shows, for screen readers: "3D model: Pool house, 4 walls, roof. …", plus
+ * "Showing build step 2 of 3: Walls." while Build steps is open.
+ */
+export function modelDescription(project: Project | null, selectedLabel: string | null, step: ShownStep | null = null): string {
   if (!project) return '3D model.';
   const kinds = Object.values(project.assemblies).reduce<Record<string, number>>((acc, a) => {
     acc[a.kind] = (acc[a.kind] ?? 0) + 1;
@@ -36,7 +47,8 @@ export function modelDescription(project: Project | null, selectedLabel: string 
   if (kinds.roof) bits.push(kinds.roof === 1 ? 'roof' : plural(kinds.roof, 'roof'));
   const what = bits.length > 0 ? `${project.name}, ${bits.join(', ')}` : `${project.name}, nothing built yet`;
   const point = selectedLabel ? `Selected: ${selectedLabel}.` : 'Tap a part to point at it.';
-  return `3D model: ${what}. ${point}`;
+  const shown = step ? ` Showing build step ${step.index + 1} of ${step.count}: ${step.title}.` : '';
+  return `3D model: ${what}. ${point}${shown}`;
 }
 
 /** `?perf`: frames per second and the quality tier, for device testing. */
@@ -75,6 +87,9 @@ export function ModelArea({ zoomPercent, readout = true }: { zoomPercent: number
   const project = useModelStore((s) => s.project);
   const selectedLabel = useModelStore((s) => s.selectedPartLabel);
   const view = useShellStore((s) => s.view);
+  const stepsOpen = useShellStore((s) => s.panel === 'steps');
+  const steps = useBuildSteps();
+  const step = stepsOpen && steps.current ? { index: steps.index, count: steps.groups.length, title: steps.current.title } : null;
   const perf = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('perf');
   // The stress view's analysis runs here, once, whichever shell is showing.
   useStressAnalysis();
@@ -85,7 +100,7 @@ export function ModelArea({ zoomPercent, readout = true }: { zoomPercent: number
         <div
           className={[styles.canvas, view === '2d' && styles.hidden].filter(Boolean).join(' ')}
           role="img"
-          aria-label={modelDescription(project, selectedLabel)}
+          aria-label={modelDescription(project, selectedLabel, step)}
           data-testid="scene"
         >
           <Suspense fallback={<CssFloor />}>

@@ -9,15 +9,32 @@
  *   - Roof: everything.
  * Inside: the roof is removed, and walls, openings, structures and misc are cut 4′ 0″
  * above the level (foundation, slab and floor are never cut).
+ * Build steps (ADR-0003 §E): while the Steps panel is open, only parts in the steps up to and
+ * including the current one show. Site context (the house next door, a tree) always shows.
  */
-import type { Assembly, AssemblyKind, Level, Part } from '@slapdash/core';
+import { stepOfAssembly, type Assembly, type AssemblyKind, type BuildStepGroup, type Level, type Part, type StepKey } from '@slapdash/core';
 import type { FloorId, LookFrom } from '../state/shell-store.ts';
+import { isContextPart } from './bounds.ts';
 
 export type { FloorId, LookFrom };
 
 export interface VisibilityOptions {
   floor: FloorId;
   lookFrom: LookFrom;
+  /** The build steps shown (Steps panel open), or null/absent for the whole build. */
+  steps?: ReadonlySet<StepKey> | null;
+}
+
+/** The steps shown at `index`: every step up to and including it. */
+export function stepsUpTo(groups: readonly Pick<BuildStepGroup, 'step'>[], index: number): ReadonlySet<StepKey> {
+  return new Set(groups.slice(0, Math.max(0, index) + 1).map((g) => g.step));
+}
+
+/** Whether a part shows at the current build step. Site context and unbuilt kinds always do. */
+export function isStepVisible(part: Part, assembly: Assembly | undefined, steps: ReadonlySet<StepKey> | null | undefined): boolean {
+  if (!steps || !assembly || isContextPart(part)) return true;
+  const step = stepOfAssembly(assembly);
+  return step === 'site' || steps.has(step);
 }
 
 /** 4′ 0″ in mm: the Inside section cut height above the level. */
@@ -45,8 +62,9 @@ export function isKindVisible(kind: AssemblyKind, opts: VisibilityOptions): bool
 }
 
 /** A part with no assembly (a broken file) stays visible, so nothing silently disappears. */
-export function isPartVisible(_part: Part, assembly: Assembly | undefined, opts: VisibilityOptions): boolean {
-  return assembly ? isKindVisible(assembly.kind, opts) : true;
+export function isPartVisible(part: Part, assembly: Assembly | undefined, opts: VisibilityOptions): boolean {
+  if (!assembly) return true;
+  return isKindVisible(assembly.kind, opts) && isStepVisible(part, assembly, opts.steps);
 }
 
 /** The Inside cut height in mm (world y), or null when looking from outside. */

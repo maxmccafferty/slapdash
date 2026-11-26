@@ -15,8 +15,9 @@ export interface FloorStop {
   height: string;
 }
 
+/** No project open yet (storage still loading): the first-run name. */
 export const PLACEHOLDER_PROJECT: ProjectSummary = {
-  name: 'Pool house',
+  name: 'New project',
   specs: [
     { label: 'Footprint', value: '12′ × 16′' },
     { label: 'Walls', value: '9′ 0″' },

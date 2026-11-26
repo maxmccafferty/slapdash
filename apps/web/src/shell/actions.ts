@@ -1,6 +1,7 @@
 /**
- * The app-level actions the shell's keys call. They are no-ops for now; later tickets wire
- * them to the command bus (Undo, Redo) and the ProjectStore (Save, Load) in one place: App.tsx.
+ * The app-level actions the shell's keys call, wired in one place: `main.tsx`. Save saves the
+ * open project now (`ProjectsController.save`) and Load opens the Projects modal. Undo and
+ * Redo are still no-ops here. Component tests use `NOOP_ACTIONS`.
  */
 export interface ShellActions {
   onSave: () => void;

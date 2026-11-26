@@ -48,15 +48,19 @@ export function partCount(project: Project): number {
 
 const summaryCache = new WeakMap<Project, ProjectSummary>();
 
-/** The header: placeholder specs, with the real part count once a project has parts. */
+/**
+ * The header: the project's name (first run reads "New project"), placeholder specs, and the
+ * real part count once a project has parts.
+ */
 export function projectSummary(project: Project | null): ProjectSummary {
-  if (!project || Object.keys(project.parts).length === 0) return PLACEHOLDER_PROJECT;
+  if (!project) return PLACEHOLDER_PROJECT;
   const cached = summaryCache.get(project);
   if (cached) return cached;
-  const count = String(partCount(project));
+  const count = partCount(project);
   const summary = {
     ...PLACEHOLDER_PROJECT,
-    specs: PLACEHOLDER_PROJECT.specs.map((s) => (s.label === 'Parts' ? { ...s, value: count } : s)),
+    name: project.name,
+    specs: PLACEHOLDER_PROJECT.specs.map((s) => (s.label === 'Parts' && count > 0 ? { ...s, value: String(count) } : s)),
   };
   summaryCache.set(project, summary);
   return summary;

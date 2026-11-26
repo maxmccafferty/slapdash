@@ -52,6 +52,15 @@ export interface ChatLogLike {
   messages: StoredMessage[];
 }
 
+/** One kept turn as the chat panel shows it after a reload. */
+export interface TranscriptTurn {
+  turnId?: string;
+  /** What the person asked, as they typed or said it. */
+  asked: string;
+  /** Claude's reply text, its messages joined by blank lines. Empty if it said nothing. */
+  reply: string;
+}
+
 /** A content block as stored. */
 export type StoredBlock = { type: string } & { [key: string]: unknown };
 
@@ -295,6 +304,27 @@ export class AgentMemory {
     if (drop === 0) return this.#size();
     const from = spans[drop]!.start;
     return JSON.stringify(this.#messages.slice(from).map(strip)).length + (this.#summary?.length ?? 0);
+  }
+
+  /**
+   * The kept turns in order, for rebuilding the chat panel when a saved project opens.
+   * Folded turns live only in `summary` and are not included.
+   */
+  transcript(): TranscriptTurn[] {
+    return this.#spans().map((span) => {
+      const msgs = this.#messages.slice(span.start, span.end);
+      const firstUser = msgs.find((m) => m.role === 'user' && !isToolResultOnly(m));
+      const asked = this.#metaOf(span)?.asked ?? (firstUser ? textOf(firstUser) : '');
+      const reply = msgs
+        .filter((m) => m.role === 'assistant')
+        .map(textOf)
+        .map((t) => t.trim())
+        .filter((t) => t !== '')
+        .join('\n\n');
+      const turn: TranscriptTurn = { asked, reply };
+      if (span.key !== undefined) turn.turnId = span.key;
+      return turn;
+    });
   }
 
   // ── Output ────────────────────────────────────────────────────────────────

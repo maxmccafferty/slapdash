@@ -20,6 +20,7 @@ import { useRendererStore } from './renderer-store.ts';
 import { SceneContent, type ViewSpec } from './SceneContent.tsx';
 import { SnapshotHost } from './snapshot/SnapshotHost.tsx';
 import { useRendererDebug } from './useRendererDebug.ts';
+import { useStepFilter } from '../steps/useBuildSteps.ts';
 import { cutPlaneFor, isPartVisible } from './visibility.ts';
 import { useStressStore } from '../analysis/stress-store.ts';
 import { stressSpec } from './stress-spec.ts';
@@ -59,6 +60,7 @@ function UserScene() {
   const dimensions = useShellStore((s) => s.dimensions);
   const view = useShellStore((s) => s.view);
   const stressOn = useShellStore((s) => s.stress);
+  const steps = useStepFilter();
   const stressResult = useStressStore((s) => s.result);
   const tier = useRendererStore((s) => s.tier);
   const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
@@ -76,14 +78,14 @@ function UserScene() {
       stressOn && view === '3d' && stressResult && project
         ? stressSpec(project, stressResult, (id) => {
             const part = project.parts[id];
-            return part ? isPartVisible(part, project.assemblies[part.assemblyId], { floor, lookFrom }) : false;
+            return part ? isPartVisible(part, project.assemblies[part.assemblyId], { floor, lookFrom, steps }) : false;
           })
         : null,
-    [stressOn, view, stressResult, project, floor, lookFrom],
+    [stressOn, view, stressResult, project, floor, lookFrom, steps],
   );
   const spec = useMemo<ViewSpec>(
-    () => ({ mode: stress ? 'stress' : 'textured', stress, floor, lookFrom, dimensions, outlined, proposal }),
-    [stress, floor, lookFrom, dimensions, outlined, proposal],
+    () => ({ mode: stress ? 'stress' : 'textured', stress, floor, lookFrom, steps, dimensions, outlined, proposal }),
+    [stress, floor, lookFrom, steps, dimensions, outlined, proposal],
   );
 
   const cutMm = project ? cutPlaneFor(lookFrom, project.levels) : null;

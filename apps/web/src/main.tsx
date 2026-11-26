@@ -9,8 +9,14 @@ import { fetchKeyholeStatus } from './agent/keyhole-status.ts';
 import { createPhotoStore, preparePhoto } from './agent/photos.ts';
 import { browserSnapshotProvider } from './agent/snapshot-provider.ts';
 import { debugEnabled, exposeDebug } from './debug.ts';
-import { bootstrapModel, openSampleProject } from './model/bootstrap.ts';
-import { useChatStore } from './state/chat-store.ts';
+import { TIER1_CATALOG } from '@slapdash/catalog';
+import { createLocalBackend } from '@slapdash/storage/local';
+import { siteDefaults } from './model/bootstrap.ts';
+import { createProjectsController } from './projects/projects-controller.ts';
+import { ProjectsProvider } from './projects/ProjectsContext.tsx';
+import type { ShellActions } from './shell/actions.ts';
+import { addNote, useChatStore } from './state/chat-store.ts';
+import { useShellStore } from './state/shell-store.ts';
 import { useModelStore } from './state/model-store.ts';
 import { useSiteStore } from './state/site-store.ts';
 import { analyzeProject } from './analysis/solver.ts';
@@ -22,7 +28,19 @@ import './styles/global.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('index.html has no #root element');
 
-bootstrapModel();
+const note = (text: string) => useChatStore.setState((s) => ({ items: addNote(s.items, text) }));
+
+// Projects live in this browser's IndexedDB (ADR-0001 §10). The last project reopens; a fresh
+// install starts on an empty "New project" (first run).
+const backend = createLocalBackend();
+const projects = createProjectsController({
+  store: backend.store,
+  device: backend.device,
+  catalog: TIER1_CATALOG,
+  // Builders size headers and footings from the same resolved loads the solver checks.
+  siteDefaults,
+  notify: note,
+});
 
 const fetchImpl = window.fetch.bind(window);
 const voice = createWebSpeechVoice(window);
@@ -44,12 +62,20 @@ const chat = createChatController({
   photos: createPhotoStore(),
   preparePhoto,
   snapshot: browserSnapshotProvider,
-  openSample: () => openSampleProject(),
-  // Project storage isn't wired in yet: this is where `session.replaceChat` goes.
-  onChatChanged: () => {},
+  openSample: () => void projects.openSample(),
+  onChatChanged: (log) => projects.onChatChanged(log),
+  chatLogFor: (bus) => projects.chatLogFor(bus),
   voice,
 });
 void chat.start();
+void projects.start(window.location.search);
+
+const actions: ShellActions = {
+  onSave: () => void projects.save(),
+  onLoad: () => useShellStore.getState().togglePanel('projects'),
+  onUndo: () => {},
+  onRedo: () => {},
+};
 watchStressExplain(chat);
 if (debugEnabled()) {
   exposeDebug({
@@ -77,8 +103,10 @@ if (debugEnabled()) {
 
 createRoot(root).render(
   <StrictMode>
-    <ChatProvider controller={chat}>
-      <App />
-    </ChatProvider>
+    <ProjectsProvider controller={projects}>
+      <ChatProvider controller={chat}>
+        <App actions={actions} />
+      </ChatProvider>
+    </ProjectsProvider>
   </StrictMode>,
 );

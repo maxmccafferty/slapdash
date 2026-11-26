@@ -35,8 +35,9 @@ Anthropic SDK (`test/no-server-imports.test.ts`). See CONTRIBUTING, "Claude serv
   (Project popover with Save/Load/Undo/Redo, Materials, Build steps, Floors popover) top right;
   the eye key (view controls popover) bottom left; the orange chat key bottom right, which opens
   the chat as a bottom sheet while the model slides up. No logo.
-- **Not here yet:** the stress overlay, chat
-  behaviour and voice, the Materials/Steps/Projects modals (only their latched keys), and real spec values.
+- **Not here yet:** real spec values (Footprint, Walls and Roof are placeholders; Parts is
+  real), Undo/Redo keys, a naming dialog for Save, `.slapdash` download, and deleting or
+  renaming projects.
 
 UI state (view controls, floor, latched panel, phone popovers and sheet) lives in a Zustand
 store, `src/state/shell-store.ts`. It never holds project data; the project lives in
@@ -45,8 +46,53 @@ store, `src/state/shell-store.ts`. It never holds project data; the project live
 ## The `ShellActions` seam
 
 Save, Load, Undo and Redo call `ShellActions` (`src/shell/actions.ts`), which `App` takes as a
-prop and defaults to no-ops. Later tickets wire the command bus and `ProjectStore` there, in one
-place.
+prop and defaults to no-ops (component tests). `main.tsx` wires them: Save saves the open
+project now and says so in the chat; Load opens the Projects modal. Undo and Redo are still
+no-ops.
+
+## Projects and first run (`src/projects/`, ADR-0003 §I)
+
+Projects are kept in this browser's IndexedDB through `@slapdash/storage`'s local adapter.
+`projects-controller.ts` (framework-free) owns the open `ProjectSession`: autosave, its bus
+attached to the model store (`attach` in `src/model/bootstrap.ts`), and the Projects modal's
+actions. React reads `projects-store.ts` and calls the actions through `ProjectsContext`
+(inert by default, so component tests need no IndexedDB).
+
+- **Start.** The device's last project reopens; a fresh install starts on an unsaved
+  "New project" (nothing is stored until the first change). `?sample=pool-house` instead
+  builds the sample from commands as a new, named project (dev and e2e).
+- **First run.** On an empty site the chat shows "What are we building?", three starter keys
+  (tapping one sends it) and **Open the sample pool house** (`src/shell/chat/Starters.tsx`).
+  Without an API key the no-key card offers the sample instead and the field and Talk are off.
+- **The sample** is a shipped file, `src/samples/pool-house.slapdash`, loaded lazily (its own
+  chunk) and imported like any file, so each open is a new "Pool house". It is generated from
+  `SAMPLE_SHELL_COMMANDS`: run `pnpm --filter @slapdash/web sample` after changing builders or
+  the sample; `test/projects/sample.test.ts` fails when it is out of date.
+- **Projects modal (Load).** A New project card, the stored projects newest first (card
+  picture, name, "Edited Nov 25 · 209 parts"; the open one has the orange dot), and **Import a
+  .slapdash file**. Errors show in its status line. Like Materials it covers the model only.
+- **Switching** captures the old project's card picture (a 256 px iso snapshot stored as the
+  project file `thumbnail`), closes its session (saving anything pending), then attaches the
+  new bus. Opening the modal refreshes the open project's picture, waiting for the 3D view if
+  the page has just loaded. Without WebGL cards show the dot floor.
+- **Chat.** After each Claude turn the chat log is saved with the project; opening a project
+  restores its transcript (what was asked and Claude's replies; Undo keys, plans and photos
+  are not restored) and Claude sees the earlier turns.
+- Saves also run on `pagehide` and when the tab is hidden. A failed save shows as a chat note.
+
+## Build steps (`src/steps/`, ADR-0003 §E)
+
+The Steps key (phone: Build steps) plays the build one step at a time. Steps come from
+`buildStepGroups` in core (the pool house: Slab, Walls, Roof; openings go with the walls).
+While it is open the model shows only the steps up to the current one; site context always
+shows, Floors and Look from still apply, and the camera doesn't move. The filter is
+`VisibilityOptions.steps` in `src/renderer/visibility.ts`, used by the 3D view, the 2D sheet
+and the stress view (Claude's snapshots are unaffected). The step lives in the shell store
+(`stepIndex`), resets to the first step when Steps opens or another project opens, and is
+clamped when parts are removed. The panel shows "Step 2 of 3", the title, a short how-to
+(`how-to.ts`), a count line, the list of steps (desktop) and Back / Next step. Desktop: a
+panel in the model's bottom-right corner; phone: a compact bottom sheet under the chat key.
+The scene's label ends "Showing build step 2 of 3: Walls." for screen readers.
 
 ## Chat (`src/agent/`, `src/shell/chat/`)
 
@@ -56,7 +102,7 @@ bus the model store follows.
 - **Store and controller.** `src/state/chat-store.ts` holds what the chat shows: connection,
   budget, transcript items (`src/agent/chat-types.ts`), the running turn, the draft and
   pending photos. `src/agent/chat-controller.ts` is framework-free and the only writer: it
-  owns the `AgentMemory` (one per bus; a new bus starts a new chat) and the turn's
+  owns the `AgentMemory` (one per bus; a new bus restores that project's saved chat through `chatLogFor`, or starts a new one) and the turn's
   `AbortController`, maps agent events and keyhole errors into the store, outlines new parts
   with `markInProgress` and draws a plan's footprint with `setProposal`. State lives outside
   React because the phone's `BottomSheet` unmounts the panel when it closes. `main.tsx` builds
@@ -77,8 +123,9 @@ bus the model store follows.
   mount inside `<main>`, and the chat is a grid sibling. On the phone they go inside `.main`
   below the chat sheet's z-index. Nothing may make the chat or the app root `inert` or
   `aria-hidden`. `test/chat/chat.test.tsx` checks this with each panel open.
-- **Persistence.** `onChatChanged(memory.toChatLog())` runs after every turn. It is a no-op
-  until `ProjectSession` is wired in, and that is where `session.replaceChat` goes.
+- **Persistence.** `onChatChanged(memory.toChatLog())` runs after every turn and saves the log
+  with the open project (`session.replaceChat`). `AgentMemory.transcript()` rebuilds the
+  transcript when a project opens.
 - **Voice** (ADR-0001 §8, ADR-0002 §E4). Speech goes through the `VoiceProvider` interface in
   `src/voice/voice-provider.ts`; `src/voice/web-speech.ts` implements it with the browser's
   `SpeechRecognition` and `speechSynthesis`, so another provider can slot in later. Holding Talk
@@ -108,11 +155,10 @@ three.js through React Three Fiber, lazy-loaded as its own chunk (`SceneCanvas`)
 shell's first paint doesn't wait for it. Without WebGL 2 (and in jsdom) the model area keeps
 the CSS dot-grid floor, labelled as "3D isn't available".
 
-- **Where the model comes from.** `src/model/bootstrap.ts` creates the `CommandBus` with
-  `TIER1_CATALOG`; `src/state/model-store.ts` mirrors `bus.project` (it follows every execute,
+- **Where the model comes from.** The open project's `ProjectSession` (see Projects above)
+  makes the `CommandBus` on `TIER1_CATALOG`; `src/state/model-store.ts` mirrors `bus.project` (it follows every execute,
   undo, redo and restore) and holds renderer-only state: the selection and its label, parts in
-  progress, and a proposal. Until ProjectStore is wired in, the app starts empty.
-  `?sample=pool-house` builds the 16 × 20 shell from the core acceptance test
+  progress, and a proposal. `?sample=pool-house` builds the 16 × 20 shell from the core acceptance test
   (`src/model/sample-shell.ts`); add `&context=1` for a stippled house and tree.
 - **Drawing.** Every part is a box, so parts are batched by `materialId|sectionId`
   (`batches.ts`) into one `InstancedMesh` each (`PartBatch.tsx`). Batches are structurally

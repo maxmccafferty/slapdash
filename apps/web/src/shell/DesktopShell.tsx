@@ -6,7 +6,9 @@ import { Unit } from '../components/Unit.tsx';
 import { MaterialsPanel } from '../materials/MaterialsPanel.tsx';
 import { useFloorStops } from '../model/floor-stops.ts';
 import type { ProjectSummary } from '../placeholder.ts';
+import { ProjectsPanel } from '../projects/ProjectsPanel.tsx';
 import { useShellStore } from '../state/shell-store.ts';
+import { BuildStepsPanel } from '../steps/BuildStepsPanel.tsx';
 import type { ShellActions } from './actions.ts';
 import { ChatPanel } from './ChatPanel.tsx';
 import { ModelArea } from './ModelArea.tsx';
@@ -29,6 +31,8 @@ export function DesktopShell({ project, actions }: ShellProps) {
   const floors = useFloorStops();
   const zoomPercent = useShellStore((s) => s.zoomPercent);
   const materialsRef = useRef<HTMLButtonElement>(null);
+  const stepsRef = useRef<HTMLButtonElement>(null);
+  const loadRef = useRef<HTMLButtonElement>(null);
 
   return (
     <div className={styles.shell} data-shell="desktop">
@@ -37,7 +41,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
         <div className={styles.units}>
           <Unit role="group" aria-label="File">
             <Key label="Save" icon="save" onClick={actions.onSave} />
-            <Key label="Load" icon="load" onClick={actions.onLoad} />
+            <Key ref={loadRef} label="Load" icon="load" latched={panel === 'projects'} onClick={actions.onLoad} />
           </Unit>
           <Unit role="group" aria-label="History">
             <Key label="Undo" icon="undo" onClick={actions.onUndo} />
@@ -51,7 +55,7 @@ export function DesktopShell({ project, actions }: ShellProps) {
               latched={panel === 'materials'}
               onClick={() => togglePanel('materials')}
             />
-            <Key label="Steps" icon="steps" latched={panel === 'steps'} onClick={() => togglePanel('steps')} />
+            <Key ref={stepsRef} label="Steps" icon="steps" latched={panel === 'steps'} onClick={() => togglePanel('steps')} />
           </Unit>
         </div>
         <div className={styles.project}>
@@ -70,6 +74,8 @@ export function DesktopShell({ project, actions }: ShellProps) {
           <ViewControls />
         </div>
         {panel === 'materials' && <MaterialsPanel variant="desktop" triggerRef={materialsRef} />}
+        {panel === 'steps' && <BuildStepsPanel variant="desktop" triggerRef={stepsRef} />}
+        {panel === 'projects' && <ProjectsPanel variant="desktop" triggerRef={loadRef} />}
       </main>
       <ChatPanel className={styles.chat} />
     </div>

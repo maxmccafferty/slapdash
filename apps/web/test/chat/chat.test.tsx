@@ -1,15 +1,18 @@
 import { act, screen, waitFor, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { call, replyEvents, say } from '@slapdash/agent/testing';
-import { KeyholeRequestError, KeyholeStreamFailure } from '@slapdash/agent';
+import { call, replyEvents, say, scriptedClient } from '@slapdash/agent/testing';
+import { AgentMemory, KeyholeRequestError, KeyholeStreamFailure } from '@slapdash/agent';
 import { describe, expect, it } from 'vitest';
 import { openSampleProject } from '../../src/model/bootstrap.ts';
 import { useChatStore } from '../../src/state/chat-store.ts';
-import { useModelStore } from '../../src/state/model-store.ts';
+import { createChatController } from '../../src/agent/chat-controller.ts';
+import { createPhotoStore } from '../../src/agent/photos.ts';
+import { resetModelStore, useModelStore } from '../../src/state/model-store.ts';
 import { useShellStore } from '../../src/state/shell-store.ts';
 import { setViewportWidth } from '../setup.ts';
 import { fakeVoice } from '../voice/fake-voice.ts';
-import { gatedClient, setupChat, status } from './harness.tsx';
+import { OPEN_SAMPLE, STARTERS } from '../../src/shell/chat/Starters.tsx';
+import { gatedClient, newBus, setupChat, status } from './harness.tsx';
 
 const field = () => screen.getByRole('textbox', { name: 'Message Claude' });
 
@@ -240,6 +243,86 @@ describe('chat: no API key', () => {
     expect(bus).not.toBe(before);
     expect(Object.keys(bus.project.parts).length).toBeGreaterThan(50);
     expect(useChatStore.getState().items).toEqual([]);
+  });
+});
+
+describe('chat: first run', () => {
+  it('an empty site shows "What are we building?", three starters and the sample', async () => {
+    await setupChat();
+    const starters = screen.getByRole('group', { name: 'Start with' });
+    expect(screen.getByText('What are we building?')).toBeInTheDocument();
+    expect(within(starters).getAllByRole('button').map((b) => b.textContent)).toEqual([...STARTERS]);
+    expect(screen.getByRole('button', { name: OPEN_SAMPLE })).toBeEnabled();
+  });
+
+  it('tapping a starter sends it', async () => {
+    await setupChat({ steps: [say('A shed it is. What roof?')] });
+    await userEvent.setup().click(screen.getByRole('button', { name: STARTERS[0] }));
+    await waitFor(() => expect(useChatStore.getState().running).toBeNull());
+    expect(screen.getByText(STARTERS[0])).toBeInTheDocument();
+    expect(screen.getByText('A shed it is. What roof?')).toBeInTheDocument();
+    expect(screen.queryByTestId('starters')).not.toBeInTheDocument();
+  });
+
+  it('Open the sample pool house calls openSample', async () => {
+    let opened = 0;
+    await setupChat({ openSample: () => opened++ });
+    await userEvent.setup().click(screen.getByRole('button', { name: OPEN_SAMPLE }));
+    expect(opened).toBe(1);
+  });
+
+  it('no starters once the project has parts', async () => {
+    await setupChat({ sample: true });
+    expect(screen.getByText('What are we building?')).toBeInTheDocument();
+    expect(screen.queryByTestId('starters')).not.toBeInTheDocument();
+  });
+
+  it('no starters in the no-key state; its own sample key stays', async () => {
+    await setupChat({ status: status({}, false) });
+    expect(screen.queryByTestId('starters')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: OPEN_SAMPLE })).toHaveLength(1);
+  });
+});
+
+describe('chat: opening a saved project', () => {
+  it('keeps the notes shown before the first project opened (storage loads after the status)', async () => {
+    resetModelStore();
+    const controller = createChatController({
+      client: scriptedClient([]).client,
+      getStatus: async () => status({ state: 'warning', spentUsd: 8, fraction: 0.8 }),
+      photos: createPhotoStore({ createUrl: () => 'blob:photo', revokeUrl: () => {} }),
+      preparePhoto: async (file) => ({ blob: file, mimeType: 'image/jpeg' }),
+    });
+    await controller.start();
+    act(() => {
+      useModelStore.getState().attachBus(newBus());
+    });
+    expect(useChatStore.getState().items.map((i) => i.kind === 'note' && i.text)).toEqual(["80% of this month's Claude budget is used: $8.00 of $10.00."]);
+    // Opening another project after that starts its own transcript.
+    act(() => {
+      useModelStore.getState().attachBus(newBus());
+    });
+    expect(useChatStore.getState().items).toEqual([]);
+    controller.dispose();
+  });
+
+  it('restores the saved transcript for the new bus', async () => {
+    const memory = new AgentMemory();
+    memory.beginTurn('t1', [{ type: 'text', text: 'How tall are the walls?' }]);
+    memory.append('assistant', [{ type: 'text', text: 'Nine feet, to the top plate.' }]);
+    memory.endTurn({ asked: 'How tall are the walls?', changeSummaries: [] });
+    const saved = newBus(true);
+    const { sent } = await setupChat({ steps: [say('Sure.')], chatLogFor: (b) => (b === saved ? memory.toChatLog() : null) });
+    act(() => {
+      useModelStore.getState().attachBus(saved);
+    });
+    expect(screen.getByText('How tall are the walls?')).toBeInTheDocument();
+    expect(screen.getByText('Nine feet, to the top plate.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Undo this change' })).not.toBeInTheDocument();
+    // Claude sees the earlier turn too.
+    await sendText('And the roof?');
+    const first = sent.at(-1)![0]!.content as Block[];
+    expect(first.some((b) => b.text === 'How tall are the walls?')).toBe(true);
   });
 });
 

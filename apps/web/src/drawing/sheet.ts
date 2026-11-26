@@ -136,7 +136,7 @@ const cache = new WeakMap<Project, Map<string, Sheet>>();
 const emptyCache = new Map<string, Sheet>();
 
 export function buildSheet(project: Project | null, opts: SheetOptions): Sheet {
-  const key = `${opts.floor}|${opts.dimensions ? 1 : 0}`;
+  const key = `${opts.floor}|${opts.dimensions ? 1 : 0}|${opts.steps ? [...opts.steps].sort().join(',') : '*'}`;
   if (!project) {
     let s = emptyCache.get(key);
     if (!s) emptyCache.set(key, (s = emptySheet(null)));
