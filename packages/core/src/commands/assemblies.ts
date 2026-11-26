@@ -16,9 +16,9 @@ export const addAssembly = defineCommand({
   schema: z.strictObject({
     name: zNonBlank('Readable name, e.g. "South wall".'),
     kind: zAssemblyKind.describe('What this assembly is. Sets the ID prefix (wall → W1, roof → R1, …).'),
-    levelId: z.string().optional().describe('Level it sits on. Defaults to the ground level "L0".'),
+    levelId: zId.optional().describe('Level it sits on. Defaults to the ground level, L0.'),
     buildStep: zBuildStep.optional().describe('Construction phase for the assembly sequence.'),
-    id: z.string().optional().describe('Explicit ID like "W3". Usually left out so one is chosen.'),
+    id: zId.optional().describe('Explicit ID like W3. Usually left out so one is chosen.'),
   }),
   check(project, input) {
     const errors: CommandError[] = [];
@@ -58,7 +58,7 @@ export const updateAssembly = defineCommand({
   description: 'Rename an assembly or change its build step. Its ID does not change.',
   exposed: true,
   schema: z.strictObject({
-    id: zId('Assembly ID, e.g. "W2".'),
+    id: zId.describe('Assembly ID, e.g. W2.'),
     name: zNonBlank('New name.').optional(),
     buildStep: zBuildStep.optional(),
   }),
@@ -93,7 +93,7 @@ export const deleteAssembly = defineCommand({
     'Delete an assembly. If it still has parts, pass withParts: true to delete them (and their joints) too.',
   exposed: true,
   schema: z.strictObject({
-    id: zId('Assembly ID, e.g. "W2".'),
+    id: zId.describe('Assembly ID, e.g. W2.'),
     withParts: z.boolean().optional().describe('Also delete every part in the assembly and their joints.'),
   }),
   check(project, input) {
