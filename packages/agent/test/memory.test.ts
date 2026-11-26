@@ -187,6 +187,7 @@ describe('agent memory', () => {
     expectValidMessages(msgs);
     expect(blocks(msgs[2]!).map((b) => b.type)).toEqual(['tool_result', 'text']);
   });
+
   it('transcript() rebuilds the chat panel from a saved log: what was asked and what Claude said', () => {
     const mem = new AgentMemory();
     turn(mem, 't1', 'Build a wall', { tool: true });
@@ -203,5 +204,45 @@ describe('agent memory', () => {
     const mem = new AgentMemory();
     mem.beginTurn('t1', [{ type: 'slapdash_project', text: '<project/>' }, { type: 'text', text: 'Add a door' }]);
     expect(mem.transcript()).toEqual([{ turnId: 't1', asked: 'Add a door', reply: '' }]);
+  });
+
+  it('drops thinking from finished turns but keeps it in the turn in progress', async () => {
+    const mem = new AgentMemory();
+    mem.beginTurn('t1', [{ type: 'slapdash_project', text: '<project>\nt1\n</project>' }, { type: 'text', text: 'Build a shed' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Plan the shed.', signature: 'sig-1' },
+      { type: 'redacted_thinking', data: 'opaque-1' },
+      { type: 'tool_use', id: 'tu-1', name: 'build_wall', input: {} },
+    ]);
+    mem.append('user', [{ type: 'tool_result', tool_use_id: 'tu-1', content: 'Built wall W1.' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Done.', signature: 'sig-2' },
+      { type: 'text', text: 'Built it.' },
+    ]);
+    mem.endTurn({ asked: 'Build a shed', changeSummaries: ['Built wall W1.'] });
+
+    mem.beginTurn('t2', [{ type: 'text', text: 'Add a door' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Where does the door go?', signature: 'sig-3' },
+      { type: 'tool_use', id: 'tu-2', name: 'add_door', input: {} },
+    ]);
+    mem.append('user', [{ type: 'tool_result', tool_use_id: 'tu-2', content: 'Added door D1.' }]);
+
+    const msgs = await mem.toApiMessages();
+    expectValidMessages(msgs);
+    const isThinking = (b: Block) => b.type === 'thinking' || b.type === 'redacted_thinking';
+    const currentStart = msgs.findIndex((m) => blocks(m).some((b) => b.type === 'text' && b.text === 'Add a door'));
+    expect(currentStart).toBeGreaterThan(0);
+    expect(msgs.slice(0, currentStart).flatMap(blocks).filter(isThinking)).toEqual([]);
+    expect(msgs.slice(currentStart).flatMap(blocks).filter(isThinking)).toEqual([
+      { type: 'thinking', thinking: 'Where does the door go?', signature: 'sig-3' },
+    ]);
+    // The finished turn keeps the rest of its content.
+    expect(texts(msgs.slice(0, currentStart))).toContain('Built it.');
+
+    // Once the turn ends, its thinking goes too.
+    mem.append('assistant', [{ type: 'text', text: 'Door added.' }]);
+    mem.endTurn({ asked: 'Add a door', changeSummaries: [] });
+    expect((await mem.toApiMessages()).flatMap(blocks).filter(isThinking)).toEqual([]);
   });
 });

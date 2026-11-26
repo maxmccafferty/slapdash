@@ -8,6 +8,7 @@
  * Claude as tool results (ADR-0002 §A7).
  */
 import { z } from 'zod';
+import { zId, zIdList } from './ids.ts';
 import { commandError, formatErrors, notFound, zodIssuesToErrors, type CommandError, type Project } from '@slapdash/core';
 
 export const SNAPSHOT_ANGLES = ['sheet', 'top', 'front', 'back', 'left', 'right', 'iso'] as const;
@@ -15,11 +16,11 @@ export const SNAPSHOT_MODES = ['textured', 'blueprint', 'xray', 'stress', 'explo
 
 export const zSnapshotRequest = z.strictObject({
   angle: z
-    .union([z.enum(SNAPSHOT_ANGLES), z.strictObject({ frame: z.string().describe('A part or assembly id to frame.') })])
+    .union([z.enum(SNAPSHOT_ANGLES), z.strictObject({ frame: zId('A part or assembly id to frame.') })])
     .default('sheet')
     .describe('A named view, "sheet" (top, front, right and 3D on one image), or { frame: id }.'),
   mode: z.enum(SNAPSHOT_MODES).default('textured'),
-  highlight: z.array(z.string()).max(200).default([]).describe('Part or assembly ids to outline in orange.'),
+  highlight: zIdList('Part or assembly ids to outline in orange.').max(200).default([]),
   labels: z.boolean().default(false).describe('Draw ID labels.'),
   dimensions: z.boolean().default(false),
   lookFrom: z.enum(['outside', 'inside']).default('outside'),

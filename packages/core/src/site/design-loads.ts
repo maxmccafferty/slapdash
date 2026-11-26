@@ -10,7 +10,7 @@
  * resolved location (the project's location wins over the default), then the app's
  * fallback, then nothing.
  */
-import { formatFeetInches, parseLength, type Result } from '../units/length.ts';
+import { formatFeetInches, isUnitlessZero, parseLength, unwrapQuotes, type Result } from '../units/length.ts';
 import {
   DESIGN_LOAD_KEYS,
   DESIGN_LOAD_UNITS,
@@ -142,17 +142,24 @@ export function formatLoad(key: DesignLoadKey, value: number): string {
 }
 
 const UNIT_HINTS: Record<DesignLoadKey, string> = {
-  groundSnow: 'e.g. "30 psf" or "1.44 kPa"',
-  windSpeed: 'e.g. "115 mph" or "51 m/s"',
-  frostDepth: 'e.g. "36in", "3ft" or "915mm"',
+  groundSnow: 'e.g. 30 psf or 1.44 kPa',
+  windSpeed: 'e.g. 115 mph or 51 m/s',
+  frostDepth: 'e.g. 36in, 3ft or 915mm',
 };
 
 /**
  * Read a design load given by a person. Numbers are taken as SI (kPa, m/s, mm);
- * text may use psf/kPa, mph/m/s/km/h, or any length. Result is SI.
+ * text may use psf/kPa, mph/m/s/km/h, or any length. A unitless zero is zero.
+ * Text wrapped in quote marks (`"30 psf"`) is read without them. Result is SI.
  */
 export function parseDesignLoad(key: DesignLoadKey, input: number | string): Result<number> {
   if (typeof input === 'number') return { ok: true, value: input };
+  // Quote marks are never part of a snow or wind value. Frost depth goes to
+  // parseLength with the original text, which unwraps them itself and keeps a
+  // real trailing inch mark (`36"`).
+  const original = input;
+  input = unwrapQuotes(input) ?? input;
+  if (isUnitlessZero(input)) return { ok: true, value: 0 };
   const s = input.trim().toLowerCase();
   const m = /^(-?\d+(?:\.\d+)?|-?\.\d+)\s*([a-z/ ]*)$/.exec(s);
   const unitless = m !== null && m[2]!.trim() === '';
@@ -163,7 +170,7 @@ export function parseDesignLoad(key: DesignLoadKey, input: number | string): Res
     };
   }
   if (key === 'frostDepth') {
-    const len = parseLength(input);
+    const len = parseLength(original);
     return len.ok ? len : { ok: false, error: `Couldn't read "${input}" as a frost depth; ${UNIT_HINTS[key]}.` };
   }
   if (m) {
