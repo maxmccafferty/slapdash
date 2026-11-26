@@ -27,9 +27,8 @@ import {
   supportUnder,
   type PlanPoint,
 } from '../util.ts';
-import { bottomPlates, frameOpening, resolveOpening, type ExistingOpening, type OpeningInput, type ResolvedOpening } from './opening.ts';
+import { bottomPlates, frameOpening, openingParamsOf, resolveOpening, type ExistingOpening, type OpeningInput, type ResolvedOpening } from './opening.ts';
 import {
-  OPENING_BUILDER,
   WALL_BUILDER,
   addMember,
   itemOf,
@@ -302,19 +301,46 @@ function frameBareWall(state: WallState): void {
       phase: 'framing',
     });
   stud('end', p.frameU0);
+  for (const u0 of commonStudPositions(p)) stud('common', u0);
+  stud('end', p.frameU1 - T);
+}
+
+/** The near edge (u0) of every common stud on layout in a bare wall, measured from the wall start. */
+export function commonStudPositions(p: Pick<WallParams, 'frameU0' | 'frameU1' | 'spacing'>): number[] {
+  const out: number[] = [];
   const lo = p.frameU0 + T + GAP;
   const hi = p.frameU1 - T - GAP;
   for (let n = 1; n * p.spacing - T / 2 < hi; n++) {
     const u0 = n * p.spacing - T / 2;
     if (u0 < lo - 1e-6 || u0 + T > hi + 1e-6) continue;
-    stud('common', u0);
+    out.push(u0);
   }
-  stud('end', p.frameU1 - T);
+  return out;
 }
 
-/** 4x8 panels on the outside face; joints fall on layout. 19.2in layout lays them horizontally. */
-function sheatheWall(state: WallState): void {
+/** The common stud a bare wall has at `u0`, as built by build_wall. */
+export function commonStud(state: WallState, u0: number): WallItem {
   const p = state.params;
+  return addMember(state, {
+    role: 'stud',
+    tags: ['common'],
+    box: { u0, u1: u0 + T, v0: T, v1: studTop(p, T), w0: 0, w1: p.depth },
+    lengthAxis: 'v',
+    widthAxis: 'u',
+    materialId: p.materials.lumber,
+    sectionId: p.studSectionId,
+    phase: 'framing',
+  });
+}
+
+/**
+ * The full 4x8 sheathing grid of a bare wall, in wall u/v/w: joints fall on layout,
+ * 19.2in layout lays the sheets horizontally. Empty when the wall isn't sheathed.
+ */
+export function sheathingCells(
+  p: Pick<WallParams, 'bracing' | 'spacingLabel' | 'sheathU0' | 'sheathU1' | 'height' | 'sheathingThickness'>,
+): FrameBox[] {
+  if (p.bracing !== 'sheathing') return [];
   const { long, short } = BUILDER_DEFAULTS.sheet;
   const horizontal = p.spacingLabel === '19.2in';
   const pu = horizontal ? long : short;
@@ -330,18 +356,28 @@ function sheatheWall(state: WallState): void {
   };
   const us = cuts(p.sheathU0, p.sheathU1, pu);
   const vs = cuts(0, p.height, pv);
+  const out: FrameBox[] = [];
   for (let j = 0; j + 1 < vs.length; j++) {
     for (let i = 0; i + 1 < us.length; i++) {
-      addMember(state, {
-        role: 'sheathing',
-        tags: ['shear-panel', 'brace:panel'],
-        box: { u0: us[i]!, u1: us[i + 1]!, v0: vs[j]!, v1: vs[j + 1]!, w0: -p.sheathingThickness, w1: 0 },
-        lengthAxis: 'u',
-        widthAxis: 'v',
-        materialId: p.materials.sheathing,
-        phase: 'sheathing',
-      });
+      out.push({ u0: us[i]!, u1: us[i + 1]!, v0: vs[j]!, v1: vs[j + 1]!, w0: -p.sheathingThickness, w1: 0 });
     }
+  }
+  return out;
+}
+
+/** 4x8 panels on the outside face. */
+function sheatheWall(state: WallState): void {
+  const p = state.params;
+  for (const box of sheathingCells(p)) {
+    addMember(state, {
+      role: 'sheathing',
+      tags: ['shear-panel', 'brace:panel'],
+      box,
+      lengthAxis: 'u',
+      widthAxis: 'v',
+      materialId: p.materials.sheathing,
+      phase: 'sheathing',
+    });
   }
 }
 
@@ -453,10 +489,9 @@ export function openingUnitMaterial(catalog: CatalogIndex): string | null {
 /** Existing openings in a wall, from their O assemblies. */
 export function openingsIn(project: Project, wallId: string): ExistingOpening[] {
   return Object.values(project.assemblies)
-    .filter((a) => a.builder?.name === OPENING_BUILDER && (a.builder.params as { wallId?: string }).wallId === wallId)
-    .map((a) => {
-      const params = a.builder!.params as { framingU0: number; framingU1: number };
-      return { label: a.id, framingU0: params.framingU0, framingU1: params.framingU1 };
+    .flatMap((a) => {
+      const params = openingParamsOf(a);
+      return params && params.wallId === wallId ? [{ label: a.id, framingU0: params.framingU0, framingU1: params.framingU1 }] : [];
     });
 }
 

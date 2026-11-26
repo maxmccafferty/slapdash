@@ -16,7 +16,8 @@ import {
   pickHeader,
 } from '../rules.ts';
 import { compass, fi } from '../util.ts';
-import { addMember, hasTag, removeItem, studTop, type WallItem, type WallParams, type WallState } from './wall-state.ts';
+import type { Assembly } from '../../model/schema.ts';
+import { OPENING_BUILDER, addMember, hasTag, removeItem, studTop, type WallItem, type WallParams, type WallState } from './wall-state.ts';
 
 const IN = MM_PER_INCH;
 const T = BUILDER_DEFAULTS.twoBy;
@@ -80,6 +81,56 @@ export interface ResolvedOpening {
   product?: string;
   /** Asked for tempered or laminated glazing. */
   safetyGlazing?: boolean;
+}
+
+/** The recipe add_opening (and build_wall's inline openings) store on an opening assembly. */
+export interface OpeningParams {
+  wallId: string;
+  kind: OpeningKind;
+  /** Near edge of the rough opening, from the wall's start. */
+  at: number;
+  width: number;
+  height: number;
+  sillHeight: number | null;
+  roBottom: number;
+  roTop: number;
+  framingU0: number;
+  framingU1: number;
+  header: { plies: number; sectionId: string; flat: boolean; length: number };
+  jacks: number;
+  kings: number;
+  headerRule: string;
+  product?: string;
+  safetyGlazing?: boolean;
+}
+
+/** An opening assembly's stored recipe, or null if add_opening didn't make it. */
+export function openingParamsOf(asm: Assembly | undefined): OpeningParams | null {
+  if (!asm || asm.builder?.name !== OPENING_BUILDER) return null;
+  return asm.builder.params as unknown as OpeningParams;
+}
+
+/** The recipe to store for a resolved opening, in the same shape everywhere. */
+export function openingParams(o: ResolvedOpening, wallId: string): OpeningParams {
+  return {
+    wallId,
+    kind: o.kind,
+    at: o.roU0,
+    width: o.width,
+    height: o.height,
+    sillHeight: o.kind === 'window' ? o.roBottom : null,
+    roBottom: o.roBottom,
+    roTop: o.roTop,
+    framingU0: o.framingU0,
+    framingU1: o.framingU1,
+    header: { plies: o.header.plies, sectionId: o.header.sectionId, flat: o.header.flat, length: o.header.length },
+    jacks: o.jacks,
+    kings: o.kings,
+    headerRule: o.headerNote,
+    // Only when given, so recipes made before these fields existed stay the same.
+    ...(o.product !== undefined ? { product: o.product } : {}),
+    ...(o.safetyGlazing !== undefined ? { safetyGlazing: o.safetyGlazing } : {}),
+  };
 }
 
 /** A framed opening already in the wall (from its O assembly) or earlier in the same build. */
@@ -275,7 +326,7 @@ function marksWithin(spacing: number, a: number, b: number): number[] {
 }
 
 /** Rectangles of `r` left after cutting out `hole` (all in u/v). */
-function cutRect(r: FrameBox, hole: { u0: number; u1: number; v0: number; v1: number }): FrameBox[] {
+export function cutRect(r: FrameBox, hole: { u0: number; u1: number; v0: number; v1: number }): FrameBox[] {
   const ou0 = Math.max(r.u0, hole.u0);
   const ou1 = Math.min(r.u1, hole.u1);
   const ov0 = Math.max(r.v0, hole.v0);
