@@ -150,7 +150,7 @@ export function tapUsage(client: KeyholeClient, sink: (usage: RequestUsage) => v
  * Why a tool call was rejected:
  * - `invalid_input`: Claude's input couldn't be parsed — schema validation (a missing field, the
  *   wrong type, an unknown enum value or field), a length or pitch that couldn't be read, a
- *   number with no unit, or malformed JSON. Always a wasted round trip.
+ *   number with no unit, malformed JSON, or an ID wrapped in quote marks (`There's no part ""R1""`). Always a wasted round trip.
  * - `refusal`: the input was understood and refused on its merits (a clash, a span past any
  *   header, a slab too big…). Some scenarios expect these.
  *
@@ -168,6 +168,8 @@ const INPUT_PARSE_PATTERNS: readonly RegExp[] = [
   /should be [^,]+, but got /,
   /must be one of .*\(you gave /,
   /^Unknown fields? "/m,
+  // A not-found ID can be a real miss, but `""R1""` means the ID itself was wrapped in quote marks.
+  /There's no [^"]+ ""[^"]*""/,
 ];
 
 export function classifyToolError(content: string): ToolErrorKind {

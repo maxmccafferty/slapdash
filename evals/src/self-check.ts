@@ -327,11 +327,13 @@ const badInput = section('Input-parse rejections are told apart from refusals', 
     `"type" must be one of "gable", "shed" (you gave "hip").`,
     `Unknown field "colour".`,
     `Your input for build_wall wasn't valid JSON: {"start": Nothing has changed.`,
+    `There's no part or assembly ""R1"". Did you mean "R1"?`,
   ]) check(`"${msg.slice(0, 50)}" is invalid_input`, classifyToolError(msg) === 'invalid_input');
   for (const msg of [
     'The fence would run through T1 (tree trunk). Route it around, or move the tree.',
     'A 20\' 0" opening needs a header longer than any built-up 2x header; use an engineered beam.',
     `"length" must be more than zero (you gave -610 mm (-2' 0")).`,
+    `There's no part or assembly "R9". Did you mean "R1"?`,
   ]) check(`"${msg.slice(0, 50)}" is a refusal`, classifyToolError(msg) === 'refusal');
 
   // Real refusals from the bus are refusals.
@@ -367,6 +369,13 @@ const badInput = section('Input-parse rejections are told apart from refusals', 
   const unitless = scriptedClient([plan({ height: '0' }), plan({ height: '9ft' }), say('Here is the plan.')]);
   const u = (await runSuite([oneTurn()], unitless.client, { maxUsd: 1 })).results[0]!;
   check('a turn with a unitless "0" fails the bad-input check', u.status === 'fail' && u.turns[0]?.badInput.length === 1, u);
+
+  // An ID wrapped in quote marks is bad input; an ID that doesn't exist is a real miss.
+  const lookup = (id: string) => scriptedClient([call(['get_part', { id }]), say('The east wall is W2.')]);
+  const quotedId = (await runSuite([oneTurn({ seed: POOL_HOUSE_WALLS })], lookup('"W1"').client, { maxUsd: 1 })).results[0]!;
+  check('a quote-wrapped ID ("\\"W1\\"") fails the bad-input check', quotedId.status === 'fail' && quotedId.turns[0]?.badInput.length === 1, quotedId);
+  const missing = (await runSuite([oneTurn({ seed: POOL_HOUSE_WALLS })], lookup('W9').client, { maxUsd: 1 })).results[0]!;
+  check('an ID that does not exist is a refusal, not bad input', missing.status === 'pass' && missing.turns[0]?.refusals === 1 && missing.turns[0]?.badInput.length === 0, missing);
 
   // A clash refusal is a legitimate outcome, not bad input.
   const clashing = scriptedClient([
