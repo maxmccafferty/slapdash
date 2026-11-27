@@ -1,7 +1,7 @@
 import { poolFence } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_IN_YARD } from '../seeds.ts';
-import { expectSoundStep, planThenBuild } from './common.ts';
+import { expectSoundStep, buildInOneTurn } from './common.ts';
 
 /** Acceptance (LOC-117): a pool barrier fence with a gate on the house side. */
 export const poolFenceScenario = defineScenario({
@@ -10,7 +10,7 @@ export const poolFenceScenario = defineScenario({
   seed: POOL_IN_YARD,
   fullBuild: true,
   async run(ctx) {
-    const t2 = await planThenBuild(ctx, 'Put a pool fence around the pool with a gate on the house side');
+    const t2 = await buildInOneTurn(ctx, 'Put a pool fence around the pool with a gate on the house side');
     expectSoundStep(ctx, t2);
     ctx.expect(poolFence(ctx.session.bus.project));
   },

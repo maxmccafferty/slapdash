@@ -2,10 +2,11 @@ import { assemblyCount, calledTool, commonStudLength, noPlan, slabFootprint } fr
 import { defineScenario } from '../scenario.ts';
 import { expectSoundStep } from './common.ts';
 
-/** "Don't ask me first" turns the big-change check off and builds straight away. */
+/** With plans on (the person opted in earlier), "don't ask me first" turns the check off and builds straight away. */
 export const justDoIt = defineScenario({
   name: 'just-do-it',
-  description: '"Just do it": turns plans off and builds a 10×12 shed shell in one step',
+  description: 'With plans on, "Just do it" turns them off and builds a 10×12 shed shell in one step',
+  prefs: { confirmBigChanges: true },
   fullBuild: true,
   async run(ctx) {
     const t = await ctx.turn("Just do it, don't ask me first: build a 10×12 shed on a slab with 8ft walls");

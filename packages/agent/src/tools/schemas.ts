@@ -80,7 +80,7 @@ export const zRequestPhoto = z.strictObject({
 });
 
 export const zSetPreferences = z.strictObject({
-  confirmBigChanges: z.boolean().describe('false: skip plans for this project ("just do it"). true: show plans again.'),
+  confirmBigChanges: z.boolean().describe('true: show a plan before big changes. false: just build (the default).'),
 });
 
 export const zOfferOptions = z.strictObject({
@@ -151,7 +151,7 @@ export const agentToolDefs = [
   {
     name: 'propose_plan',
     description:
-      'Show the person a one-line plan with Build it / Change something before a big change (a new structure, a roof, or about 50+ parts). Give the footprint and height when you know them. Then stop and wait for their answer.',
+      'Only while the big-change check is on (the person asked to see plans first): show a one-line plan with Build it / Change something before a big change (a new structure, a roof, or about 50+ parts). Give the footprint and height when you know them. Then stop and wait for their answer.',
     schema: zProposePlan,
   },
   {
@@ -163,7 +163,7 @@ export const agentToolDefs = [
   {
     name: 'set_preferences',
     description:
-      "Call with false when the person says 'just do it' (skip plans for this project); true when they want plans back.",
+      'Call with true when the person wants to see a plan before big changes; false when they want you to just build again (the default).',
     schema: zSetPreferences,
   },
   {

@@ -1,7 +1,7 @@
 import { assembliesOf, boundsOf, partsIn } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_HOUSE_WALLS } from '../seeds.ts';
-import { expectSoundStep, planThenBuild } from './common.ts';
+import { expectSoundStep, buildInOneTurn } from './common.ts';
 
 /** A 6 in 12 gable on the seeded 20×16 walls: ridge along the long (east-west) side. */
 export const gableRoof = defineScenario({
@@ -9,7 +9,7 @@ export const gableRoof = defineScenario({
   description: '6 in 12 gable roof on existing pool-house walls: ridge along x, rafters in pairs',
   seed: POOL_HOUSE_WALLS,
   async run(ctx) {
-    const t2 = await planThenBuild(ctx, 'Add a 6 in 12 gable roof');
+    const t2 = await buildInOneTurn(ctx, 'Add a 6 in 12 gable roof');
     const p = ctx.session.bus.project;
     expectSoundStep(ctx, t2);
     const roofs = assembliesOf(p, 'roof');

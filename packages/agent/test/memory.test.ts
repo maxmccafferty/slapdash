@@ -149,26 +149,26 @@ describe('agent memory', () => {
 
   it('saves a chat log storage accepts, without snapshot bytes, and restores prefs and the pending plan', async () => {
     const mem = new AgentMemory(undefined, { now: () => 7 });
-    mem.setPrefs({ confirmBigChanges: false });
+    mem.setPrefs({ confirmBigChanges: true });
     turn(mem, 't1', 'Look', { snapshot: true });
     turn(mem, 't2', 'Build a shed', { plan: "I'll build an 8×10 shed." });
     expect(mem.pendingPlan).toBe("I'll build an 8×10 shed.");
     const log: ChatLog = mem.toChatLog();
     expect(zChatLog.safeParse(log).success).toBe(true);
     expect(JSON.stringify(log)).not.toContain('PNG-t1');
-    expect(log.prefs).toEqual({ confirmBigChanges: false });
+    expect(log.prefs).toEqual({ confirmBigChanges: true });
 
     const back = new AgentMemory(log satisfies ChatLogLike);
-    expect(back.prefs).toEqual({ confirmBigChanges: false });
+    expect(back.prefs).toEqual({ confirmBigChanges: true });
     expect(back.pendingPlan).toBe("I'll build an 8×10 shed.");
     const msgs = await back.toApiMessages();
     expect(texts(msgs)).toContain(snapshotStub('top view, textured, 768px'));
     expectValidMessages(msgs);
   });
 
-  it('defaults to confirming big changes, and a new turn clears the pending plan', () => {
+  it('defaults to building without a plan, and a new turn clears the pending plan', () => {
     const mem = new AgentMemory();
-    expect(mem.prefs).toEqual({ confirmBigChanges: true });
+    expect(mem.prefs).toEqual({ confirmBigChanges: false });
     expect(mem.toChatLog().prefs).toBeUndefined();
     turn(mem, 't1', 'Shed', { plan: 'Plan A' });
     expect(mem.pendingPlan).toBe('Plan A');

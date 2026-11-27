@@ -7,7 +7,6 @@ export const clashAvoidance = defineScenario({
   name: 'clash-avoidance',
   description: 'A picket fence whose line runs through a tree: route around it or offer options, never through it',
   seed: TREE_ON_LINE,
-  prefs: { confirmBigChanges: false },
   async run(ctx) {
     const t = await ctx.turn('Build a 4ft picket fence from the origin 30ft east');
     const p = ctx.session.bus.project;

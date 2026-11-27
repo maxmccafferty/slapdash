@@ -8,7 +8,7 @@ describe('project summary', () => {
   });
 
   it('lists the slab, walls, opening and roof with formatted sizes', () => {
-    const s = projectSummary(poolHouseBus().project, { versions: ['before roof'], pendingPlan: 'Add a deck.', confirmBigChanges: false });
+    const s = projectSummary(poolHouseBus().project, { versions: ['before roof'], pendingPlan: 'Add a deck.', confirmBigChanges: true });
     expect(s.startsWith('<project>\nName: Pool house · units imperial · ')).toBe(true);
     expect(s.endsWith('</project>')).toBe(true);
     expect(s).toContain('- FD1 Slab (foundation) 20\' 0" × 16\' 0" × 4" · 5 parts');
@@ -18,7 +18,7 @@ describe('project summary', () => {
     expect(s).toMatch(/Bounds: 20' 7\/8" E–W × .* tall \(origin SW corner, \+x east, \+z south\)/);
     expect(s).toContain('Saved versions: before roof');
     expect(s).toContain('Pending plan: "Add a deck."');
-    expect(s).toContain('Big-change check: off ("just do it")');
+    expect(s).toContain('Big-change check: on (plan before big changes)');
     expect(s.length).toBeLessThan(2000);
   });
 
@@ -30,7 +30,7 @@ describe('project summary', () => {
     expect(s).toContain('Site: Austin, TX (project) · snow 5 psf (default table) · wind not set · frost 1\' 0" (yours: county)');
     expect(s).toContain('Bounds: nothing built yet');
     expect(s).toContain('Assemblies: none');
-    expect(s).toContain('Big-change check: on');
+    expect(s).toContain('Big-change check: off (just build)');
   });
 
   it('marks table values with their source, and a location missing from the table', () => {

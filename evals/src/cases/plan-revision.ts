@@ -2,10 +2,11 @@ import { assembliesOf, fi, FT, IN, nothingChanged, partsIn, planShown } from '..
 import { defineScenario } from '../scenario.ts';
 import { expectSoundStep } from './common.ts';
 
-/** "Change something" gets a revised plan and still changes nothing; the build follows the revision. */
+/** Plans first (opted in): "Change something" gets a revised plan and still changes nothing; the build follows the revision. */
 export const planRevision = defineScenario({
   name: 'plan-revision',
-  description: 'Plan a 12×16 floor, revise it to 10×14, then build the revised floor on piers',
+  description: 'With plans on: plan a 12×16 floor, revise it to 10×14, then build the revised floor on piers',
+  prefs: { confirmBigChanges: true },
   async run(ctx) {
     const t1 = await ctx.turn('Frame a 12×16 floor on piers');
     ctx.expect(planShown(t1, 'turn 1'));

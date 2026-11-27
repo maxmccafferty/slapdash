@@ -300,6 +300,11 @@ const runner = section('Runner, usage tap, spend guard and report work offline',
   const names = SCENARIOS.map((s) => s.name);
   check('at least 10 scenarios', names.length >= 10, names.length);
   check('scenario names are unique', new Set(names).size === names.length);
+  // ADR-0002 §F1 is opt-in: only scenarios that turn plans on (or ask for them) expect one.
+  const plansOn = SCENARIOS.filter((s) => s.prefs?.confirmBigChanges === true).map((s) => s.name).sort();
+  check('plan-revision, just-do-it and small-change-no-plan turn plans on', plansOn.join(',') === 'just-do-it,plan-revision,small-change-no-plan', plansOn);
+  check('no scenario turns plans off explicitly (it is the default)', SCENARIOS.every((s) => s.prefs?.confirmBigChanges !== false));
+  check('plans-on-request is in the suite', names.includes('plans-on-request'));
 
   const good = scriptedClient([say('The walls are 9ft tall and the slab is 20ft × 16ft.')]);
   const pass = await runSuite([questionNoChange], good.client, { maxUsd: 1 });

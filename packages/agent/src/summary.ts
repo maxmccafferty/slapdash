@@ -24,7 +24,7 @@ export interface SummaryOptions {
   versions?: readonly string[];
   /** The plan from the previous turn, waiting for the person's answer. */
   pendingPlan?: string | null;
-  /** The big-change check; false after "just do it". Default true. */
+  /** The big-change check: true when the person asked for plans first. Default false. */
   confirmBigChanges?: boolean;
   /** Assembly lines before "…N more". Default 40. */
   maxAssemblies?: number;
@@ -166,6 +166,6 @@ export function projectSummary(project: Project, opts: SummaryOptions = {}): str
   }
   if (opts.versions && opts.versions.length > 0) lines.push(`Saved versions: ${opts.versions.join(', ')}`);
   if (opts.pendingPlan) lines.push(`Pending plan: "${clip(opts.pendingPlan, 300)}"`);
-  lines.push(`Big-change check: ${opts.confirmBigChanges === false ? 'off ("just do it")' : 'on'}`);
+  lines.push(`Big-change check: ${opts.confirmBigChanges === true ? 'on (plan before big changes)' : 'off (just build)'}`);
   return `<project>\n${lines.join('\n')}\n</project>`;
 }
