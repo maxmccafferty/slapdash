@@ -34,7 +34,8 @@ export {
 export { partFaces, faceContact, contactGap, facingFace, faceToward, type PlanarFace, type FaceContact, type FacePartLike } from './geometry/faces.ts';
 export { placeMember, placeOriented, boxInFrame, toWorld, toFrame, type PlanFrame, type FrameBox } from './geometry/frame.ts';
 export { findClashes, findAllClashes, describeClashes, CLASH_TOLERANCE_MM, type Clash, type ClashCandidate } from './model/clash.ts';
-export { BUILDER_DEFAULTS } from './builders/defaults.ts';
+export { BUILDER_DEFAULTS, DEFAULT_UNIT_SPECS, DEFAULT_GLASS_SWATCH, UNIT_SHIM } from './builders/defaults.ts';
+export { KIND_STYLES, resolveUnitSpec, layoutUnit, type ResolvedUnitSpec, type UnitMember } from './builders/layout/opening-unit.ts';
 export { codeNotes, type CodeNote } from './code/index.ts';
 export { FENCE_STYLES, poolParts, poolSideOf, type BuildFenceInput, type FenceGateInput, type FenceStyle } from './builders/layout/fence.ts';
 export { STRUCTURE_KINDS, type StructureKind } from './builders/layout/structure.ts';

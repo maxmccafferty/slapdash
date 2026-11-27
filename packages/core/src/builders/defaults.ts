@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { zId } from '../commands/common.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../units/length.ts';
+import type { OpeningUnit } from '../catalog/schema.ts';
 
 const IN = MM_PER_INCH;
 
@@ -74,6 +75,8 @@ export const BUILDER_DEFAULTS = {
     gateLatch: 'gate-latch',
     gateLatchMagnetic: 'gate-latch-magnetic',
     glassSpigot: 'glass-spigot',
+    /** Holds a window or door unit's pieces together; no fasteners of its own. */
+    factoryAssembled: 'factory-assembled',
   },
   /** 4×8 sheet. */
   sheet: { long: 96 * IN, short: 48 * IN },
@@ -126,3 +129,45 @@ export function resolveMaterials(input: BuilderMaterialsInput | undefined): Reso
     concrete: input?.concrete ?? d.concrete,
   };
 }
+
+/** The gap left round a window or door unit inside its rough opening, for shims. */
+export const UNIT_SHIM = { side: 0.5 * IN, head: 0.5 * IN } as const;
+
+const WHITE_VINYL = { color: '#f4f4f0', roughness: 0.5 } as const;
+
+/**
+ * How a window or door is drawn when its product has no `unit` (a custom catalog
+ * entry): a white vinyl casement window, a flat white slab door and a white vinyl
+ * sliding door.
+ */
+export const DEFAULT_UNIT_SPECS: Record<'window' | 'door' | 'sliding-door', OpeningUnit> = {
+  window: {
+    style: 'casement',
+    finish: 'white vinyl',
+    frame: { face_mm: 2.375 * IN, depth_mm: 3.25 * IN, swatch: WHITE_VINYL },
+    flange: { setback_mm: 1 * IN, width_mm: 1.375 * IN },
+    sash: { stile_mm: 1.5 * IN, topRail_mm: 1.5 * IN, bottomRail_mm: 2 * IN, meetingRail_mm: 1.25 * IN, depth_mm: 1.25 * IN },
+    lites: 1,
+    glass: 'igu',
+  },
+  door: {
+    style: 'entry',
+    finish: 'white-painted slab',
+    frame: { face_mm: 1.5 * IN, depth_mm: 4.5625 * IN, swatch: { color: '#f2f0ea', roughness: 0.6 } },
+    lites: 0,
+    glass: 'none',
+    slab: { thickness_mm: 1.75 * IN, swatch: { color: '#f2f0ea', roughness: 0.6 } },
+  },
+  'sliding-door': {
+    style: 'sliding',
+    finish: 'white vinyl',
+    frame: { face_mm: 2 * IN, depth_mm: 4.5625 * IN, swatch: WHITE_VINYL },
+    flange: { setback_mm: 1 * IN, width_mm: 1.375 * IN },
+    sash: { stile_mm: 2.5 * IN, topRail_mm: 2.5 * IN, bottomRail_mm: 3.5 * IN, depth_mm: 1.5 * IN },
+    lites: 1,
+    glass: 'igu',
+  },
+};
+
+/** Glass drawn when a unit gives no glass swatch: pale, see-through and a little reflective. */
+export const DEFAULT_GLASS_SWATCH = { color: '#cfe3ea', opacity: 0.25, roughness: 0.05, metalness: 0.1 } as const;

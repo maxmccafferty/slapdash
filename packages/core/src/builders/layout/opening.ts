@@ -16,8 +16,11 @@ import {
   pickHeader,
 } from '../rules.ts';
 import { compass, fi } from '../util.ts';
+import type { OpeningStyle } from '../../catalog/schema.ts';
 import type { Assembly } from '../../model/schema.ts';
-import { OPENING_BUILDER, addMember, hasTag, removeItem, studTop, type WallItem, type WallParams, type WallState } from './wall-state.ts';
+import { UNIT_TAG } from '../../model/opening-unit.ts';
+import { layoutUnit, type ResolvedUnitSpec } from './opening-unit.ts';
+import { OPENING_BUILDER, addMember, hasTag, removeItem, studTop, type UnitRecord, type WallItem, type WallParams, type WallState } from './wall-state.ts';
 
 const IN = MM_PER_INCH;
 const T = BUILDER_DEFAULTS.twoBy;
@@ -81,6 +84,8 @@ export interface ResolvedOpening {
   product?: string;
   /** Asked for tempered or laminated glazing. */
   safetyGlazing?: boolean;
+  /** The unit's style (casement, entry, …), once `frameOpening` has built one. */
+  style?: OpeningStyle;
 }
 
 /** The recipe add_opening (and build_wall's inline openings) store on an opening assembly. */
@@ -102,6 +107,8 @@ export interface OpeningParams {
   headerRule: string;
   product?: string;
   safetyGlazing?: boolean;
+  /** The unit drawn in the opening (casement, double-hung, entry, french, …); absent when there is none. */
+  style?: OpeningStyle;
 }
 
 /** An opening assembly's stored recipe, or null if add_opening didn't make it. */
@@ -130,6 +137,7 @@ export function openingParams(o: ResolvedOpening, wallId: string): OpeningParams
     // Only when given, so recipes made before these fields existed stay the same.
     ...(o.product !== undefined ? { product: o.product } : {}),
     ...(o.safetyGlazing !== undefined ? { safetyGlazing: o.safetyGlazing } : {}),
+    ...(o.style !== undefined ? { style: o.style } : {}),
   };
 }
 
@@ -409,12 +417,20 @@ export function parseHeaderSize(text: string): { plies: number; sectionId: strin
   return { plies, sectionId: m[3]!, flat: false };
 }
 
+/** The window or door unit to put in an opening: its product, how it's drawn and its build step. */
+export interface OpeningUnitInput {
+  materialId: string;
+  spec: ResolvedUnitSpec;
+  seq: number;
+}
+
 /**
  * Frame the opening into the wall state: remove the common studs in its way, add
  * kings, jacks, header, cripples and sill, cut the bottom plate for doors and cut the
- * sheathing around the rough opening. New framing is tagged `opening:<ref>`.
+ * sheathing around the rough opening. New framing is tagged `opening:<ref>`. With a
+ * `unit`, the window or door unit goes in too, in the opening's assembly (`state.units`).
  */
-export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: string, panel?: { materialId: string; seq: number }): void {
+export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: string, unit?: OpeningUnitInput): void {
   const p = state.params;
   const top = studTop(p, T);
   const D = p.depth;
@@ -473,18 +489,39 @@ export function frameOpening(state: WallState, o: ResolvedOpening, openingRef: s
   }
 
   // The door or window unit itself, in the opening's assembly, when the catalog has one.
-  if (panel) {
-    addMember(state, {
-      role: 'panel',
-      tags: [o.kind, `opening:${openingRef}`, ...(o.safetyGlazing ? ['safety-glazing'] : [])],
-      box: { u0: o.roU0, u1: o.roU1, v0: o.roBottom, v1: o.roTop, w0: 0, w1: D },
-      lengthAxis: 'u',
-      widthAxis: 'v',
-      materialId: panel.materialId,
-      phase: 'openings',
-      assembly: openingRef,
-      seq: panel.seq,
-    });
+  if (unit) {
+    const record: UnitRecord = {
+      openingRef,
+      ro: { u0: o.roU0, u1: o.roU1, v0: o.roBottom, v1: o.roTop, w0: 0, w1: D },
+      items: [],
+      anchor: null,
+      sides: [],
+    };
+    for (const m of layoutUnit(o, unit.spec, p)) {
+      const item = addMember(state, {
+        role: m.role,
+        tags: [
+          o.kind,
+          `opening:${openingRef}`,
+          UNIT_TAG,
+          `unit:${m.piece}`,
+          ...m.tags,
+          ...(m.role === 'glass' && o.safetyGlazing ? ['safety-glazing'] : []),
+        ],
+        box: m.box,
+        lengthAxis: m.lengthAxis,
+        widthAxis: m.widthAxis,
+        materialId: unit.materialId,
+        phase: 'openings',
+        assembly: openingRef,
+        seq: unit.seq,
+      });
+      record.items.push(item);
+      if (m.side) record.sides.push([m.side, item]);
+      if (m.side === 'bottom') record.anchor = item;
+    }
+    state.units.push(record);
+    o.style = unit.spec.style;
   }
 
   // Cut the sheathing around the rough opening.

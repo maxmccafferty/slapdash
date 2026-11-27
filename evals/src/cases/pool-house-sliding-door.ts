@@ -1,4 +1,4 @@
-import { assemblyCount, commonStudLength, headerOverOpening, hasOpening, slabFootprint } from '../checks.ts';
+import { framedUnits, assemblyCount, commonStudLength, headerOverOpening, hasOpening, slabFootprint } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { expectSoundStep, buildInOneTurn } from './common.ts';
 
@@ -17,5 +17,6 @@ export const poolHouseSlidingDoor = defineScenario({
     const { fail, opening } = hasOpening(p, { kind: 'sliding-door', wall: 'south', minWidthIn: 72 });
     ctx.expect(fail);
     ctx.expect(headerOverOpening(p, opening));
+    ctx.expect(framedUnits(p));
   },
 });

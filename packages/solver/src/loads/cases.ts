@@ -11,7 +11,7 @@
  * - An assembly with no sheathing gets its area loads straight on its rafters, joists
  *   or studs over a tributary width: the builder's spacing, or 16 in.
  */
-import { KPA_PER_PSF, MM_PER_INCH, type CatalogIndex, type Part, type Section } from '@slapdash/core';
+import { KPA_PER_PSF, MM_PER_INCH, isUnitPart, type CatalogIndex, type Part, type Project, type Section } from '@slapdash/core';
 import type { V3 } from '../fem/element.ts';
 import type { FemLoadCase } from '../fem/solve.ts';
 import type { AnalyticalModel } from '../model/build.ts';
@@ -98,6 +98,35 @@ function partVolume(p: Part, catalog: CatalogIndex): number {
 function partFaceArea(p: Part): number {
   const [a, b] = [p.size.length, p.size.width, p.size.height].sort((x, y) => y - x);
   return a! * b!;
+}
+
+/**
+ * Weight factors for window and door unit parts. A unit is drawn as many pieces (frame,
+ * sashes, glass) but its catalog density is for the whole unit as a box filling the rough
+ * opening through the wall's stud depth, so each opening's pieces are scaled to weigh
+ * that together. Parts without an add_opening recipe (and pre-unit panels) aren't scaled.
+ */
+export function unitWeightFactors(project: Project, catalog: CatalogIndex): Map<string, number> {
+  const byOpening = new Map<string, Part[]>();
+  for (const p of Object.values(project.parts)) {
+    if (!isUnitPart(p)) continue;
+    const list = byOpening.get(p.assemblyId) ?? [];
+    list.push(p);
+    byOpening.set(p.assemblyId, list);
+  }
+  const out = new Map<string, number>();
+  for (const [openingId, units] of byOpening) {
+    const asm = project.assemblies[openingId];
+    const op = asm?.builder?.name === 'add_opening' ? (asm.builder.params as Record<string, unknown>) : null;
+    const wallAsm = typeof op?.wallId === 'string' ? project.assemblies[op.wallId] : undefined;
+    const wall = wallAsm?.builder?.name === 'build_wall' ? (wallAsm.builder.params as Record<string, unknown>) : null;
+    if (!op || !wall || typeof op.width !== 'number' || typeof op.height !== 'number' || typeof wall.depth !== 'number') continue;
+    const volume = units.reduce((sum, p) => sum + partVolume(p, catalog), 0);
+    if (volume <= 0) continue;
+    const factor = (op.width * op.height * wall.depth) / volume;
+    for (const p of units) out.set(p.id, factor);
+  }
+  return out;
 }
 
 export function buildLoadCases(model: AnalyticalModel, options: AnalysisOptions = {}): CaseLoads {
@@ -223,12 +252,13 @@ export function buildLoadCases(model: AnalyticalModel, options: AnalysisOptions 
       }
       cases.D.push({ partId: id, t0: 0, t1: info.line.length, q: [0, -rho * WEIGHT_DENSITY * info.section.A, 0] });
     }
+    const unitFactor = unitWeightFactors(project, catalog);
     for (const p of parts) {
       const role = model.roles.get(p.id);
       if (role !== 'panel' && role !== 'mass-only') continue;
       const m = catalog.materials.get(p.materialId);
       const W = m?.density_kg_m3
-        ? m.density_kg_m3 * WEIGHT_DENSITY * partVolume(p, catalog)
+        ? m.density_kg_m3 * WEIGHT_DENSITY * partVolume(p, catalog) * (unitFactor.get(p.id) ?? 1)
         : m?.arealMass_kg_m2
           ? m.arealMass_kg_m2 * WEIGHT_AREAL * partFaceArea(p)
           : 0;

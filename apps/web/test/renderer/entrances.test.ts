@@ -192,7 +192,8 @@ describe('entrances', () => {
         expect(entering.every((p) => !before[p.id])).toBe(true);
         // The other wall and the slab stay put; most of the edited wall does too.
         expect(entering.every((p) => p.assemblyId === 'W2' || p.assemblyId === 'O1')).toBe(true);
-        expect(entering.length).toBeLessThan(wallParts / 2);
+        // (The window or door unit's changed pieces enter too; they're in O1, not the wall.)
+        expect(entering.filter((p) => p.assemblyId === 'W2').length).toBeLessThan(wallParts / 2);
         // Nothing enters that is the same piece in the same place as before.
         const old = new Set(Object.values(before).map(shape));
         expect(entering.filter((p) => old.has(shape(p))).map((p) => p.id)).toEqual([]);

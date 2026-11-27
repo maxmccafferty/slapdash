@@ -59,7 +59,9 @@ describe('project summary', () => {
     const s = projectSummary(bus.project, { catalog: bus.catalog });
     expect(s).toContain('Code notes (reminders, not a code check):');
     expect(s).toMatch(/- The pool \(X1\) needs a barrier at least 4ft tall .* \(IRC Appendix AG105\.2 \/ ISPSC 305\)/);
-    expect(s).toMatch(/- O2-PN01 \(window or door unit \(generic\)\) is within 5ft of the pool .* \(IRC R308\.4\.5\)/);
+    expect(s).toMatch(/- O2's glass \(window or door unit \(generic\)\) is within 5ft of the pool .* \(IRC R308\.4\.5\)/);
+    // The opening's unit is one line: its style and finish, and one unit however many parts draw it.
+    expect(s).toMatch(/- O2 Window in East wall \(opening\) 3' 0" × 4' 0" window RO in W2 · from 6' 6" along the wall · casement unit, white vinyl · 1 unit \(13 parts\)/);
     // The shell alone (no pool) has no notes.
     expect(projectSummary(poolHouseBus().project, { catalog: bus.catalog })).not.toContain('Code notes');
   });
@@ -72,7 +74,7 @@ describe('project summary', () => {
     expect(String(pool.content)).toContain('\nNew code note: Reminder (not a code check): The pool (X1) needs a barrier');
     const window = await dispatchTool({ id: 't2', name: 'add_opening', input: { wallId: 'W2', kind: 'window', centerAt: '8ft' } }, { bus, memory });
     const text = String(window.content);
-    expect(text).toContain('New code note: Reminder (not a code check): O2-PN01');
+    expect(text).toContain("New code note: Reminder (not a code check): O2's glass");
     expect(text).not.toContain('needs a barrier');
     const tree = await dispatchTool({ id: 't3', name: 'place_structure', input: { kind: 'tree', at: { x: '-30ft', z: '30ft' } } }, { bus, memory });
     expect(String(tree.content)).not.toContain('New code note');

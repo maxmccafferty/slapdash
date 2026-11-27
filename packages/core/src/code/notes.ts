@@ -12,6 +12,7 @@ import type { Catalog, Material } from '../catalog/schema.ts';
 import { indexCatalog, isCatalogIndex, type CatalogIndex } from '../catalog/validate.ts';
 import { aabbOf, partBox, type Aabb } from '../geometry/obb.ts';
 import { isBuiltPart } from '../materials/steps.ts';
+import { isUnitPart, unitOpeningId } from '../model/opening-unit.ts';
 import type { Part, Project } from '../model/schema.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../units/length.ts';
 
@@ -83,21 +84,42 @@ export function codeNotes(project: Project, catalog: Catalog | CatalogIndex): Co
 
   // 1. Safety glazing near a pool (IRC R308.4.5).
   if (pools.length > 0) {
+    // A window or door unit gets one note about its glass, not one per lite.
+    const unitGlass = new Map<string, { m: Material; ids: string[] }>();
     for (const p of built) {
       const m = mat(p);
       if (!m) continue;
+      if (isUnitPart(p) && p.role !== 'glass') continue;
       const glazed = m.category === 'opening' || m.flags?.includes('safety-glazing') || m.flags?.includes('not-safety-glazing');
       if (!glazed) continue;
       const safe = p.tags.includes('safety-glazing') || (m.flags?.includes('safety-glazing') ?? false);
       const unsafe = !safe && (m.flags?.includes('not-safety-glazing') || m.id === GENERIC_UNIT);
       if (!unsafe) continue;
       if (aabb(p).min.y >= GLAZING_NEAR_WATER_MM || nearestPool(p) >= GLAZING_NEAR_WATER_MM) continue;
+      if (isUnitPart(p)) {
+        const id = unitOpeningId(p);
+        const u = unitGlass.get(id) ?? { m, ids: [] };
+        u.ids.push(p.id);
+        unitGlass.set(id, u);
+        continue;
+      }
       out.push(
         note(
           'safety-glazing-near-pool',
           'safety-glazing',
           [p.id],
           `${p.id} (${m.name.toLowerCase()}) is within 5ft of the pool and less than 5ft up, so its glass must be tempered or laminated safety glazing. Re-add the opening with "safetyGlazing": true, or pick a tempered product.`,
+          'IRC R308.4.5',
+        ),
+      );
+    }
+    for (const [openingId, { m, ids }] of unitGlass) {
+      out.push(
+        note(
+          'safety-glazing-near-pool',
+          'safety-glazing',
+          ids,
+          `${openingId}'s glass (${m.name.toLowerCase()}) is within 5ft of the pool and less than 5ft up, so it must be tempered or laminated safety glazing. Re-add the opening with "safetyGlazing": true, or pick a tempered product.`,
           'IRC R308.4.5',
         ),
       );

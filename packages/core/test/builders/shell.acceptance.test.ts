@@ -4,7 +4,8 @@
  * 6 in 12 gable roof.
  */
 import { describe, expect, it } from 'vitest';
-import { createProject, findAllClashes, formatErrors, partBox, type CommandBus, type Part, type Project } from '../../src/index.ts';
+import { CommandBus, createProject, findAllClashes, formatErrors, partBox, type Part, type Project } from '../../src/index.ts';
+import { UNIT_CATALOG } from '../commands/builders/unit-fixtures.ts';
 import { makeBus, model } from '../helpers.ts';
 
 const IN = 25.4;
@@ -163,3 +164,32 @@ describe('acceptance: impossible inputs are refused in plain sentences', () => {
   });
 });
 
+
+describe('acceptance: the same shell with a generic window and door unit', () => {
+  const bus = new CommandBus({ project: createProject({ name: 'Pool house' }), catalog: UNIT_CATALOG, now: () => 1 });
+  exec(bus, 'pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
+  exec(bus, 'build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', name: 'North wall' });
+  exec(bus, 'build_wall', { start: { x: '20ft', z: 0 }, end: { x: '20ft', z: '16ft' }, height: '9ft', name: 'East wall' });
+  exec(bus, 'build_wall', {
+    start: { x: '20ft', z: '16ft' },
+    end: { x: 0, z: '16ft' },
+    height: '9ft',
+    name: 'South wall',
+    openings: [{ kind: 'sliding-door', centerAt: '10ft' }],
+  });
+  exec(bus, 'build_wall', { start: { x: 0, z: '16ft' }, end: { x: 0, z: 0 }, height: '9ft', name: 'West wall' });
+  exec(bus, 'add_opening', { wallId: 'W2', kind: 'window', centerAt: '8ft' });
+  exec(bus, 'build_roof', { type: 'gable', from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' }, pitch: '6 in 12', ridgeAxis: 'x' });
+  const p = bus.project;
+
+  it('has a unit in each opening, every unit part joined, and nothing running through anything', () => {
+    for (const o of Object.values(p.assemblies).filter((a) => a.kind === 'opening')) {
+      const unit = inAsm(p, o.id).filter((x) => x.tags.includes('unit'));
+      expect(unit.length, o.id).toBeGreaterThan(8);
+      for (const x of unit) expect(x.buildStep.phase).toBe('openings');
+    }
+    const joined = new Set(Object.values(p.joints).flatMap((j) => j.partIds));
+    for (const x of Object.values(p.parts)) if (x.tags.includes('unit')) expect(joined.has(x.id), x.id).toBe(true);
+    expect(findAllClashes(p)).toEqual([]);
+  });
+});

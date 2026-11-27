@@ -14,6 +14,9 @@ import {
   facingFace,
   hasCuts,
   findAllClashes,
+  boxInFrame,
+  isUnitPart,
+  unitPiece,
   formatFeetInches,
   MM_PER_FOOT,
   MM_PER_INCH,
@@ -293,16 +296,31 @@ export interface OpeningInfo {
   center: PlanPt;
 }
 
-/** Every framed opening, read from its add_opening recipe (falling back to the door/window panel). */
+/** World bounds of an opening's window or door unit frame (no fin or casing), or of a pre-unit panel. */
+function unitBounds(parts: readonly Part[]): Aabb | null {
+  const frame = parts.filter((x) => isUnitPart(x) && x.role === 'frame' && unitPiece(x) !== 'flange');
+  const use = frame.length > 0 ? frame : parts.filter((x) => x.role === 'panel');
+  if (use.length === 0) return null;
+  const boxes = use.map((x) => aabbOf(partBox(x)));
+  return {
+    min: { x: Math.min(...boxes.map((b) => b.min.x)), y: Math.min(...boxes.map((b) => b.min.y)), z: Math.min(...boxes.map((b) => b.min.z)) },
+    max: { x: Math.max(...boxes.map((b) => b.max.x)), y: Math.max(...boxes.map((b) => b.max.y)), z: Math.max(...boxes.map((b) => b.max.z)) },
+  };
+}
+
+/** Every framed opening, read from its add_opening recipe (falling back to the unit's frame, or a pre-unit panel). */
 export function openings(p: Project): OpeningInfo[] {
   const ws = new Map(walls(p).map((w) => [w.id, w]));
   return assembliesOf(p, 'opening').flatMap((a) => {
     const params = (a.builder?.params ?? {}) as { wallId?: string; kind?: string; at?: number; width?: number; height?: number };
-    const panel = partsIn(p, a.id).find((x) => x.role === 'panel');
+    const own = partsIn(p, a.id);
+    const panel = own.find((x) => isUnitPart(x)) ?? own.find((x) => x.role === 'panel');
+    const bounds = unitBounds(own);
     const kind = params.kind ?? (panel ? (['sliding-door', 'door', 'window'].find((k) => panel.tags.includes(k)) ?? '?') : '?');
     const wallId = params.wallId ?? '?';
-    const width = params.width ?? panel?.size.length ?? 0;
-    const height = params.height ?? panel?.size.width ?? 0;
+    const planWidth = bounds ? Math.hypot(bounds.max.x - bounds.min.x, bounds.max.z - bounds.min.z) : 0;
+    const width = params.width ?? (bounds ? planWidth : 0);
+    const height = params.height ?? (bounds ? bounds.max.y - bounds.min.y : 0);
     const w = ws.get(wallId);
     const centerU = (params.at ?? 0) + width / 2;
     let center: PlanPt = { x: NaN, z: NaN };
@@ -310,9 +328,8 @@ export function openings(p: Project): OpeningInfo[] {
       const ux = (w.end.x - w.start.x) / w.length;
       const uz = (w.end.z - w.start.z) / w.length;
       center = { x: w.start.x + ux * centerU, z: w.start.z + uz * centerU };
-    } else if (panel) {
-      const b = aabbOf(partBox(panel));
-      center = { x: (b.min.x + b.max.x) / 2, z: (b.min.z + b.max.z) / 2 };
+    } else if (bounds) {
+      center = { x: (bounds.min.x + bounds.max.x) / 2, z: (bounds.min.z + bounds.max.z) / 2 };
     }
     return [{ asmId: a.id, kind, wallId, side: w?.side ?? null, roWidth: width, roHeight: height, centerU, center }];
   });
@@ -477,6 +494,73 @@ export function framingConnected(p: Project, roles: readonly PartRole[] = FRAMIN
     .slice(0, 3)
     .map((x) => `${x.id} ${x.role}`)
     .join(', ')})`;
+}
+
+// ── Window and door units ───────────────────────────────────────────────────
+
+const UNIT_GAP_MM = 0.5 * MM_PER_INCH;
+const UNIT_GAP_TOL_MM = 1;
+
+/**
+ * Every opening with a window or door unit (its recipe has a `style`) is a real unit: two
+ * jambs, a head and a sill or threshold; sashes and glass for a window, a slab or a glazed
+ * leaf for a door; no leftover single-box panel; the frame inside the rough opening with
+ * a 1/2in shim gap at the sides and head, on the rough sill (or the subfloor for doors);
+ * and nailed to the wall framing at least twice.
+ */
+export function framedUnits(p: Project): Fail[] {
+  const fails: Fail[] = [];
+  for (const a of assembliesOf(p, 'opening')) {
+    const op = (a.builder?.name === 'add_opening' ? a.builder.params : null) as
+      | { style?: string; kind?: string; wallId?: string; at?: number; width?: number; roBottom?: number; roTop?: number }
+      | null;
+    if (!op?.style) continue;
+    const own = partsIn(p, a.id);
+    const units = own.filter(isUnitPart);
+    const piece = (name: string) => units.filter((x) => unitPiece(x) === name).length;
+    const id = a.id;
+    if (piece('jamb') !== 2) fails.push(`${id} should have 2 jambs (got ${piece('jamb')})`);
+    if (piece('head') !== 1) fails.push(`${id} should have 1 head (got ${piece('head')})`);
+    if (piece('sill') + piece('threshold') !== 1) fails.push(`${id} should have 1 sill or threshold (got ${piece('sill') + piece('threshold')})`);
+    const sash = units.some((x) => x.role === 'sash');
+    const glass = units.some((x) => x.role === 'glass');
+    const door = units.some((x) => x.role === 'door');
+    if (op.kind === 'window' ? !(sash && glass) : !(door || (sash && glass))) {
+      fails.push(`${id} should have ${op.kind === 'window' ? 'a sash and glass' : 'a door slab, or a sash and glass'}`);
+    }
+    if (own.some((x) => x.role === 'panel')) fails.push(`${id} still has a single-box panel`);
+
+    // The frame inside the rough opening, in the wall's own frame.
+    const wallAsm = op.wallId ? p.assemblies[op.wallId] : undefined;
+    const wp = wallAsm?.builder?.name === 'build_wall' ? (wallAsm.builder.params as { start: PlanPt; end: PlanPt; exterior?: string; baseElevation: number }) : null;
+    const frame = units.filter((x) => x.role === 'frame' && unitPiece(x) !== 'flange');
+    if (wp && frame.length > 0 && op.at !== undefined && op.width !== undefined && op.roBottom !== undefined && op.roTop !== undefined) {
+      const f = {
+        origin: { x: wp.start.x, y: wp.baseElevation, z: wp.start.z },
+        angleDeg: (Math.atan2(wp.end.z - wp.start.z, wp.end.x - wp.start.x) * 180) / Math.PI,
+        wSign: (wp.exterior === 'right' ? -1 : 1) as 1 | -1,
+      };
+      const boxes = frame.map((x) => boxInFrame(f, x));
+      const u0 = Math.min(...boxes.map((b) => b.u0));
+      const u1 = Math.max(...boxes.map((b) => b.u1));
+      const v0 = Math.min(...boxes.map((b) => b.v0));
+      const v1 = Math.max(...boxes.map((b) => b.v1));
+      const near = (got: number, want: number) => Math.abs(got - want) <= UNIT_GAP_TOL_MM;
+      const gaps = { start: u0 - op.at, end: op.at + op.width - u1, head: op.roTop - v1 };
+      for (const [side, g] of Object.entries(gaps)) {
+        if (!near(g, UNIT_GAP_MM)) fails.push(`${id}'s frame should sit 1/2" inside the rough opening at the ${side} (got ${formatFeetInches(g)})`);
+      }
+      if (!near(v0, op.roBottom)) fails.push(`${id}'s frame should sit on the ${op.kind === 'window' ? 'rough sill' : 'subfloor'} (it's ${formatFeetInches(v0 - op.roBottom)} off)`);
+    }
+
+    const unitIds = new Set(units.map((x) => x.id));
+    const frameIds = new Set(frame.map((x) => x.id));
+    const nailed = Object.values(p.joints).filter(
+      (j) => j.partIds.some((x) => frameIds.has(x)) && j.partIds.some((x) => !unitIds.has(x) && x !== 'GROUND'),
+    ).length;
+    if (nailed < 2) fails.push(`${id}'s frame should be nailed to the wall framing at least twice (got ${nailed})`);
+  }
+  return fails.length > 0 ? fails : [null];
 }
 
 // ── Clashes ─────────────────────────────────────────────────────────────────

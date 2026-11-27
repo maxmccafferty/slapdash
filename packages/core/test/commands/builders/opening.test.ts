@@ -80,7 +80,7 @@ describe('add_opening', () => {
   it('adds the door/window unit to the opening assembly when the catalog has one', () => {
     const catalog = indexCatalog({
       ...SAMPLE_CATALOG,
-      materials: [...SAMPLE_CATALOG.materials, { id: 'window-unit', name: 'Window unit', category: 'opening', acceptsJoints: ['nailed-16d'] }],
+      materials: [...SAMPLE_CATALOG.materials, { id: 'window-unit', name: 'Window unit', category: 'opening', acceptsJoints: ['nailed-16d', 'factory-assembled'] }],
     });
     const def = commandRegistry.get('add_opening')!;
     const input = def.schema.parse({ wallId: 'W1', kind: 'window', centerAt: '8ft' });
@@ -88,9 +88,23 @@ describe('add_opening', () => {
     const before = wallProject();
     expect(def.check(before, input, ctx)).toEqual([]);
     const p = def.apply(before, input, ctx).project;
-    const unit = Object.values(p.parts).find((x) => x.role === 'panel')!;
-    expect(unit).toMatchObject({ id: 'O1-PN01', assemblyId: 'O1', materialId: 'window-unit', buildStep: { phase: 'openings', seq: 0 } });
-    expect(Object.values(p.joints).filter((j) => j.partIds.includes(unit.id)).length).toBeGreaterThanOrEqual(2);
+    expect(Object.values(p.parts).filter((x) => x.role === 'panel')).toEqual([]);
+    const unit = Object.values(p.parts).filter((x) => x.tags.includes('unit'));
+    // A casement (the default for a product with no unit): frame, fin, sash and glass.
+    expect(unit.map((x) => x.role).sort()).toEqual([...Array(8).fill('frame'), 'glass', ...Array(4).fill('sash')]);
+    for (const x of unit) {
+      expect(x).toMatchObject({ assemblyId: 'O1', materialId: 'window-unit', buildStep: { phase: 'openings', seq: 0 } });
+      expect(x.sectionId).toBeUndefined();
+    }
+    expect(unit.find((x) => x.tags.includes('unit:sill'))!.id).toBe('O1-FR01');
+    const ids = new Set(unit.map((x) => x.id));
+    const attach = Object.values(p.joints).filter((j) => j.partIds.some((id) => ids.has(id)) && j.partIds.some((id) => !ids.has(id)));
+    expect(attach.length).toBeGreaterThanOrEqual(2);
+    expect(attach.every((j) => j.jointTypeId === 'nailed-16d')).toBe(true);
+    const internal = Object.values(p.joints).filter((j) => j.partIds.every((id) => ids.has(id)));
+    expect(internal).toHaveLength(unit.length - 1);
+    expect(internal.every((j) => j.jointTypeId === 'factory-assembled')).toBe(true);
+    expect(p.assemblies.O1!.builder!.params).toMatchObject({ style: 'casement' });
     expect(findAllClashes(p)).toEqual([]);
   });
 
@@ -101,12 +115,14 @@ describe('add_opening', () => {
     expect(params).not.toHaveProperty('safetyGlazing');
 
     const res = expectRoundTrip(wallProject(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '8ft', product: 'window-casement', safetyGlazing: true });
-    const unit = Object.values(res.project.parts).find((x) => x.role === 'panel')!;
-    expect(unit).toMatchObject({ assemblyId: 'O1', materialId: 'window-casement' });
-    expect(unit.tags).toContain('safety-glazing');
-    const unitJoints = Object.values(res.project.joints).filter((j) => j.partIds.includes(unit.id));
-    expect(unitJoints.length).toBeGreaterThanOrEqual(2);
-    expect(unitJoints.every((j) => j.jointTypeId === 'nailed-roofing')).toBe(true);
+    const unit = Object.values(res.project.parts).filter((x) => x.tags.includes('unit'));
+    for (const x of unit) expect(x).toMatchObject({ assemblyId: 'O1', materialId: 'window-casement' });
+    // Only the glass is marked safety glazing.
+    expect(unit.filter((x) => x.tags.includes('safety-glazing')).map((x) => x.role)).toEqual(['glass']);
+    const ids = new Set(unit.map((x) => x.id));
+    const nailed = Object.values(res.project.joints).filter((j) => j.partIds.some((id) => ids.has(id)) && j.partIds.some((id) => !ids.has(id)));
+    expect(nailed.length).toBeGreaterThanOrEqual(2);
+    expect(nailed.every((j) => j.jointTypeId === 'nailed-roofing')).toBe(true);
     expect(res.project.assemblies.O1!.builder!.params).toMatchObject({ product: 'window-casement', safetyGlazing: true });
 
     const inline = runOk(createProject({ name: 't' }), 'build_wall', {
@@ -115,7 +131,7 @@ describe('add_opening', () => {
       height: '9ft',
       openings: [{ kind: 'window', centerAt: '8ft', product: 'window-casement' }],
     }).project;
-    expect(Object.values(inline.parts).find((x) => x.role === 'panel')!.materialId).toBe('window-casement');
+    expect(Object.values(inline.parts).find((x) => x.role === 'glass')!.materialId).toBe('window-casement');
   });
 
   it('refuses a product that is not an opening', () => {

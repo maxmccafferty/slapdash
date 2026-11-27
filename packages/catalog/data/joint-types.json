@@ -471,5 +471,17 @@
     "fastener": "Stainless pad eye, turnbuckle and snap hook",
     "hardwareId": "shade-sail-mount-kit",
     "source": "Estimate: shade-sail turnbuckle and pad-eye kits publish breaking loads, not working loads; 500 lbf is a conservative planning number per corner. Sail corner loads in wind can be much higher: check the post with a pro."
+  },
+  {
+    "id": "factory-assembled",
+    "name": "Factory-assembled unit",
+    "category": "glued",
+    "behaviour": "fixed",
+    "capacity": {
+      "shear_N": 2000,
+      "basis": "per-joint"
+    },
+    "defaultFastenerCount": 1,
+    "source": "Estimate: the unit is assembled at the factory; this joint only holds its pieces together in the model."
   }
 ]

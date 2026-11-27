@@ -152,3 +152,27 @@ describe('search_catalog', () => {
     expect(text(searchCatalog(p, c, { text: 'site context' }))).toContain('No materials match');
   });
 });
+
+describe('window and door units (LOC-124)', () => {
+  const wb = poolHouseBus();
+  const added = wb.execute('add_opening', { wallId: 'W2', kind: 'window', centerAt: '8ft' });
+  if (!added.ok) throw new Error('add_opening failed');
+  const p = wb.project;
+  it('find_parts lists a unit as one row, unless asked for its pieces', () => {
+    const out = text(findParts(p, c, { assembly: 'O2' }));
+    expect(out).toContain('1 part matches.');
+    expect(out).toMatch(/^O2 · unit · 3' 0" × 4' 0" casement window, white vinyl \(Window or door unit \(generic\)\) · O2 · opening-unit · 13 parts \(frame, sash, glass\)$/m);
+    const glass = text(findParts(p, c, { role: 'glass' }));
+    expect(glass.split('\n').filter((l) => /^O\d-GL\d+/.test(l)).length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('get_part on a glass part names its unit; get_part on the opening sums it up', () => {
+    const out = text(getPartInfo(p, c, { id: 'O2-GL01' }));
+    expect(out.split('\n')[0]).toBe(
+      "Part of O2: a 3' 0\" × 4' 0\" casement window, white vinyl (Window or door unit (generic)). Change it with update_opening / remove_opening on O2, not part by part.",
+    );
+    const asm = text(getPartInfo(p, c, { id: 'O2' }));
+    expect(asm).toContain('Unit: 3\' 0" × 4\' 0" casement window, white vinyl (Window or door unit (generic)), 13 parts (frame, sash, glass)');
+    expect(asm).not.toContain('Parts by role');
+  });
+});

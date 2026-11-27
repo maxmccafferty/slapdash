@@ -1,4 +1,4 @@
-import { assemblyCount, bottomPlatePieces, calledTool, didNotCall, hasOpening, headerOverOpening, noPlan, sameWalls, soundBuild } from '../checks.ts';
+import { framedUnits, assemblyCount, bottomPlatePieces, calledTool, didNotCall, hasOpening, headerOverOpening, noPlan, sameWalls, soundBuild } from '../checks.ts';
 import { defineScenario, undoSteps } from '../scenario.ts';
 import { POOL_HOUSE_WITH_DOOR } from '../seeds.ts';
 import { buildInOneTurn, expectSoundStep } from './common.ts';
@@ -24,6 +24,7 @@ export const resizeDoor = defineScenario({
     ctx.expect(fail);
     if (opening) ctx.expect(opening.asmId === 'O1' ? null : `the door should still be O1 (got ${opening.asmId})`);
     ctx.expect(headerOverOpening(p1, opening));
+    ctx.expect(framedUnits(p1));
 
     const t2 = await ctx.turn('Actually, remove that door');
     const p2 = ctx.session.bus.project;

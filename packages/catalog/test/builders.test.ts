@@ -61,9 +61,17 @@ describe('builders on the catalog', () => {
       expect(codeNotes(p, idx)).toEqual([]);
     });
 
-    it('each opening gets a generic window/door unit', () => {
+    it('each opening gets a generic window/door unit, drawn as a frame, sashes and glass', () => {
       const units = Object.values(p.parts).filter((x) => x.materialId === 'opening-unit');
-      expect(units.map((u) => u.assemblyId).sort()).toEqual(['O1', 'O2']);
+      expect([...new Set(units.map((u) => u.assemblyId))].sort()).toEqual(['O1', 'O2']);
+      for (const u of units) expect(u.tags).toContain('unit');
+      expect(units.some((u) => u.role === 'panel')).toBe(false);
+      for (const id of ['O1', 'O2']) {
+        const roles = new Set(units.filter((u) => u.assemblyId === id).map((u) => u.role));
+        expect([...roles].sort(), id).toEqual(['frame', 'glass', 'sash']);
+      }
+      expect(p.assemblies.O1!.builder!.params).toMatchObject({ style: 'sliding' });
+      expect(p.assemblies.O2!.builder!.params).toMatchObject({ style: 'casement' });
     });
   });
 

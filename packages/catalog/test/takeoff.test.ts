@@ -174,3 +174,73 @@ describe('materials for tier 2 and 3 parts (real catalog and prices)', () => {
   });
 });
 
+
+// Pinned on the single-box units (before LOC-124); the real units must keep them.
+const PINNED_TOTALS = { low: 366111, high: 807566, unpriced: 1 };
+const PINNED_WALLS = [
+  { id: 'walls:board|pt-spf-no2|2x4|6096', quantity: 2, cost: { low: 2240, high: 2480 } },
+  { id: 'walls:board|pt-spf-no2|2x4|4876.8', quantity: 1, cost: { low: 896, high: 992 } },
+  { id: 'walls:board|pt-spf-no2|2x4|2352.675', quantity: 1, cost: { low: 432, high: 479 } },
+  { id: 'walls:board|spf-no2|2x4|6096', quantity: 11, cost: { low: 9020, high: 16720 } },
+  { id: 'walls:board|spf-no2|2x4|2657.475', quantity: 59, cost: { low: 21091, high: 39095 } },
+  { id: 'walls:board|spf-no2|2x4|2438.4', quantity: 1, cost: { low: 328, high: 608 } },
+  { id: 'walls:board|spf-no2|2x6|2352.675', quantity: 1, cost: { low: 648, high: 1034 } },
+  { id: 'walls:board|spf-no2|2x10|4267.2', quantity: 1, cost: { low: 2898, high: 3444 } },
+  { id: 'walls:sheet|osb-7-16|7/16in', quantity: 43, cost: { low: 44720, high: 70864 } },
+  { id: 'walls:pieces|door-entry|', quantity: 1, cost: { low: 54600, high: 144330 } },
+  { id: 'walls:pieces|door-sliding-glass|', quantity: 1, cost: { low: 63800, high: 266726 } },
+  { id: 'walls:pieces|opening-unit|', quantity: 1, cost: null },
+  { id: 'walls:hardware|anchor-bolt-1-2|', quantity: 16, cost: { low: 1997, high: 6080 } },
+  { id: 'walls:hardware|nail-16d-common|', quantity: 588, cost: { low: 6586, high: 7115 } },
+  { id: 'walls:hardware|nail-8d-common|', quantity: 1398, cost: { low: 7829, high: 7829 } },
+];
+const PINNED_HARDWARE = [
+  { id: 'walls:hardware|anchor-bolt-1-2|', quantity: 16, cost: { low: 1997, high: 6080 } },
+  { id: 'walls:hardware|nail-16d-common|', quantity: 588, cost: { low: 6586, high: 7115 } },
+  { id: 'walls:hardware|nail-8d-common|', quantity: 1398, cost: { low: 7829, high: 7829 } },
+  { id: 'roof:hardware|nail-16d-common|', quantity: 400, cost: { low: 4480, high: 4840 } },
+  { id: 'roof:hardware|nail-8d-common|', quantity: 516, cost: { low: 2890, high: 2890 } },
+  { id: 'roof:hardware|hurricane-tie|', quantity: 32, cost: { low: 1856, high: 3136 } },
+];
+
+describe('the window and door units cost what the single-box units did (LOC-124)', () => {
+  // Pinned before units were drawn as frames, sashes, glass and slabs: the materials
+  // total, the wall rows and the hardware must not change.
+  function shell(): CommandBus {
+    let n = 0;
+    const bus = new CommandBus({ project: createProject({ name: 'Three openings' }), catalog: CATALOG, now: () => ++n });
+    const exec = (name: string, input: unknown) => {
+      const res = bus.execute(name, input);
+      if (!res.ok) throw new Error(`${name}: ${formatErrors(res.errors)}`);
+    };
+    exec('pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
+    exec('build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft', name: 'North wall' });
+    exec('build_wall', { start: { x: '20ft', z: 0 }, end: { x: '20ft', z: '16ft' }, height: '9ft', name: 'East wall' });
+    exec('build_wall', { start: { x: '20ft', z: '16ft' }, end: { x: 0, z: '16ft' }, height: '9ft', name: 'South wall' });
+    exec('build_wall', { start: { x: 0, z: '16ft' }, end: { x: 0, z: 0 }, height: '9ft', name: 'West wall' });
+    exec('add_opening', { wallId: 'W1', kind: 'window', centerAt: '10ft', width: '36in', height: '48in' });
+    exec('add_opening', { wallId: 'W4', kind: 'door', centerAt: '8ft', width: '38in', product: 'door-entry' });
+    exec('add_opening', { wallId: 'W3', kind: 'sliding-door', centerAt: '10ft', product: 'door-sliding-glass' });
+    exec('build_roof', { type: 'gable', from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' }, pitch: '6 in 12', ridgeAxis: 'x' });
+    return bus;
+  }
+  const report = takeoff(shell().project, CATALOG, PRICE_TABLE);
+  const pick = (r: MaterialsReport['groups'][number]['rows'][number]) => ({
+    id: r.id,
+    quantity: r.quantity,
+    cost: r.cost ? { low: r.cost.low_cents, high: r.cost.high_cents } : null,
+  });
+
+  it('keeps the totals', () => {
+    expect({ low: report.totals.low_cents, high: report.totals.high_cents, unpriced: report.totals.unpriced }).toEqual(PINNED_TOTALS);
+  });
+
+  it('keeps the wall rows', () => {
+    expect(report.groups.find((g) => g.title === 'Walls')!.rows.map(pick)).toEqual(PINNED_WALLS);
+  });
+
+  it('keeps the hardware', () => {
+    const hardware = report.groups.flatMap((g) => g.rows).filter((r) => r.measure === 'fasteners');
+    expect(hardware.map(pick)).toEqual(PINNED_HARDWARE);
+  });
+});

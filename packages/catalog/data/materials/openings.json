@@ -11,9 +11,41 @@
     },
     "acceptsJoints": [
       "nailed-16d",
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
-    "priceKey": "opening.opening-unit"
+    "priceKey": "opening.opening-unit",
+    "unit": {
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu",
+      "slab": {
+        "thickness_mm": 44.45,
+        "swatch": {
+          "color": "#f2f0ea",
+          "roughness": 0.6
+        }
+      }
+    }
   },
   {
     "id": "window-single-hung",
@@ -25,12 +57,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-single-hung"
+    "priceKey": "opening.window-single-hung",
+    "unit": {
+      "style": "single-hung",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "window-double-hung",
@@ -42,12 +100,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-double-hung"
+    "priceKey": "opening.window-double-hung",
+    "unit": {
+      "style": "double-hung",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "window-casement",
@@ -59,12 +143,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-casement"
+    "priceKey": "opening.window-casement",
+    "unit": {
+      "style": "casement",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "window-sliding",
@@ -76,12 +186,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-sliding"
+    "priceKey": "opening.window-sliding",
+    "unit": {
+      "style": "slider",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "window-awning",
@@ -93,12 +229,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-awning"
+    "priceKey": "opening.window-awning",
+    "unit": {
+      "style": "awning",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "window-fixed",
@@ -110,12 +272,38 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
-    "priceKey": "opening.window-fixed"
+    "priceKey": "opening.window-fixed",
+    "unit": {
+      "style": "fixed",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "door-entry",
@@ -128,10 +316,40 @@
     },
     "acceptsJoints": [
       "nailed-16d",
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "flags": [],
-    "priceKey": "opening.door-entry"
+    "priceKey": "opening.door-entry",
+    "unit": {
+      "style": "entry",
+      "finish": "wood jamb, stained fiberglass slab",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#c8a46e",
+          "roughness": 0.6
+        }
+      },
+      "lites": 0,
+      "glass": "none",
+      "slab": {
+        "thickness_mm": 44.45,
+        "swatch": {
+          "color": "#7a4b2a",
+          "roughness": 0.5
+        }
+      },
+      "casing": {
+        "width_mm": 50.8,
+        "thickness_mm": 31.75,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.6
+        }
+      }
+    }
   },
   {
     "id": "door-french",
@@ -144,12 +362,37 @@
     },
     "acceptsJoints": [
       "nailed-16d",
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "flags": [
       "safety-glazing"
     ],
-    "priceKey": "opening.door-french"
+    "priceKey": "opening.door-french",
+    "unit": {
+      "style": "french",
+      "finish": "white-painted wood",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.6
+        }
+      },
+      "sash": {
+        "stile_mm": 114.3,
+        "topRail_mm": 114.3,
+        "bottomRail_mm": 241.3,
+        "depth_mm": 44.45
+      },
+      "lites": 1,
+      "glass": "igu",
+      "casing": {
+        "width_mm": 50.8,
+        "thickness_mm": 31.75
+      }
+    }
   },
   {
     "id": "door-sliding-glass",
@@ -162,12 +405,37 @@
     },
     "acceptsJoints": [
       "nailed-16d",
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "flags": [
       "safety-glazing"
     ],
-    "priceKey": "opening.door-sliding-glass"
+    "priceKey": "opening.door-sliding-glass",
+    "unit": {
+      "style": "sliding",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 50.8,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 63.5,
+        "topRail_mm": 63.5,
+        "bottomRail_mm": 88.9,
+        "depth_mm": 38.1
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   },
   {
     "id": "glass-tempered",
@@ -180,12 +448,39 @@
       "opacity": 0.3
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "safety-glazing"
     ],
-    "priceKey": "opening.glass-tempered"
+    "priceKey": "opening.glass-tempered",
+    "unit": {
+      "style": "fixed",
+      "finish": "black aluminium",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 50.8,
+        "swatch": {
+          "color": "#1f2226",
+          "roughness": 0.35,
+          "metalness": 0.6
+        }
+      },
+      "sash": {
+        "stile_mm": 25.4,
+        "topRail_mm": 25.4,
+        "bottomRail_mm": 25.4,
+        "depth_mm": 25.4,
+        "swatch": {
+          "color": "#1f2226",
+          "roughness": 0.35,
+          "metalness": 0.6
+        }
+      },
+      "lites": 1,
+      "glass": "single"
+    }
   },
   {
     "id": "window-bay",
@@ -198,13 +493,39 @@
       "roughness": 0.5
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "not-safety-glazing"
     ],
     "priceKey": "opening.window-bay",
-    "source": "Estimate: about 175 lb (roughly 20 sq ft of double-pane glass at about 3.3 psf plus vinyl frame, head and seat boards; no maker shipping weight found) over a 72 x 48 x 18in box"
+    "source": "Estimate: about 175 lb (roughly 20 sq ft of double-pane glass at about 3.3 psf plus vinyl frame, head and seat boards; no maker shipping weight found) over a 72 x 48 x 18in box",
+    "unit": {
+      "style": "fixed",
+      "finish": "white vinyl",
+      "frame": {
+        "face_mm": 60.325,
+        "depth_mm": 82.55,
+        "swatch": {
+          "color": "#f4f4f0",
+          "roughness": 0.5
+        }
+      },
+      "flange": {
+        "setback_mm": 25.4,
+        "width_mm": 34.925
+      },
+      "sash": {
+        "stile_mm": 38.1,
+        "topRail_mm": 38.1,
+        "bottomRail_mm": 50.8,
+        "meetingRail_mm": 31.75,
+        "depth_mm": 31.75
+      },
+      "lites": 3,
+      "glass": "igu"
+    }
   },
   {
     "id": "door-bifold",
@@ -218,10 +539,33 @@
     },
     "acceptsJoints": [
       "nailed-16d",
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "priceKey": "opening.door-bifold",
-    "source": "Estimate: about 22 lb for a hollow-core 36 x 80 bifold (Home Depot lists 24 lb for an unfinished pine plantation louver bifold, 48 lb for a finished pine louver; no hollow-core weight found) over a 36 x 80 x 1-3/8in slab"
+    "source": "Estimate: about 22 lb for a hollow-core 36 x 80 bifold (Home Depot lists 24 lb for an unfinished pine plantation louver bifold, 48 lb for a finished pine louver; no hollow-core weight found) over a 36 x 80 x 1-3/8in slab",
+    "unit": {
+      "style": "entry",
+      "finish": "white hardboard",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#f2f0ea",
+          "roughness": 0.6
+        }
+      },
+      "lites": 0,
+      "leaves": 2,
+      "glass": "none",
+      "slab": {
+        "thickness_mm": 34.925,
+        "swatch": {
+          "color": "#f2f0ea",
+          "roughness": 0.6
+        }
+      }
+    }
   },
   {
     "id": "door-barn",
@@ -234,10 +578,32 @@
       "roughness": 0.7
     },
     "acceptsJoints": [
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "priceKey": "opening.door-barn",
-    "source": "Listed door-plus-hardware weights for 36 x 84 kits: VEVOR spruce kit 71.2 lb (Newegg), Dextrus H-frame 74.52 lb (Walmart), ANZZI British Brace 78 lb (Ferguson); 75 lb over a 36 x 84 x 1-1/2in slab"
+    "source": "Listed door-plus-hardware weights for 36 x 84 kits: VEVOR spruce kit 71.2 lb (Newegg), Dextrus H-frame 74.52 lb (Walmart), ANZZI British Brace 78 lb (Ferguson); 75 lb over a 36 x 84 x 1-1/2in slab",
+    "unit": {
+      "style": "entry",
+      "finish": "stained wood",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#8a6a4a",
+          "roughness": 0.7
+        }
+      },
+      "lites": 0,
+      "glass": "none",
+      "slab": {
+        "thickness_mm": 38.1,
+        "swatch": {
+          "color": "#8a6a4a",
+          "roughness": 0.7
+        }
+      }
+    }
   },
   {
     "id": "door-garage-rollup",
@@ -251,10 +617,34 @@
       "metalness": 0.3
     },
     "acceptsJoints": [
-      "screwed-structural"
+      "screwed-structural",
+      "factory-assembled"
     ],
     "priceKey": "opening.door-garage-rollup",
-    "source": "Estimate scaled from Clopay Modern Steel 16 x 7 R18.4 insulated, 276 lb assembled (Home Depot Canada spec): 2.46 psf x 63 sq ft = about 155 lb, over a 108 x 84 x 2in door"
+    "source": "Estimate scaled from Clopay Modern Steel 16 x 7 R18.4 insulated, 276 lb assembled (Home Depot Canada spec): 2.46 psf x 63 sq ft = about 155 lb, over a 108 x 84 x 2in door",
+    "unit": {
+      "style": "entry",
+      "finish": "white steel",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 115.8875,
+        "swatch": {
+          "color": "#ecebe6",
+          "roughness": 0.5,
+          "metalness": 0.3
+        }
+      },
+      "lites": 0,
+      "glass": "none",
+      "slab": {
+        "thickness_mm": 50.8,
+        "swatch": {
+          "color": "#ecebe6",
+          "roughness": 0.5,
+          "metalness": 0.3
+        }
+      }
+    }
   },
   {
     "id": "skylight",
@@ -268,12 +658,39 @@
       "opacity": 0.4
     },
     "acceptsJoints": [
-      "nailed-roofing"
+      "nailed-roofing",
+      "factory-assembled"
     ],
     "flags": [
       "safety-glazing"
     ],
     "priceKey": "opening.skylight",
-    "source": "VELUX FS C06: 21-1/2 x 46-1/4 x 4-1/2in outside frame, package weight 39.70 lb (Home Hardware listing), pitch 14-85 degrees; 39.7 lb over that box"
+    "source": "VELUX FS C06: 21-1/2 x 46-1/4 x 4-1/2in outside frame, package weight 39.70 lb (Home Hardware listing), pitch 14-85 degrees; 39.7 lb over that box",
+    "unit": {
+      "style": "fixed",
+      "finish": "black aluminium",
+      "frame": {
+        "face_mm": 38.1,
+        "depth_mm": 114.3,
+        "swatch": {
+          "color": "#1f2226",
+          "roughness": 0.35,
+          "metalness": 0.6
+        }
+      },
+      "sash": {
+        "stile_mm": 25.4,
+        "topRail_mm": 25.4,
+        "bottomRail_mm": 25.4,
+        "depth_mm": 25.4,
+        "swatch": {
+          "color": "#1f2226",
+          "roughness": 0.35,
+          "metalness": 0.6
+        }
+      },
+      "lites": 1,
+      "glass": "igu"
+    }
   }
 ]

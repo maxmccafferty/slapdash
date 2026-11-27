@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Project } from '../../../src/index.ts';
 import { expectRoundTrip, makeBus, runErr, runOk } from '../../helpers.ts';
 import { counts, expectInPlace, geometry, inWall, poolWalls, tagged, withOpenings } from './opening-fixtures.ts';
+import { unitCtx, unitParts } from './unit-fixtures.ts';
 
 const door = { wallId: 'W3', kind: 'door', centerAt: '10ft' } as const;
 const window = { wallId: 'W1', kind: 'window', at: '5ft' } as const;
@@ -82,5 +83,20 @@ describe('remove_opening', () => {
     const { counters: _a, ...now } = bus.project;
     const { counters: _b, ...was } = before;
     expect(now).toEqual(was);
+  });
+});
+
+describe('remove_opening takes the whole unit out', () => {
+  it.each([
+    ['window', { wallId: 'W1', kind: 'window', centerAt: '10ft' }],
+    ['door', { wallId: 'W3', kind: 'door', centerAt: '10ft', product: 'door-slab' }],
+  ])('%s: every unit part and joint is gone', (_name, o) => {
+    const before = runOk(poolWalls(), 'add_opening', o, unitCtx).project;
+    const unit = unitParts(before).map((x) => x.id);
+    expect(unit.length).toBeGreaterThan(4);
+    const p = expectRoundTrip(before, 'remove_opening', { openingId: 'O1' }, unitCtx).project;
+    for (const id of unit) expect(p.parts[id]).toBeUndefined();
+    expect(Object.values(p.joints).filter((j) => j.partIds.some((id) => unit.includes(id)))).toEqual([]);
+    expect(geometry(p)).toEqual(geometry(poolWalls()));
   });
 });

@@ -28,15 +28,16 @@ const overlaps = (a0: number, a1: number, b0: number, b1: number, tol = EPS) => 
 /**
  * Remove opening `openingId`'s framing from `state` and restore the bare wall around
  * it. `others` are the wall's other openings (their framing, plate gaps and sheathing
- * holes stay). `panelIds` are the opening's unit parts (in its O assembly, so not in the
- * state); they're added to `state.removed`. Parts someone already deleted are skipped.
+ * holes stay). `unitPartIds` are the opening's window or door unit parts (or a legacy
+ * single `panel`), in its O assembly and so not in the state; they're added to
+ * `state.removed`. Parts someone already deleted are skipped.
  */
 export function unframeOpening(
   state: WallState,
   openingId: string,
   op: OpeningParams,
   others: readonly OpeningParams[],
-  panelIds: readonly string[],
+  unitPartIds: readonly string[],
 ): Unframed {
   const p = state.params;
   const out: Unframed = { commons: 0, plate: false, sheathing: 0 };
@@ -44,7 +45,7 @@ export function unframeOpening(
   // 1. The opening's own framing and its unit.
   const tag = `opening:${openingId}`;
   for (const item of [...state.items]) if (hasTag(item, tag)) removeItem(state, item);
-  for (const id of panelIds) if (!state.removed.includes(id)) state.removed.push(id);
+  for (const id of unitPartIds) if (!state.removed.includes(id)) state.removed.push(id);
 
   // 2. Doors: join the bottom plate back across the old cut.
   const roU0 = op.at;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { KPA_PER_PSF, createProject, findAllClashes, type Project } from '../../../src/index.ts';
 import { expectRoundTrip, runErr, runOk } from '../../helpers.ts';
+import { unitCtx, unitParts } from './unit-fixtures.ts';
 
 const IN = 25.4;
 
@@ -97,5 +98,21 @@ describe('resize_header', () => {
     // Past the table: 80 psf.
     const heavy = runOk(p, 'set_design_load', { key: 'groundSnow', value: '80 psf', source: 'user' }).project;
     expect(runErr(heavy, 'resize_header', { opening: 'O1' })[0]!.message).toContain('needs an engineered beam');
+  });
+});
+
+describe('resize_header keeps the window or door unit nailed to the header', () => {
+  it('joins the unit head to the new plies, as add_opening joined it to the old ones', () => {
+    let p = runOk(createProject({ name: 'Pool house' }), 'pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }).project;
+    p = runOk(p, 'build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft' }).project;
+    p = runOk(p, 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '10ft' }, unitCtx).project;
+    const head = unitParts(p).find((x) => x.tags.includes('unit:head'))!;
+    const before = jointsOf(p, head.id).filter((j) => j.partIds.some((id) => p.parts[id]!.role === 'header'));
+    expect(before).toHaveLength(2);
+    const res = expectRoundTrip(p, 'resize_header', { opening: 'O1', size: 'flat 2x4' }, unitCtx);
+    const after = jointsOf(res.project, head.id).filter((j) => j.partIds.some((id) => res.project.parts[id]!.role === 'header'));
+    expect(after).toHaveLength(1);
+    for (const j of after) expect(j.jointTypeId).toBe(before[0]!.jointTypeId);
+    expect(findAllClashes(res.project)).toEqual([]);
   });
 });

@@ -15,7 +15,7 @@
  * React skips it and only the edited batch re-renders.
  */
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
-import { hasCuts, type Part, type PartCuts, type PartSize, type Project } from '@slapdash/core';
+import { hasCuts, isUnitPart, type Part, type PartCuts, type PartSize, type Project } from '@slapdash/core';
 import { isContextPart } from './bounds.ts';
 import { MM_PER_M } from './units.ts';
 
@@ -26,11 +26,37 @@ export interface CutShape {
   cuts: PartCuts;
 }
 
+/**
+ * How a window or door unit piece is drawn: the same product material, but its frame,
+ * glass, door slab and casing each get their own look (colour, see-through glass). Null
+ * for every other part, and for a pre-unit single-box `panel`.
+ */
+export type PartLook = 'frame' | 'glass' | 'door' | 'trim';
+
+export function partLook(part: Pick<Part, 'role' | 'tags'>): PartLook | null {
+  if (!isUnitPart(part)) return null;
+  switch (part.role) {
+    case 'glass':
+      return 'glass';
+    case 'frame':
+    case 'sash':
+      return 'frame';
+    case 'door':
+      return 'door';
+    case 'trim':
+      return 'trim';
+    default:
+      return null;
+  }
+}
+
 export interface Batch {
-  /** `materialId|sectionId` (or `|none`), plus `|cut:<shapeKey>` for cut parts. Stable, so it can be a React key. */
+  /** `materialId|sectionId` (or `|none`), plus `|<look>` for unit pieces and `|cut:<shapeKey>` for cut parts. Stable, so it can be a React key. */
   key: string;
   materialId: string;
   sectionId: string | null;
+  /** Window and door unit pieces: which part of the unit they are. */
+  look: PartLook | null;
   /** Cut batches: the shared size and cuts (drawn with a unit-normalised cut mesh). Null for boxes. */
   cutShape: CutShape | null;
   /** Members, sorted by id, so the instance order is stable across edits. */
@@ -77,7 +103,8 @@ export function cutShapeKey(part: Part): string | null {
 }
 
 export function batchKey(part: Part): string {
-  const base = `${part.materialId}|${part.sectionId ?? 'none'}`;
+  const look = partLook(part);
+  const base = `${part.materialId}|${part.sectionId ?? 'none'}${look ? `|${look}` : ''}`;
   const shape = cutShapeKey(part);
   return shape ? `${base}|cut:${shape}` : base;
 }
@@ -112,7 +139,7 @@ export function groupParts(project: Project, previous: readonly Batch[] = []): B
     const first = parts[0]!;
     const shape = cutShapeKey(first);
     const cutShape = shape && first.cuts ? { key: shape, size: first.size, cuts: first.cuts } : null;
-    return { key, materialId: first.materialId, sectionId: first.sectionId ?? null, cutShape, parts };
+    return { key, materialId: first.materialId, sectionId: first.sectionId ?? null, look: partLook(first), cutShape, parts };
   });
 }
 

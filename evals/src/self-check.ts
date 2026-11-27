@@ -30,6 +30,7 @@ import {
   distanceFromWallEnd,
   FT,
   framingConnected,
+  framedUnits,
   headerOverOpening,
   hasOpening,
   STANDARD_DOOR,
@@ -192,6 +193,20 @@ const goodModels = section('Checks pass on correct builder output', () => {
   failsCheck('48in door is wider than a standard door', hasOpening(door48, { kind: 'door', wall: 'west', ...STANDARD_DOOR }).fail);
   failsCheck('36in door fails an exact 38in width', hasOpening(door36, { kind: 'door', wall: 'west', widthIn: 38 }).fail);
   failsCheck('a door looked for on the wrong wall', hasOpening(door, { kind: 'door', wall: 'east' }).fail);
+  // LOC-124: windows and doors are real units (frame, sashes and glass, or a slab).
+  passesCheck('the window is a framed unit', framedUnits(window));
+  passesCheck('the door is a framed unit', framedUnits(door));
+  const entry = build([...POOL_HOUSE_WALLS, ['add_opening', { wallId: 'W4', kind: 'door', centerAt: '12ft', product: 'door-entry' }]]);
+  passesCheck('an entry door with brickmould is sound', soundBuild(entry, catalog));
+  passesCheck('the entry door is a framed unit', framedUnits(entry));
+  {
+    // A hand-made opening left with one single-box panel where the unit should be.
+    const unitParts = Object.values(window.parts).filter((x) => x.assemblyId === 'O1');
+    const first = unitParts[0]!;
+    const parts = Object.fromEntries(Object.entries(window.parts).filter(([, x]) => x.assemblyId !== 'O1'));
+    parts['O1-PN01'] = { ...first, id: 'O1-PN01', role: 'panel', tags: first.tags.filter((t) => t !== 'unit' && !t.startsWith('unit:')) };
+    failsCheck('an opening with a single-box panel instead of a unit', framedUnits({ ...window, parts }));
+  }
 
   // resize-door (LOC-118): update_opening then remove_opening, walls untouched.
   const walls4 = ['W1', 'W2', 'W3', 'W4'];
@@ -202,9 +217,12 @@ const goodModels = section('Checks pass on correct builder output', () => {
   check('the resized door is still O1', rd.opening?.asmId === 'O1');
   passesCheck('header over the resized door', headerOverOpening(resized, rd.opening));
   passesCheck('the walls keep their ids after update_opening', sameWalls(resized, walls4));
+  passesCheck('the resized door is a framed unit', framedUnits(resized));
   const removed = build([...POOL_HOUSE_WITH_DOOR, ['update_opening', { openingId: 'O1', width: '3ft' }], ['remove_opening', { openingId: 'O1' }]]);
   passesCheck('model with the door removed is sound', soundBuild(removed, catalog));
   passesCheck('no openings after remove_opening', assemblyCount(removed, 'opening', 0, 'openings'));
+  passesCheck('no unit parts left after remove_opening', framedUnits(removed));
+  check('no unit parts left after remove_opening', !Object.values(removed.parts).some((x) => x.tags.includes('unit')));
   passesCheck('the walls keep their ids after remove_opening', sameWalls(removed, walls4));
   check("W3's bottom plate is one piece again", bottomPlatePieces(removed, 'W3') === 1, bottomPlatePieces(removed, 'W3'));
   // A rebuilt south wall comes back with a new id (W5): hand-edit the assembly map to stand for that.

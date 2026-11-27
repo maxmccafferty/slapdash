@@ -6,7 +6,7 @@ import { LOAD_COMBINATIONS, combinationsFor } from '../src/loads/combinations.ts
 import { DEFAULT_WIND_SPEED_MS, exposureCKz, flatRoofSnow, siteLoads, slopeFactor, velocityPressure } from '../src/loads/site.ts';
 import { buildModel } from '../src/model/build.ts';
 import { BASIC_CASES } from '../src/types.ts';
-import { INDEX, poolHouse } from './helpers.ts';
+import { INDEX, POOL_HOUSE_COMMANDS, build, poolHouse } from './helpers.ts';
 
 const rel = (a: number, b: number) => Math.abs(a - b) / Math.abs(b);
 
@@ -139,5 +139,19 @@ describe('load bookkeeping on the pool house', () => {
       const scale = Math.max(...applied.map(Math.abs), 1);
       for (let k = 0; k < 3; k++) expect(Math.abs(reaction[k]! - applied[k]!) / scale, `${c.name} ${k}`).toBeLessThan(1e-6);
     });
+  });
+});
+
+describe('window and door units weigh what the single-box unit did (LOC-124)', () => {
+  it('a barn door drawn as frame, slab and casing weighs density × rough opening × stud depth', () => {
+    const p = build([...POOL_HOUSE_COMMANDS.slice(0, 5), ['add_opening', { wallId: 'W1', kind: 'door', centerAt: '10ft', product: 'door-barn' }]], 'Barn door');
+    const units = Object.values(p.parts).filter((x) => x.assemblyId === 'O1' && x.tags.includes('unit'));
+    expect(units.length).toBeGreaterThan(4);
+    const loads = buildLoadCases(buildModel(p, INDEX));
+    const total = units.reduce((s, x) => s + (loads.weights.get(x.id) ?? 0), 0);
+    const op = p.assemblies.O1!.builder!.params as { width: number; height: number };
+    const depth = (p.assemblies.W1!.builder!.params as { depth: number }).depth;
+    const rho = INDEX.materials.get('door-barn')!.density_kg_m3!;
+    expect(total).toBeCloseTo(rho * GRAVITY * 1e-9 * op.width * op.height * depth, 6);
   });
 });

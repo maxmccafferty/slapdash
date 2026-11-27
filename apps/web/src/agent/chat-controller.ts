@@ -246,7 +246,8 @@ export function createChatController(deps: ChatControllerDeps): ChatController {
     if (!m.selectedPartId || !m.selectedPartLabel) return null;
     const part = m.project?.parts[m.selectedPartId];
     const swatch = part ? m.catalog?.materials.get(part.materialId)?.swatch : undefined;
-    return { id: m.selectedPartId, label: m.selectedPartLabel, swatch: swatch ? { color: swatch.color } : null };
+    // A window or door unit is one thing to Claude: refer to its opening (O1), not one piece.
+    return { id: m.selectedUnitId ?? m.selectedPartId, label: m.selectedPartLabel, swatch: swatch ? { color: swatch.color } : null };
   }
 
   async function send(rawText: string, opts: SendOptions = {}): Promise<TurnResult | null> {

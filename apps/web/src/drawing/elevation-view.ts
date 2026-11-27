@@ -16,6 +16,7 @@ import { partAabb, unionAabb } from '../renderer/bounds.ts';
 import { dimensionLabel } from '../renderer/dimensions.ts';
 import { readOpening, readRoof, readWall, wallFrame, type OpeningRecipe, type WallFrame, type WallRecipe } from '../model/recipes.ts';
 import type { DrawContext } from './context.ts';
+import { unitLeaves, unitPieces } from './units.ts';
 import { bounds2d, clipBelow, convexHull, depthAlong, partCorners, topAt } from './geometry.ts';
 import { DIM, LABEL_GAP, TEXT } from './style.ts';
 import { textWidth } from './dims2d.ts';
@@ -52,7 +53,58 @@ function rect(pt: (s: number, t: number) => P2, s0: number, s1: number, t0: numb
   return [pt(s0, t0), pt(s1, t0), pt(s1, t1), pt(s0, t1)];
 }
 
-function openingOverlay(view: ViewDef, wall: WallRecipe, f: WallFrame, o: OpeningRecipe, id: string): { shapes: Shape[]; centre: P2; pt: (s: number, t: number, dy?: number) => P2 } {
+/**
+ * A window or door unit drawn from its parts: the frame (and casing) outlined, sash and
+ * door pieces as symbol lines (so meeting rails, mullions and slider overlaps show), no
+ * glass; then a dashed-style chevron on each hinged leaf pointing at its hinges, and an
+ * arrow along each sliding panel. Empty when the opening has no unit parts.
+ */
+function unitOverlay(view: ViewDef, wall: WallRecipe, f: WallFrame, parts: readonly Part[], id: string): Shape[] {
+  const pieces = unitPieces(parts, wall, f);
+  if (pieces.length === 0) return [];
+  const at = (u: number, y: number) =>
+    view.project({ x: wall.start.x + f.u.x * u + f.n.x * wall.sheathingThickness, y, z: wall.start.z + f.u.z * u + f.n.z * wall.sheathingThickness });
+  const shapes: Shape[] = [];
+  const order = { trim: 0, frame: 1, door: 2, sash: 2 } as Record<string, number>;
+  for (const p of [...pieces].sort((a, b) => (order[a.part.role] ?? 3) - (order[b.part.role] ?? 3))) {
+    if (p.part.role === 'glass') continue;
+    const points = convexHull(partCorners(p.part).map(view.project));
+    if (points.length < 3) continue;
+    const style = p.part.role === 'frame' || p.part.role === 'trim' ? 'outline' : 'symbol';
+    shapes.push({ type: 'poly', points, style, assemblyId: id, id: `unit:${p.part.id}` });
+  }
+  const line = (a: P2, b: P2, key: string): Shape => ({ type: 'line', a, b, style: 'symbol', assemblyId: id, id: key });
+  for (const leaf of unitLeaves(pieces)) {
+    if (leaf.hinge) {
+      const hingeU = leaf.hinge === 'start' ? leaf.u0 : leaf.u1;
+      const latchU = leaf.hinge === 'start' ? leaf.u1 : leaf.u0;
+      const mid = at(hingeU, (leaf.y0 + leaf.y1) / 2);
+      shapes.push(line(at(latchU, leaf.y0), mid, `swing:${id}:${leaf.n}:a`), line(at(latchU, leaf.y1), mid, `swing:${id}:${leaf.n}:b`));
+    }
+    if (leaf.slides) {
+      const y = (leaf.y0 + leaf.y1) / 2;
+      const span = leaf.u1 - leaf.u0;
+      const a = leaf.u0 + span * 0.25;
+      const b = leaf.u0 + span * 0.75;
+      const head = Math.min(100, span * 0.1);
+      shapes.push(
+        { type: 'line', a: at(a, y), b: at(b, y), style: 'symbol', assemblyId: id, id: `slide:${id}:${leaf.n}` },
+        line(at(b - head, y + head * 0.6), at(b, y), `slide:${id}:${leaf.n}:a`),
+        line(at(b - head, y - head * 0.6), at(b, y), `slide:${id}:${leaf.n}:b`),
+      );
+    }
+  }
+  return shapes;
+}
+
+function openingOverlay(
+  view: ViewDef,
+  wall: WallRecipe,
+  f: WallFrame,
+  o: OpeningRecipe,
+  id: string,
+  parts: readonly Part[] = [],
+): { shapes: Shape[]; centre: P2; pt: (s: number, t: number, dy?: number) => P2 } {
   const y0 = wall.baseElevation + o.roBottom;
   const y1 = wall.baseElevation + o.roTop;
   const pt = (s: number, t: number, dy = 0) => {
@@ -62,6 +114,8 @@ function openingOverlay(view: ViewDef, wall: WallRecipe, f: WallFrame, o: Openin
   const shapes: Shape[] = [{ type: 'poly', points: rect(pt, 0, 1, 0, 1), style: 'opening', assemblyId: id, id: `ro:${id}` }];
   const sym = (points: P2[]): Shape => ({ type: 'poly', points, style: 'symbol', assemblyId: id });
   const line = (a: P2, b: P2): Shape => ({ type: 'line', a, b, style: 'symbol', assemblyId: id });
+  const unit = unitOverlay(view, wall, f, parts, id);
+  if (unit.length > 0) return { shapes: [...shapes, ...unit], centre: pt(0.5, 0.5), pt };
   switch (o.kind) {
     case 'window': {
       const over = 50 / o.width;
@@ -114,7 +168,7 @@ export function elevationView(ctx: DrawContext, id: ElevationId): ViewDraft {
     const f = wall && wallFrame(wall);
     if (wall && f && f.n.x * view.towardViewer.x + f.n.z * view.towardViewer.z > FACING) {
       for (const o of openingsByWall.get(g.id) ?? []) {
-        const overlay = openingOverlay(view, wall, f, o.recipe, o.id);
+        const overlay = openingOverlay(view, wall, f, o.recipe, o.id, ctx.byId.get(o.id)?.parts);
         shapes.push(...overlay.shapes);
         if (opts.dimensions) {
           const text = `${dimensionLabel(o.recipe.width)} × ${dimensionLabel(o.recipe.roTop - o.recipe.roBottom)}`;

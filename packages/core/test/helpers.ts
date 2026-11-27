@@ -45,9 +45,9 @@ export function runErr(project: Project, name: string, input: unknown): CommandE
 }
 
 /** Apply a list of inverse commands (in reverse order, as the bus does). */
-export function applyInverse(project: Project, inverse: readonly AppliedCommand[]): Project {
+export function applyInverse(project: Project, inverse: readonly AppliedCommand[], extra: Partial<CommandContext> = {}): Project {
   let p = project;
-  for (const cmd of [...inverse].reverse()) p = runOk(p, cmd.name, cmd.input).project;
+  for (const cmd of [...inverse].reverse()) p = runOk(p, cmd.name, cmd.input, extra).project;
   return p;
 }
 
@@ -64,11 +64,11 @@ export function model(project: Project): Omit<Project, 'counters'> {
  * Check the inverse/redo contract for one command: inverse restores the pre-state
  * exactly (apart from counters), and redo on the pre-state reproduces the post-state exactly.
  */
-export function expectRoundTrip(before: Project, name: string, input: unknown): ApplyResult {
-  const res = runOk(before, name, input);
-  expect(model(applyInverse(res.project, res.inverse))).toEqual(model(before));
-  const undone = applyInverse(res.project, res.inverse);
-  const redone = runOk(undone, res.redo.name, res.redo.input);
+export function expectRoundTrip(before: Project, name: string, input: unknown, extra: Partial<CommandContext> = {}): ApplyResult {
+  const res = runOk(before, name, input, extra);
+  expect(model(applyInverse(res.project, res.inverse, extra))).toEqual(model(before));
+  const undone = applyInverse(res.project, res.inverse, extra);
+  const redone = runOk(undone, res.redo.name, res.redo.input, extra);
   expect(redone.project).toEqual(res.project);
   return res;
 }

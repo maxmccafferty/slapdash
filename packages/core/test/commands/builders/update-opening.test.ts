@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { runErr, expectRoundTrip, makeBus, run, runOk } from '../../helpers.ts';
+import { runErr, expectRoundTrip, expectSound, makeBus, run, runOk } from '../../helpers.ts';
+import { placeMember } from '../../../src/geometry/frame.ts';
+import { wallFrame, wallParamsOf } from '../../../src/builders/layout/wall-state.ts';
+import { UNIT_CATALOG, bounds, piece, unitCtx, unitParts, wallBox } from './unit-fixtures.ts';
 import { IN, counts, expectInPlace, geometry, inWall, poolWalls, tagged, withOpenings } from './opening-fixtures.ts';
 import type { Project } from '../../../src/index.ts';
 
@@ -195,5 +198,62 @@ describe('update_opening', () => {
       expect(res.ok).toBe(true);
       if (res.ok) expect(inWall(res.project, 'W1').filter((x) => x.role === 'sheathing')).toHaveLength(0);
     });
+  });
+});
+
+describe('update_opening re-sizes the window or door unit', () => {
+  const add = (o: Record<string, unknown>) => runOk(poolWalls(), 'add_opening', o, unitCtx).project;
+  const frameBounds = (p: Project) => bounds(p, unitParts(p).filter((x) => x.role === 'frame' && !x.tags.includes('unit:flange')));
+
+  it('a new width re-sizes the whole unit', () => {
+    const before = add(window);
+    const p = expectRoundTrip(before, 'update_opening', { openingId: 'O1', width: '4ft' }, unitCtx).project;
+    const b = frameBounds(p);
+    expect(b.u1 - b.u0).toBeCloseTo(47 * IN, 6);
+    expect(Object.values(p.parts).some((x) => x.role === 'panel')).toBe(false);
+    expect(unitParts(p).length).toBe(unitParts(before).length);
+    expectSound(p, UNIT_CATALOG);
+  });
+
+  it('a new window height keeps the parts whose geometry did not change: the sill, the bottom fin and the bottom rail', () => {
+    const before = add(window);
+    const p = runOk(before, 'update_opening', { openingId: 'O1', height: '5ft' }, unitCtx).project;
+    const kept = (name: string) => piece(unitParts(before), name).filter((x) => p.parts[x.id] !== undefined).map((x) => x.id);
+    expect(kept('sill')).toEqual(piece(unitParts(before), 'sill').map((x) => x.id));
+    expect(kept('rail').length).toBeGreaterThanOrEqual(1);
+    const bottomFin = piece(unitParts(before), 'flange').find((x) => wallBox(before, x).v1 <= wallBox(before, piece(unitParts(before), 'sill')[0]!).v0 + 1e-6)!;
+    expect(p.parts[bottomFin.id]).toEqual(bottomFin);
+    expect(piece(unitParts(p), 'head')[0]!.id).not.toBe(piece(unitParts(before), 'head')[0]!.id);
+    expectSound(p, UNIT_CATALOG);
+  });
+
+  it('moving the opening gives every unit part a new ID', () => {
+    const before = add(window);
+    const p = runOk(before, 'update_opening', { openingId: 'O1', centerAt: '12ft' }, unitCtx).project;
+    for (const x of unitParts(before)) expect(p.parts[x.id], x.id).toBeUndefined();
+    expect(unitParts(p).length).toBe(unitParts(before).length);
+  });
+
+  it('upgrades a pre-unit single panel to a unit, and leaves other parts in O1 alone', () => {
+    const built = add(window);
+    // Make it look like a project saved before units: one panel filling the rough opening.
+    const legacy = structuredClone(built);
+    const unit = unitParts(built);
+    const ids = new Set(unit.map((x) => x.id));
+    for (const id of ids) delete legacy.parts[id];
+    for (const [jid, j] of Object.entries(legacy.joints)) if (j.partIds.some((id) => ids.has(id))) delete legacy.joints[jid];
+    const op = params(built) as unknown as { wallId: string; at: number; width: number; roBottom: number; roTop: number };
+    const wall = wallParamsOf(built, op.wallId)!;
+    const placed = placeMember(wallFrame(wall), { u0: op.at, u1: op.at + op.width, v0: op.roBottom, v1: op.roTop, w0: 0, w1: wall.depth }, 'u', 'v');
+    const sill = unit.find((x) => x.tags.includes('unit:sill'))!;
+    legacy.parts['O1-PN01'] = { ...sill, ...placed, id: 'O1-PN01', role: 'panel', tags: ['window', 'opening:O1'] };
+    legacy.parts['O1-X01'] = { ...sill, ...placed, id: 'O1-X01', role: 'other', tags: ['note'], position: { x: 0, y: 5000, z: -5000 } };
+    delete (legacy.assemblies.O1!.builder!.params as Record<string, unknown>).style;
+
+    const p = runOk(legacy, 'update_opening', { openingId: 'O1', width: '40in' }, unitCtx).project;
+    expect(p.parts['O1-PN01']).toBeUndefined();
+    expect(p.parts['O1-X01']).toEqual(legacy.parts['O1-X01']);
+    expect(unitParts(p).length).toBe(unit.length);
+    expect(params(p)).toMatchObject({ style: 'casement' });
   });
 });
