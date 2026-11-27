@@ -1,6 +1,9 @@
 /* The chat's patterns (HANDOFF "Conversation patterns"). Tokens only. */
 
 .transcript {
+  /* Contains its .visually-hidden speaker labels and announcer, which are position: absolute:
+     without this they're placed against the page and make the whole document scroll. */
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;

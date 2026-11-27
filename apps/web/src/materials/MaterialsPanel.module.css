@@ -67,6 +67,8 @@
 }
 
 .body {
+  /* Contains .visually-hidden text in the list, so it scrolls with the list, not the page. */
+  position: relative;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
