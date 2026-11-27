@@ -6,7 +6,11 @@
  * - Lumber, engineered wood and steel with stock lengths are bought as boards: the
  *   optimizer packs each (step, material, section)'s pieces into stock, and the list counts
  *   boards per stock length. Without stock, they are bought by the linear foot.
- * - Sheet goods: one sheet per piece (builders lay panels on the 4×8 grid).
+ * - Sheet goods: one sheet per piece (builders lay panels on the 4×8 grid). Cut panels
+ *   (the bevelled ridge row of a roof) are listed in the row's `details`.
+ * - Cut parts (`Part.cuts`) are packed by their long-point length (`size.length`) plus
+ *   kerf, and their cut-list rows carry the cut angles, so pieces of one length with
+ *   different cuts get separate rows.
  * - Concrete: the volume, rounded up to the next 1/4 yd³.
  * - Hardware comes from the joints (`hardwareId`, one per fastener or per joint) and goes
  *   with the later of its two parts' steps.
@@ -19,7 +23,8 @@
 import type { PriceTable, PriceUnit } from '../catalog/prices.ts';
 import type { Catalog, Material, MaterialCategory, Section, StockLength, Swatch } from '../catalog/schema.ts';
 import { indexCatalog, isCatalogIndex, type CatalogIndex } from '../catalog/validate.ts';
-import type { Part, Project } from '../model/schema.ts';
+import { describeCuts, hasCuts, type CutDescription } from '../geometry/cuts.ts';
+import type { Part, PartCuts, Project } from '../model/schema.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../units/length.ts';
 import { cutStock, type Board, type CutOptions, type CutPiece } from './optimizer.ts';
 import { SHEET_FT2, hasVariants, resolvePrice, sheetVariant, tableUnit, userPriceFor } from './price.ts';
@@ -66,6 +71,8 @@ export interface MaterialsRow {
   cost: RowCost | null;
   /** Why there is no price ("pick a specific window or door"); set when `cost` is null. */
   noPriceReason?: string;
+  /** Extra lines for the row, e.g. "6 × bevel 26.6° one edge" for cut sheets. */
+  details?: string[];
 }
 
 export interface MaterialsGroup {
@@ -86,6 +93,8 @@ export interface CutRow {
   spliced: boolean;
   /** The parts cut (a spliced part appears once per segment). */
   pieceIds: string[];
+  /** The cuts on every piece of the row (from the first; they all share them). */
+  cuts?: CutDescription;
 }
 
 export interface CutListGroup {
@@ -146,6 +155,8 @@ interface Bucket {
   partIds: string[];
   jointIds: string[];
   noPrice?: string;
+  /** Cut labels on the bucket's parts, with counts. */
+  cutLabels?: Map<string, number>;
 }
 
 const twoLargest = (p: Part) => {
@@ -218,6 +229,11 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
       const b = bucket({ ...base, kind: 'sheet', key: `sheet|${material.id}|${variant}`, variant, unit: 'sheet', measure: 'sheets' });
       b.quantity += Math.max(1, Math.ceil((a * w) / FT2_MM2 / SHEET_FT2 - 0.01));
       b.partIds.push(part.id);
+      if (hasCuts(part)) {
+        const label = describeCuts(part).label;
+        b.cutLabels ??= new Map();
+        b.cutLabels.set(label, (b.cutLabels.get(label) ?? 0) + 1);
+      }
     } else if (category !== undefined && MEMBER_CATEGORIES.has(category) && section) {
       if (section.stock && section.stock.length > 0) {
         const key = `${step}|${material.id}|${section.id}`;
@@ -373,6 +389,7 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
     }
     if (b.variant !== undefined) row.variant = b.variant;
     if (b.stock) row.stock = b.stock;
+    if (b.cutLabels) row.details = [...b.cutLabels].map(([label, n]) => `${n} × ${label}`);
 
     if (b.noPrice !== undefined || !b.material) {
       row.noPriceReason = b.noPrice ?? "it isn't in the catalog";
@@ -431,7 +448,7 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
         (sectionOrder.get(a.sectionId) ?? 0) - (sectionOrder.get(b.sectionId) ?? 0) ||
         b.stock.length_mm - a.stock.length_mm,
     )
-    .map(({ firstStep: _f, boardList, ...g }) => ({ ...g, pieces: cutRowsOf(boardList) }));
+    .map(({ firstStep: _f, boardList, ...g }) => ({ ...g, pieces: cutRowsOf(boardList, project.parts) }));
 
   return {
     groups,
@@ -449,21 +466,61 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
   };
 }
 
-/** The pieces cut from some boards, one row per length (to 1/16in) and splice, longest first. */
-function cutRowsOf(boards: readonly Board[]): CutRow[] {
+/**
+ * The cuts on one segment of a spliced part: the start cut on the first, the end cut on the
+ * last, and the notches whose x range falls on it (shifted to the segment's own x).
+ */
+function segmentCuts(part: Part, index: number, of: number): { size: Part['size']; cuts?: PartCuts } {
+  // `index` is 1-based, as the optimizer numbers segments.
+  const k = index - 1;
+  const seg = part.size.length / of;
+  const size = { ...part.size, length: seg };
+  const c = part.cuts;
+  if (!c) return { size };
+  const x0 = k * seg;
+  const out: PartCuts = {};
+  if (k === 0 && c.start) out.start = c.start;
+  if (k === of - 1 && c.end) out.end = c.end;
+  if (c.nearEdge) out.nearEdge = c.nearEdge;
+  if (c.farEdge) out.farEdge = c.farEdge;
+  const all = describeCuts(part).notches;
+  const notches = (c.notches ?? [])
+    .filter((_, i) => all[i]!.x1_mm > x0 && all[i]!.x0_mm < x0 + seg)
+    .map((n) => ({ ...n, profile: n.profile.map((q) => ({ x: q.x - x0, z: q.z })) }));
+  if (notches.length > 0) out.notches = notches;
+  return { size, cuts: out };
+}
+
+/**
+ * The pieces cut from some boards, one row per length (to 1/16in), splice and cuts, longest
+ * first. Rows of cut pieces carry the cut description.
+ */
+function cutRowsOf(boards: readonly Board[], parts: Project['parts']): CutRow[] {
   const byKey = new Map<string, CutRow>();
   for (const board of boards) {
     for (const piece of board.pieces) {
       const spliced = piece.spliced !== undefined;
-      const key = `${Math.round((piece.length_mm / MM_PER_INCH) * 16)}|${spliced}`;
+      const part = parts[piece.id];
+      let cuts: CutDescription | undefined;
+      if (part && hasCuts(part)) {
+        cuts = piece.spliced ? describeCuts(segmentCuts(part, piece.spliced.index, piece.spliced.of)) : describeCuts(part);
+        if (cuts.label === '') cuts = undefined;
+      }
+      const key = `${Math.round((piece.length_mm / MM_PER_INCH) * 16)}|${spliced}|${cuts?.label ?? ''}`;
       let row = byKey.get(key);
       if (!row) {
         row = { length_mm: piece.length_mm, count: 0, spliced, pieceIds: [] };
+        if (cuts) row.cuts = cuts;
         byKey.set(key, row);
       }
       row.count++;
       row.pieceIds.push(piece.id);
     }
   }
-  return [...byKey.values()].sort((a, b) => b.length_mm - a.length_mm || Number(a.spliced) - Number(b.spliced));
+  return [...byKey.values()].sort(
+    (a, b) =>
+      b.length_mm - a.length_mm ||
+      Number(a.spliced) - Number(b.spliced) ||
+      ((a.cuts?.label ?? '') < (b.cuts?.label ?? '') ? -1 : (a.cuts?.label ?? '') > (b.cuts?.label ?? '') ? 1 : 0),
+  );
 }

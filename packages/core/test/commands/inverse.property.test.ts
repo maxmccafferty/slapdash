@@ -25,8 +25,18 @@ const generators: Gen[] = [
   (p, r) => {
     const a = pick(Object.keys(p.assemblies), r);
     if (!a) return null;
+    const cuts =
+      r() < 0.3
+        ? {
+            cuts: {
+              start: { slope: 26.565, name: 'plumb' },
+              end: { slope: -26.565, name: 'plumb' },
+              ...(r() < 0.5 ? { notches: [{ kind: 'birdsmouth', profile: [{ x: '1ft', z: -1 }, { x: '1ft', z: '1in' }, { x: '1ft 2in', z: -1 }] }] } : {}),
+            },
+          }
+        : {};
     return r() < 0.7
-      ? { name: 'add_part', input: { assemblyId: a, role: pick(['stud', 'plate', 'joist'], r), materialId: 'spf-no2', sectionId: pick(['2x4', '2x6'], r), position: pt(r), length: len(r) } }
+      ? { name: 'add_part', input: { assemblyId: a, role: pick(['stud', 'plate', 'joist'], r), materialId: 'spf-no2', sectionId: pick(['2x4', '2x6'], r), position: pt(r), length: len(r), ...cuts } }
       : { name: 'add_part', input: { assemblyId: a, role: 'sheathing', materialId: 'plywood-cdx', position: pt(r), length: '8ft', width: '4ft', height: '1/2in' } };
   },
   (p, r) => {
@@ -49,6 +59,9 @@ const generators: Gen[] = [
   (p, r) => {
     const part = pick(Object.values(p.parts), r);
     if (!part) return null;
+    if (part.sectionId && r() < 0.3) {
+      return { name: 'update_part', input: { id: part.id, cuts: part.cuts ? null : { end: { slope: -45, name: 'plumb' } } } };
+    }
     return part.sectionId
       ? { name: 'update_part', input: { id: part.id, sectionId: pick(['2x4', '2x6'], r), tags: ['t'] } }
       : { name: 'update_part', input: { id: part.id, name: 'renamed' } };

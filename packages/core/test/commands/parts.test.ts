@@ -280,3 +280,63 @@ describe('delete_parts', () => {
     expect(runErr(p, 'delete_parts', { ids: 'W1-S01' })[0]!.message).toBe('"ids" should be a list, but got text ("W1-S01").');
   });
 });
+
+describe('part cuts (LOC-120)', () => {
+  const theta = (Math.atan(0.5) * 180) / Math.PI;
+  const rafter = (extra: Record<string, unknown> = {}) =>
+    stud({
+      role: 'rafter',
+      sectionId: '2x6',
+      length: '10ft',
+      cuts: {
+        start: { slope: theta, name: 'plumb' },
+        end: { slope: -theta, name: 'plumb' },
+        notches: [{ kind: 'birdsmouth', profile: [{ x: '2ft', z: -1 }, { x: '2ft', z: '2in' }, { x: '2ft 4in', z: -1 }] }],
+      },
+      ...extra,
+    });
+
+  it('add_part stores cuts (notch points in mm) and round-trips', () => {
+    const res = expectRoundTrip(fixtureProject(), 'add_part', rafter());
+    const part = res.project.parts[res.created[0]!]!;
+    expect(part.cuts!.start).toEqual({ slope: theta, name: 'plumb' });
+    expect(part.cuts!.notches![0]!.profile[1]).toEqual({ x: expect.closeTo(609.6, 6), z: expect.closeTo(50.8, 6) });
+    expect(res.summary).toContain('long to the long point, plumb 26.6° both ends · birdsmouth');
+  });
+
+  it('refuses invalid cuts with invalid_input on cuts', () => {
+    // 2 1/2in long: the two 26.6° plumb cuts through 5 1/2in take 2 3/4in.
+    const [err] = runErr(fixtureProject(), 'add_part', rafter({ length: '2.5in', cuts: { start: { slope: theta }, end: { slope: -theta } } }));
+    expect(err!.code).toBe('invalid_input');
+    expect(err!.path).toBe('cuts');
+    expect(err!.message).toContain('short point');
+    const [bad] = runErr(fixtureProject(), 'add_part', rafter({ cuts: { notches: [{ kind: 'notch', profile: [{ x: '20ft', z: 0 }, { x: '21ft', z: 0 }, { x: '20ft', z: 10 }] }] } }));
+    expect(bad!.message).toContain('outside the part');
+  });
+
+  it('update_part replaces cuts, and cuts: null clears them', () => {
+    const p = runOk(fixtureProject(), 'add_part', rafter());
+    const id = p.created[0]!;
+    const set = expectRoundTrip(p.project, 'update_part', { id, cuts: { end: { slope: -45, name: 'plumb' } } });
+    expect(set.project.parts[id]!.cuts).toEqual({ end: { slope: -45, name: 'plumb' } });
+    const cleared = expectRoundTrip(set.project, 'update_part', { id, cuts: null });
+    expect(cleared.project.parts[id]!.cuts).toBeUndefined();
+  });
+
+  it('update_part refuses a section change the notches no longer fit', () => {
+    const p = runOk(fixtureProject(), 'add_part', rafter({ cuts: { notches: [{ kind: 'notch', profile: [{ x: '2ft', z: '4.5in' }, { x: '2ft 4in', z: '4.5in' }, { x: '2ft 2in', z: '6in' }] }] } }));
+    const [err] = runErr(p.project, 'update_part', { id: p.created[0]!, sectionId: '2x4' });
+    expect(err!.message).toContain("cuts don't fit the new section");
+    expect(err!.hint).toContain('"cuts": null');
+  });
+
+  it('resize_part keeps the cuts, and refuses when a notch would fall off', () => {
+    const p = runOk(fixtureProject(), 'add_part', rafter());
+    const id = p.created[0]!;
+    const longer = expectRoundTrip(p.project, 'resize_part', { id, length: '12ft' });
+    expect(longer.project.parts[id]!.cuts).toEqual(p.project.parts[id]!.cuts);
+    const [err] = runErr(p.project, 'resize_part', { id, length: '18in' });
+    expect(err!.message).toContain("cuts don't fit the new size");
+    expect(err!.hint).toContain('update_part');
+  });
+});

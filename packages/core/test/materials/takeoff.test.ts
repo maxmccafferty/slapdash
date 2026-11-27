@@ -252,3 +252,40 @@ describe('takeoff edges', () => {
     expect(sheetVariant(1.125 * IN)).toBe('1 1/8in');
   });
 });
+
+describe('takeoff of cut parts (LOC-120)', () => {
+  const p = poolHouse().project;
+  const report = takeoff(p, CATALOG, TABLE);
+
+  it('labels the rafter rows with their cuts and long-point length', () => {
+    const rafters = Object.values(p.parts).filter((x) => x.role === 'rafter');
+    const rows = report.cutList.flatMap((g) => g.pieces).filter((r) => r.pieceIds.some((id) => rafters.some((x) => x.id === id)));
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.cuts?.longPoint).toBe(true);
+      expect(row.cuts!.label).toMatch(/^plumb 26\.6° both ends · birdsmouth \(seat 3 15\/16″, heel 2″\)$/);
+      expect(row.length_mm).toBeCloseTo(rafters[0]!.size.length, 6);
+    }
+  });
+
+  it('splits cut and uncut pieces of the same length into separate rows', () => {
+    const plain = structuredClone(p);
+    const rafter = Object.values(plain.parts).find((x) => x.role === 'rafter')!;
+    delete rafter.cuts;
+    const rows = takeoff(plain, CATALOG, TABLE).cutList.flatMap((g) => g.pieces).filter((r) => Math.abs(r.length_mm - rafter.size.length) < 1e-6);
+    expect(rows.some((r) => r.cuts === undefined && r.pieceIds.includes(rafter.id))).toBe(true);
+    expect(rows.some((r) => r.cuts !== undefined)).toBe(true);
+  });
+
+  it('packs by long point plus kerf: the same boards as packing size.length', () => {
+    const plain = structuredClone(p);
+    for (const part of Object.values(plain.parts)) delete part.cuts;
+    const boards = (r: MaterialsReport) => r.cutList.map((g) => [g.id, g.boards]);
+    expect(boards(report)).toEqual(boards(takeoff(plain, CATALOG, TABLE)));
+  });
+
+  it('lists the bevelled ridge sheathing in the sheet row', () => {
+    const sheet = rowsOf(report).find((r) => r.measure === 'sheets' && r.step === 'roof')!;
+    expect(sheet.details).toEqual([expect.stringMatching(/^\d+ × bevel 26\.6° one edge$/)]);
+  });
+});
