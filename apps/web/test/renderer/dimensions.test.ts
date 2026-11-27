@@ -19,7 +19,12 @@ describe('dimensionSet on the pool-house shell', () => {
     // Ridge: slab top (4″) to the top of the roof.
     const roofTop = Math.max(...Object.values(project.parts).filter((p) => p.assemblyId === 'R1').map((p) => partAabb(p).max.y));
     expect(byId['ridge-height']!.label).toBe(dimensionLabel(roofTop - 101.6));
-    expect(byId['ridge-height']!.label).toBe('13′ 6″');
+    // The roof apex is where the bevelled sheathing meets on the ridge centreline:
+    //   9′ 4″ plate top (112″) + rafter underside rise to the ridge face (96 − 3/4 + 7/16)″ × 6/12
+    //   − birdsmouth heel (7/16 + 3 1/2)″ × 6/12 + rafter plumb depth 5 1/2″ / cos θ
+    //   + 3/4″ × 6/12 to the centreline + sheathing 7/16″ / cos θ = 164.88″ = 13′ 8 7/8″,
+    // so 13′ 4 7/8″ above the 4″ slab. (Square-cut, un-notched rafters gave 13′ 6″.)
+    expect(byId['ridge-height']!.label).toBe('13′ 4 7/8″');
     expect(byId['ridge-height']!.to.y).toBeGreaterThan(byId['wall-height']!.to.y);
   });
 
