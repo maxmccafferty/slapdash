@@ -6,6 +6,7 @@
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import { Matrix4, Vector3, type InstancedMesh } from 'three';
+import type { Vec3 } from '@slapdash/core';
 import { debugEnabled, exposeDebug } from '../debug.ts';
 import { useModelStore } from '../state/model-store.ts';
 import { frameStats, useRendererStore } from './renderer-store.ts';
@@ -20,6 +21,23 @@ export function useRendererDebug(): void {
     const api = {
       renderSnapshot,
       camera: () => useRendererStore.getState().readCamera(),
+      /**
+       * Put the user's camera at `position` looking at `target` (metres, scene space), past
+       * the zoom limits and the polar clamp (so it can look up at a ridge from below), for
+       * close-up device and e2e checks of a joint.
+       */
+      setCamera: (position: Vec3, target: Vec3) => {
+        const { camera, controls, invalidate } = get();
+        const orbit = controls as unknown as { target: Vector3; minDistance: number; maxPolarAngle: number; update(): void } | null;
+        camera.position.set(position.x, position.y, position.z);
+        if (orbit) {
+          orbit.target.set(target.x, target.y, target.z);
+          orbit.minDistance = Math.min(orbit.minDistance, camera.position.distanceTo(orbit.target) / 2);
+          orbit.maxPolarAngle = Math.PI;
+          orbit.update();
+        } else camera.lookAt(target.x, target.y, target.z);
+        invalidate();
+      },
       select: (id: string | null) => useModelStore.getState().select(id),
       selection: () => ({ id: useModelStore.getState().selectedPartId, label: useModelStore.getState().selectedPartLabel }),
       get bus() {
