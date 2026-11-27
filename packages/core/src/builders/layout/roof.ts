@@ -1,22 +1,36 @@
 /**
  * build_roof layout: stick-framed gable or shed roof on existing walls. Common rafters
  * on layout from the footprint corner, a ridge board one size deeper (gable), rafter
- * ties at plate level (gable), and OSB roof sheathing. Birdsmouths are not modelled:
- * each rafter's underside passes through the outside face of the wall sheathing at
- * plate height.
+ * ties at plate level (gable), and OSB roof sheathing.
+ *
+ * Members are cut so they sit flush (`Part.cuts`, `geometry/cuts.ts`):
+ * - Rafters get a plumb cut at the ridge face (or the shed's high tail) and a plumb tail
+ *   cut at the eave. Their `size.length` is the long point.
+ * - Each common rafter gets a birdsmouth on each bearing wall: the heel (plumb) cut at the
+ *   outside face of the wall sheathing, the seat (level) cut on the plate, no deeper than
+ *   `BIRDSMOUTH_MAX_DEPTH` of the rafter. The rafters drop by the heel height, so their
+ *   seats bear on the plate.
+ * - The top row of gable sheathing is bevelled so the two sides meet on the ridge
+ *   centreline.
+ * - Rafter ties have their top corners trimmed to the roof line where they would poke
+ *   through it.
  */
 import type { CatalogIndex } from '../../catalog/validate.ts';
 import { commandError, type CommandError } from '../../commands/errors.ts';
-import { boxInFrame, placeOriented, toWorld, type FrameBox, type FrameVec, type PlanFrame } from '../../geometry/frame.ts';
-import type { Project } from '../../model/schema.ts';
+import { frameProfileToLocal, pitchAngleDeg } from '../../geometry/cuts.ts';
+import { boxInFrame, dirToWorld, placeMember, placeOriented, toWorld, type FrameBox, type FrameVec, type PlanFrame } from '../../geometry/frame.ts';
+import { dot, rotationAxes } from '../../geometry/obb.ts';
+import type { Notch, PartCuts, Project } from '../../model/schema.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../../units/length.ts';
 import { formatPitch, type Pitch } from '../../units/pitch.ts';
 import { BUILDER_DEFAULTS, resolveMaterials, type BuilderMaterialsInput } from '../defaults.ts';
 import { SpecList, fail, type JointSpec, type LayoutResult, type Ref } from '../emit.ts';
 import {
+  BIRDSMOUTH_MAX_DEPTH,
   HEEL_JOINT_NAILS,
   MAX_PITCH_RISE,
   MIN_PITCH_RISE,
+  MIN_RAFTER_BEARING,
   RAFTER_NAILS,
   RIDGE_FOR_RAFTER,
   SPACING_MM,
@@ -158,6 +172,7 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
   const r = pitch.ratio;
   const cos = Math.cos(Math.atan(r));
   const sin = Math.sin(Math.atan(r));
+  const thetaDeg = pitchAngleDeg(r);
   const rafterDepth = sectionDims(catalog, rafterSection).depth;
   let yb: number; // low (or both) bearing height
   if (input.bearingHeight !== undefined) yb = input.bearingHeight;
@@ -182,21 +197,44 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
   const t = input.type === 'gable' ? Math.max(edgeA.sheathing, edgeB.sheathing) : edgeA.sheathing;
 
   // Rafter geometry along w (side A runs from the eave at w = -overhang up towards +w).
+  // The top face runs `rafterLen` from the tail's plumb cut to the ridge face; the plumb
+  // cuts make the long point (the bottom at the tail, the top at the ridge) d·tanθ longer.
   const highW = input.type === 'gable' ? S / 2 - T / 2 : S + overhang;
   const rafterRun = highW + overhang;
   const rafterLen = rafterRun / cos;
-  if (rafterLen > STOCK_LENGTH_MM + 1e-6) {
+  const rafterLong = rafterLen + rafterDepth * Math.tan(Math.atan(r));
+  if (rafterLong > STOCK_LENGTH_MM + 1e-6) {
     return bad(
-      `A ${formatPitch(pitch)} ${input.type} roof over ${fi(S)} needs ${fi(rafterLen)} rafters, past the ${fi(STOCK_LENGTH_MM)} stock length.`,
+      `A ${formatPitch(pitch)} ${input.type} roof over ${fi(S)} needs ${fi(rafterLong)} rafters, past the ${fi(STOCK_LENGTH_MM)} stock length (measured to the long point of the plumb cuts).`,
       'pitch',
       'Lower the pitch, shorten the overhang, or add a bearing wall mid-span.',
     );
   }
-  const edgeY = (w: number) => yb + (w + t) * r; // underside of side-A rafters at w
+
+  // Birdsmouth (side A; side B mirrors it): heel cut at the outside face of the wall
+  // sheathing (w = −t), seat on the plate top (v = yb), running in over the sheathing and
+  // the wall, but no deeper than BIRDSMOUTH_MAX_DEPTH of the rafter square to its length.
+  const wallDepthA = (input.type === 'gable' ? Math.max(edgeA.depth, edgeB.depth) : edgeA.depth) || sectionDims(catalog, '2x4').depth;
+  const seatFull = t + wallDepthA;
+  const seatMax = (rafterDepth * BIRDSMOUTH_MAX_DEPTH) / sin;
+  const seatLen = Math.min(seatFull, seatMax);
+  if (seatLen - t < MIN_RAFTER_BEARING - 1e-6) {
+    return bad(
+      `${rafterSection} rafters at ${formatPitch(pitch)} would bear only ${fi(Math.max(0, seatLen - t))} on the plate: a birdsmouth can cut at most a third of their depth, and they need ${fi(MIN_RAFTER_BEARING)}.`,
+      'rafterSize',
+      'Use deeper rafters or lower the pitch.',
+    );
+  }
+  /** How far the birdsmouth lets the rafters down (the heel height). */
+  const drop = seatLen * r;
+  const edgeY = (w: number) => yb + (w + t) * r - drop; // underside of side-A rafters at w
 
   if (input.type === 'shed') {
     const dHigh = edgeB.depth || sectionDims(catalog, '2x4').depth;
-    const needed = edgeY(S - dHigh);
+    // The roof line the high walls are built to: where the rafter underside would cross
+    // their inside face with no birdsmouth. With the birdsmouth the rafter sits `drop`
+    // lower, so walls at this height get a matching seat cut (see below).
+    const needed = edgeY(S - dHigh) + drop;
     if (edgeB.top !== null) {
       if (edgeB.top < needed - 1.5 * IN) {
         return bad(
@@ -237,6 +275,41 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
   }
 
   const sides: Array<0 | 1> = input.type === 'gable' ? [0, 1] : [0];
+  /** Frame w of a side-A position on the given side (side B mirrors across the span). */
+  const mirror = (side: 0 | 1, w: number) => (side === 0 ? w : S - w);
+  const PUSH = 1; // mm: notch profiles reach this far past the face they exit
+
+  /** Birdsmouth triangles (frame w, v) for a rafter on a side, as [heel exit, corner, seat exit]. */
+  let highSeat = false;
+  const birdsmouths = (side: 0 | 1): Array<Array<{ w: number; v: number }>> => {
+    const out: Array<Array<{ w: number; v: number }>> = [];
+    const m = (w: number) => mirror(side, w);
+    // The bearing wall on this side: heel at the outside of the sheathing.
+    out.push([
+      { w: m(-t), v: yb - drop - PUSH },
+      { w: m(-t), v: yb },
+      { w: m(seatLen - t + PUSH), v: yb },
+    ]);
+    if (input.type === 'shed' && edgeB.top !== null) {
+      // The high wall: heel at its inside face, seat on its plate running outward until it
+      // leaves the rafter's underside. Walls within the shim tolerance below the rafter
+      // get no seat. The walls are at most 1 mm above `needed` (refused above), so the heel
+      // is at most drop + 1 mm and the seat no deeper than the low one (≤ d/3) plus 1 mm.
+      const dHigh = edgeB.depth || sectionDims(catalog, '2x4').depth;
+      const wHeel = S - dHigh;
+      const h = edgeB.top - edgeY(wHeel);
+      if (h > PUSH) {
+        highSeat = true;
+        out.push([
+          { w: wHeel, v: edgeY(wHeel) - PUSH },
+          { w: wHeel, v: edgeB.top },
+          { w: wHeel + h / r + PUSH, v: edgeB.top },
+        ]);
+      }
+    }
+    return out;
+  };
+
   /** Place a rafter on a side; returns its key and its frame box. */
   const rafter = (side: 0 | 1, u0: number, fly: boolean) => {
     const s = side === 0 ? 1 : -1;
@@ -246,16 +319,24 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
       frame,
       origin,
       { x: { u: 0, v: sin, w: s * cos }, y: { u: 1, v: 0, w: 0 }, z: { u: 0, v: cos, w: -s * sin } },
-      { length: rafterLen, width: T, height: rafterDepth },
+      { length: rafterLong, width: T, height: rafterDepth },
     );
+    // Tail: plumb through the bottom corner at the eave (long point on the bottom).
+    // Ridge (or a shed's high tail): plumb through the top long point (on the top face).
+    const cuts: PartCuts = { start: { slope: thetaDeg, name: 'plumb' }, end: { slope: -thetaDeg, name: 'plumb' } };
+    if (!fly) {
+      const notches: Notch[] = birdsmouths(side).map((tri) => ({ kind: 'birdsmouth', profile: frameProfileToLocal(placed, frame, tri) }));
+      if (notches.length > 0) cuts.notches = notches;
+    }
     const key = specs.addPlaced({
       assembly: asm,
       role: 'rafter',
       materialId: materials.lumber,
       sectionId: rafterSection,
-      tags: [fly ? 'fly-rafter' : 'common', `side:${sideName(side)}`, 'birdsmouth-not-modelled'],
+      tags: [fly ? 'fly-rafter' : 'common', `side:${sideName(side)}`],
       buildStep: step,
       ...placed,
+      cuts,
     });
     return { key, box: boxInFrame(frame, placed) };
   };
@@ -265,8 +346,10 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
 
   // Ridge (gable): top flush with the rafter tops at the ridge face.
   let ridge: Ref | null = null;
+  let ridgeBottom = -Infinity;
   if (input.type === 'gable') {
     const ridgeDepth = sectionDims(catalog, ridgeSection).depth;
+    ridgeBottom = edgeY(S / 2 - T / 2) + rafterDepth / cos - ridgeDepth;
     const ridgeTop = edgeY(S / 2 - T / 2) + rafterDepth / cos;
     ridge = specs.add(frame, {
       assembly: asm,
@@ -326,23 +409,62 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
     }
   }
 
-  // Rafter ties (gable) at plate level beside each rafter pair.
+  // Rafter ties (gable) at plate level beside each rafter pair, their top corners trimmed
+  // to the roof plane (the rafters' top faces) where they would poke through it.
   let ties = 0;
+  let trimmedTies = 0;
   if (input.type === 'gable') {
     const tieDepth = rafterDepth;
+    const roofTop = (w: number) => edgeY(w) + rafterDepth / cos; // side A's rafter tops
+    const tieTop = yb + tieDepth;
+    const wCross = (tieTop - roofTop(0)) / r; // where the roof plane rises past the tie top
     for (const p of positions) {
       if (p.fly) continue;
       const u0 = p.u0 + T + T > LR ? p.u0 - T : p.u0 + T;
-      const tie = specs.add(frame, {
+      const box = { u0, u1: u0 + T, v0: yb, v1: yb + tieDepth, w0: 0, w1: S };
+      const placed = placeMember(frame, box, 'w', 'u');
+      const notches: Notch[] = [];
+      if (wCross > 0) {
+        // Triangle above the roof line at each end: two corners on the line (past the tie's
+        // end and past where the line rises above its top), the third above both.
+        const wFar = wCross + PUSH * Math.max(1, 1 / r);
+        const hi = roofTop(wFar);
+        for (const side of [0, 1] as const) {
+          notches.push({
+            kind: 'trim',
+            profile: frameProfileToLocal(placed, frame, [
+              { w: mirror(side, -PUSH), v: roofTop(-PUSH) },
+              { w: mirror(side, wFar), v: hi },
+              { w: mirror(side, -PUSH), v: hi },
+            ]),
+          });
+        }
+        trimmedTies++;
+      }
+      if (ridgeBottom < tieTop && ridgeBottom > yb + tieDepth / 2) {
+        // On a short, low roof the ridge board hangs below the tie tops: notch them under it.
+        const w0 = S / 2 - T / 2;
+        const w1 = S / 2 + T / 2;
+        notches.push({
+          kind: 'notch',
+          profile: frameProfileToLocal(placed, frame, [
+            { w: w0, v: ridgeBottom },
+            { w: w1, v: ridgeBottom },
+            { w: w1, v: tieTop + PUSH },
+            { w: w0, v: tieTop + PUSH },
+          ]),
+        });
+      }
+      const cuts: PartCuts | undefined = notches.length > 0 ? { notches } : undefined;
+      const tie = specs.addPlaced({
         assembly: asm,
         role: 'joist',
         tags: ['rafter-tie', 'ceiling-joist'],
-        box: { u0, u1: u0 + T, v0: yb, v1: yb + tieDepth, w0: 0, w1: S },
-        lengthAxis: 'w',
-        widthAxis: 'u',
         materialId: materials.lumber,
         sectionId: rafterSection,
         buildStep: step,
+        ...placed,
+        ...(cuts ? { cuts } : {}),
       });
       ties++;
       for (const rf of rafters.filter((x) => x.u0 === p.u0 && !x.fly)) {
@@ -377,17 +499,26 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
 
   // Roof sheathing on the rafter tops: 8ft along the eave, 4ft up the slope, staggered.
   let panels = 0;
+  let bevelled = 0;
   if (sheathe) {
     const th = BUILDER_DEFAULTS.sheathingThickness;
     const { long, short } = BUILDER_DEFAULTS.sheet;
     const uStart = -rake;
     const uEnd = LR + rake;
+    // A gable's panels run past the ridge face to the centreline, where the top row is
+    // bevelled plumb so the two sides meet on one vertical plane. The bevel's long point is
+    // on the panel's top face, th·tanθ past its underside.
+    const sheathLen = input.type === 'gable' ? rafterLen + T / 2 / cos : rafterLen;
+    const bevelExtra = th * Math.tan(Math.atan(r));
     for (const side of sides) {
       const s = side === 0 ? 1 : -1;
       const wEave = side === 0 ? -overhang : S + overhang;
-      const base = { u: 0, v: edgeY(-overhang) + cos * rafterDepth, w: wEave - s * sin * rafterDepth };
-      for (let row = 0, s0 = 0; s0 < rafterLen - 1; row++, s0 += short) {
-        const s1 = Math.min(rafterLen, s0 + short);
+      // The rafters' top tail corner, at the plumb tail cut.
+      const base = { u: 0, v: edgeY(-overhang) + rafterDepth / cos, w: wEave };
+      const upSlope = dirToWorld(frame, { u: 0, v: sin, w: s * cos });
+      for (let row = 0, s0 = 0; s0 < sheathLen - 1; row++, s0 += short) {
+        const s1 = Math.min(sheathLen, s0 + short);
+        const bevel = input.type === 'gable' && s1 >= sheathLen - 1e-9;
         const cuts = [uStart];
         for (let u = uStart + (row % 2 === 1 ? short : long); u < uEnd - 1; u += long) cuts.push(u);
         cuts.push(uEnd);
@@ -398,8 +529,16 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
             frame,
             { u: u0, v: base.v + s0 * sin, w: base.w + s * s0 * cos },
             { x: { u: 1, v: 0, w: 0 }, y: { u: 0, v: sin, w: s * cos }, z: { u: 0, v: cos, w: -s * sin } },
-            { length: u1 - u0, width: s1 - s0, height: th },
+            { length: u1 - u0, width: s1 - s0 + (bevel ? bevelExtra : 0), height: th },
           );
+          let panelCuts: PartCuts | undefined;
+          if (bevel) {
+            // The ridge edge is local y = width unless placement mirrored local y.
+            const yUp = dot(rotationAxes(placed.rotation)[1], upSlope) > 0;
+            const cut = { slope: -thetaDeg, name: 'bevel' as const };
+            panelCuts = yUp ? { farEdge: cut } : { nearEdge: cut };
+            bevelled++;
+          }
           const key = specs.addPlaced({
             assembly: asm,
             role: 'sheathing',
@@ -407,6 +546,7 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
             tags: ['roof-sheathing', 'brace:panel', `side:${sideName(side)}`],
             buildStep: step,
             ...placed,
+            ...(panelCuts ? { cuts: panelCuts } : {}),
           });
           panels++;
           for (const rf of rafters) {
@@ -427,6 +567,11 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
   }
 
   const pairs = positions.filter((p) => !p.fly).length;
+  const deg = `${thetaDeg.toFixed(1)}°`;
+  const rafterCuts =
+    input.type === 'gable'
+      ? `plumb cut ${deg} at the ridge and tail, birdsmouth on the plates`
+      : `plumb cut ${deg} at both tails, birdsmouth on the low plate${highSeat ? ' and the high plate' : ''}`;
   const name = input.name ?? 'Roof';
   const notes: string[] = [];
   if (input.bearingHeight === undefined) notes.push(`It bears on the walls at ${fi(yb)}.`);
@@ -465,8 +610,8 @@ export function layoutRoof(project: Project, input: BuildRoofInput, catalog: Cat
       what: 'The new roof',
       summary: (id) =>
         input.type === 'gable'
-          ? `Built gable roof ${id(asm)} "${name}" at ${formatPitch(pitch)}: ${pairs} pairs of ${rafterSection} rafters at ${spacingLabel} (${fi(rafterLen)} long), a ${ridgeSection} ridge${ridge ? ` ${id(ridge)}` : ''}, ${ties} rafter ties${panels > 0 ? `, ${panels} sheathing panels` : ''}.`
-          : `Built shed roof ${id(asm)} "${name}" at ${formatPitch(pitch)}, low side ${input.lowSide}: ${pairs} ${rafterSection} rafters at ${spacingLabel} (${fi(rafterLen)} long)${panels > 0 ? `, ${panels} sheathing panels` : ''}.`,
+          ? `Built gable roof ${id(asm)} "${name}" at ${formatPitch(pitch)}: ${pairs} pairs of ${rafterSection} rafters at ${spacingLabel} (${fi(rafterLong)} long point; ${rafterCuts}), a ${ridgeSection} ridge${ridge ? ` ${id(ridge)}` : ''}, ${ties} rafter ties${trimmedTies > 0 ? ' (top corners trimmed to the roof line)' : ''}${panels > 0 ? `, ${panels} sheathing panels (${bevelled} bevelled at the ridge)` : ''}.`
+          : `Built shed roof ${id(asm)} "${name}" at ${formatPitch(pitch)}, low side ${input.lowSide}: ${pairs} ${rafterSection} rafters at ${spacingLabel} (${fi(rafterLong)} long point; ${rafterCuts})${panels > 0 ? `, ${panels} sheathing panels` : ''}.`,
     },
   };
 }
