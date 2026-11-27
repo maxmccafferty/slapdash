@@ -6,7 +6,8 @@
  * 1. Drawings: the name and specs, then the 2D sheet (plan and four elevations) as vectors.
  * 2. Materials: by build step with Amount and Cost, the Total row, the price date and caveat.
  *    A price the person gave shows an orange dot.
- * 3. Cut list: by stock board, a tick box per piece row, in two columns.
+ * 3. Cut list: by stock board, a tick box per piece row, in two columns. A cut piece gets
+ *    a second line in small type with its cuts ("long point · plumb 26.6° both ends").
  *
  * Every page has a footer: the project, "Planning estimate, not a quote" and "Page n of N".
  * Pure: no fonts, no PDF library. Text widths are estimated for truncation only; the
@@ -20,6 +21,7 @@ import {
   boardTitle,
   formatAmount,
   formatCost,
+  formatCutLabel,
   formatCutLength,
   formatTotal,
   priceDateNote,
@@ -63,6 +65,8 @@ const TYPE = {
 
 const ROW = 17;
 const CUT_ROW = 15;
+/** Each extra small-type line under a row (cut labels, sheet details). */
+const DETAIL_LINE = 10;
 
 /** Rough text width (0.55 em a character) for truncation. */
 export function estimateWidth(text: string, size: number): number {
@@ -174,6 +178,40 @@ function groupHeader(p: Pages, group: MaterialsGroup, continued: boolean): void 
   p.push(hairline(p.y, LEFT, RIGHT, INK, 0.5));
 }
 
+/**
+ * A " · "-separated label into lines no wider than `max`, breaking only between its parts
+ * (so "3 15/16″" never splits); a part too wide on its own is word-wrapped.
+ */
+function wrapParts(label: string, size: number, max: number): string[] {
+  const lines: string[] = [];
+  let line = '';
+  for (const part of label.split(' · ')) {
+    const next = line === '' ? part : `${line} ·`;
+    if (line !== '' && estimateWidth(`${line} · ${part}`, size) <= max) {
+      line = `${line} · ${part}`;
+      continue;
+    }
+    if (line !== '') lines.push(next);
+    if (estimateWidth(part, size) <= max) line = part;
+    else {
+      const words = wrap(part, size, max);
+      lines.push(...words.slice(0, -1));
+      line = words[words.length - 1] ?? '';
+    }
+  }
+  if (line !== '') lines.push(line);
+  return lines;
+}
+
+/** The small-type lines under a materials row (e.g. "6 × bevel 26.6° one edge"). */
+function detailLines(row: MaterialsRow): string[] {
+  return (row.details ?? []).flatMap((d) => wrap(d, TYPE.small, NAME_MAX - 14));
+}
+
+function materialRowHeight(row: MaterialsRow): number {
+  return ROW + detailLines(row).length * DETAIL_LINE;
+}
+
 function materialRow(p: Pages, row: MaterialsRow): void {
   const top = p.y;
   const base = top + ROW - 5.5;
@@ -190,6 +228,10 @@ function materialRow(p: Pages, row: MaterialsRow): void {
     p.push(text(RIGHT, base, NO_PRICE, TYPE.body, { color: MUTED, align: 'right' }));
   }
   p.y += ROW;
+  for (const line of detailLines(row)) {
+    p.push(text(LEFT + 14, p.y - 3, line, TYPE.small, { color: MUTED }));
+    p.y += DETAIL_LINE;
+  }
   p.push(hairline(p.y));
 }
 
@@ -210,10 +252,10 @@ function materialsPages(input: PdfInput): PdfPage[] {
 
   for (const group of report.groups) {
     // A header and at least one row, or a new page.
-    if (!p.fits(TYPE.group + 11 + ROW)) p.add();
+    if (!p.fits(TYPE.group + 11 + materialRowHeight(group.rows[0]!))) p.add();
     groupHeader(p, group, false);
     for (const row of group.rows) {
-      if (!p.fits(ROW)) {
+      if (!p.fits(materialRowHeight(row))) {
         p.add();
         groupHeader(p, group, true);
       }
@@ -284,10 +326,13 @@ function cutListPages(input: PdfInput): PdfPage[] {
     p.push(hairline(y, x(), x() + COL_W, INK, 0.5));
   };
   for (const g of groups) {
-    if (y + CUT_HEADER + CUT_ROW > BOTTOM) nextColumn();
+    if (y + CUT_HEADER + CUT_ROW + DETAIL_LINE * 2 > BOTTOM) nextColumn();
     header(g, false);
     for (const row of g.pieces) {
-      if (y + CUT_ROW > BOTTOM) {
+      const label = formatCutLabel(row.cuts);
+      const lines = label ? wrapParts(label, TYPE.small, COL_W - 14) : [];
+      const height = CUT_ROW + lines.length * DETAIL_LINE;
+      if (y + height > BOTTOM) {
         nextColumn();
         header(g, true);
       }
@@ -296,6 +341,10 @@ function cutListPages(input: PdfInput): PdfPage[] {
       p.push(text(x() + 14, base, `${formatCutLength(row.length_mm)}${row.spliced ? ' (spliced)' : ''}`, TYPE.body));
       p.push(text(x() + COL_W, base, `× ${row.count}`, TYPE.body, { align: 'right' }));
       y += CUT_ROW;
+      for (const line of lines) {
+        p.push(text(x() + 14, y - 3, line, TYPE.small, { color: MUTED }));
+        y += DETAIL_LINE;
+      }
       p.push(hairline(y, x(), x() + COL_W));
     }
     y += 10;

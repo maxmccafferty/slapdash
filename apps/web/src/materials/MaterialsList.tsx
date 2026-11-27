@@ -13,6 +13,12 @@ function Row({ row }: { row: MaterialsRow }) {
         <span className={styles.name}>
           {name}
           {detail && <span className={styles.detail}> {detail}</span>}
+          {row.details?.map((d) => (
+            <span key={d} className={styles.detail} data-detail="">
+              <br />
+              {d}
+            </span>
+          ))}
         </span>
         </span>
       </th>

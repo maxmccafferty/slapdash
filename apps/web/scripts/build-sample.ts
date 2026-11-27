@@ -1,10 +1,11 @@
 /**
  * Writes the shipped sample project, `src/samples/pool-house.slapdash`, from the pool-house
- * commands (`src/model/sample-shell.ts`). Run it whenever builders or the sample change:
+ * commands (`src/model/sample-shell.ts`):
  *
  *   pnpm --filter @slapdash/web sample
  *
- * The file is committed; `test/projects/sample.test.ts` fails if it is out of date.
+ * The file is committed and frozen at project schema v1 as the old-file fixture (see
+ * `src/samples/build.ts`), so regenerating it gives that fixture up.
  */
 import { writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';

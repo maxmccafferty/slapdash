@@ -1,9 +1,12 @@
 import type { MaterialsReport } from '@slapdash/core';
 import { Swatch } from '../components/Swatch.tsx';
-import { boardCount, boardTitle, formatCutLength } from './format.ts';
+import { boardCount, boardTitle, formatCutLabel, formatCutLength } from './format.ts';
 import styles from './MaterialsPanel.module.css';
 
-/** The Cut list tab: one table per stock board, each row a piece length and how many. */
+/**
+ * The Cut list tab: one table per stock board, each row a piece length and how many. Cut
+ * pieces show their long-point length and their cuts ("long point · plumb 26.6° both ends").
+ */
 export function CutList({ report }: { report: MaterialsReport }) {
   if (report.cutList.length === 0) {
     return <p className={styles.empty}>Nothing to cut: no lumber is sold in board lengths here.</p>;
@@ -33,10 +36,11 @@ export function CutList({ report }: { report: MaterialsReport }) {
           </thead>
           <tbody>
             {group.pieces.map((row) => (
-              <tr key={`${row.length_mm}|${row.spliced}`}>
+              <tr key={`${row.length_mm}|${row.spliced}|${row.cuts?.label ?? ''}`}>
                 <th scope="row" className={styles.item}>
                   {formatCutLength(row.length_mm)}
                   {row.spliced && <span className={styles.detail}> (spliced)</span>}
+                  {formatCutLabel(row.cuts) && <span className={styles.detail}> {formatCutLabel(row.cuts)}</span>}
                 </th>
                 <td className={styles.amount}>× {row.count}</td>
               </tr>

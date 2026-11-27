@@ -3,7 +3,14 @@
  * 2D sheet (`8′ 8 5/8″`); money is whole dollars, as a range unless it is the person's own
  * price.
  */
-import { formatFeetInches, type CutListGroup, type MaterialsRow, type MaterialsTotals, type RowCost } from '@slapdash/core';
+import {
+  formatFeetInches,
+  type CutDescription,
+  type CutListGroup,
+  type MaterialsRow,
+  type MaterialsTotals,
+  type RowCost,
+} from '@slapdash/core';
 import { toPrimes } from '../renderer/units.ts';
 
 export const NO_PRICE = 'no price yet';
@@ -12,6 +19,16 @@ export const EMPTY_MATERIALS = 'Nothing built yet. Ask Claude to build something
 /** `8′ 8 5/8″`, to the nearest 1/16in. */
 export function formatCutLength(mm: number): string {
   return toPrimes(formatFeetInches(mm));
+}
+
+/**
+ * The words under a cut piece's length, shared by the cut list and the PDF:
+ * `long point · plumb 26.6° both ends · birdsmouth (seat 3 15/16″, heel 2″)`. Null for a
+ * square-cut piece.
+ */
+export function formatCutLabel(cuts: CutDescription | undefined): string | null {
+  if (!cuts || cuts.label === '') return null;
+  return cuts.longPoint ? `long point · ${cuts.label}` : cuts.label;
 }
 
 const dollars = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0, minimumFractionDigits: 0 });

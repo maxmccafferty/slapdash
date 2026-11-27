@@ -76,6 +76,14 @@ describe('layoutPdf', () => {
     expect(page.items.filter((i) => i.type === 'tick')).toHaveLength(rows);
   });
 
+  it('prints each cut piece\'s cuts under its length, and the bevelled sheathing on the materials page', () => {
+    const cut = texts(doc.pages[2]!.items);
+    // Wrapped between the label's parts, never inside a length.
+    expect(cut).toContain('long point · plumb 26.6° both ends ·');
+    expect(cut).toContain('birdsmouth (seat 3 15/16″, heel 2″)');
+    expect(texts(doc.pages[1]!.items).some((s) => /^\d+ × bevel 26\.6° one edge$/.test(s))).toBe(true);
+  });
+
   it('every page has the footer, and nothing runs into the margins', () => {
     doc.pages.forEach((page, i) => {
       const t = texts(page.items);
