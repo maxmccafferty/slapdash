@@ -36,6 +36,12 @@ describe('agent tools', () => {
     expect(tools.find((t) => t.name === 'offer_options')!.description).toContain('fix first when it is over the limit');
   });
 
+  it('include update_opening and remove_opening', () => {
+    const names = tools.map((t) => t.name);
+    expect(names).toContain('update_opening');
+    expect(names).toContain('remove_opening');
+  });
+
   it('include the location and design-load overrides', () => {
     const names = tools.map((t) => t.name);
     for (const n of ['set_site_location', 'set_design_load', 'clear_design_load']) expect(names).toContain(n);

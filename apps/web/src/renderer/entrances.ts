@@ -1,5 +1,5 @@
 /**
- * New parts fall a short way into place and fade in from transparent. This is the schedule:
+ * New parts fall from about a storey up into place and fade in from transparent. This is the schedule:
  * which parts are entering and when each one starts. `PartBatch` reads it every frame (instance
  * matrices and the `aEnter` attribute), and `Dimensions` holds new labels back until the parts
  * have landed. Nothing here touches React state, so an entrance never re-renders anything.
@@ -16,15 +16,15 @@ import type { Part, Project } from '@slapdash/core';
 import { isContextPart, partAabb } from './bounds.ts';
 
 /** One part's fall and fade. */
-export const ENTER_MS = 450;
+export const ENTER_MS = 900;
 /** How far a part falls, metres. */
-export const DROP_HEIGHT_M = 0.3;
+export const DROP_HEIGHT_M = 1.2;
 /** The stagger between consecutive assemblies, capped by `MAX_ASSEMBLY_SPREAD_MS` in total. */
-export const ASSEMBLY_STEP_MS = 150;
-export const MAX_ASSEMBLY_SPREAD_MS = 600;
+export const ASSEMBLY_STEP_MS = 300;
+export const MAX_ASSEMBLY_SPREAD_MS = 1200;
 /** Bottom-to-top spread inside one assembly. */
-export const WITHIN_ASSEMBLY_SPREAD_MS = 250;
-/** The longest a whole entrance takes, first start to last landing. */
+export const WITHIN_ASSEMBLY_SPREAD_MS = 500;
+/** The longest a whole entrance takes, first start to last landing (2.6 s). */
 export const MAX_TOTAL_MS = MAX_ASSEMBLY_SPREAD_MS + WITHIN_ASSEMBLY_SPREAD_MS + ENTER_MS;
 /** With reduced motion: a quick fade, in place. */
 export const REDUCED_FADE_MS = 150;

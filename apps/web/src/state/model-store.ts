@@ -107,7 +107,9 @@ export const useModelStore = create<ModelState & ModelActions>()((set, get) => (
 
   setInProgress: (ids) => set({ inProgress: new Set(ids) }),
 
-  markInProgress: (ids, ms = 600) => {
+  // Long enough to cover one command's parts falling into place (renderer/entrances.ts:
+  // WITHIN_ASSEMBLY_SPREAD_MS + ENTER_MS), so the landing outline stays until they land.
+  markInProgress: (ids, ms = 1500) => {
     const added = [...ids];
     if (added.length === 0) return;
     set((s) => ({ inProgress: new Set([...s.inProgress, ...added]) }));

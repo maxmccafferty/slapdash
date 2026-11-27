@@ -78,11 +78,8 @@ function UserScene() {
     entrances.update(project, { loadId, animate: lastEvent !== null && lastEvent !== 'load', reducedMotion, now: performance.now() });
   }, [entrances, project, loadId, lastEvent, reducedMotion]);
 
-  const outlined = useMemo(() => {
-    const ids = new Set(inProgress);
-    if (selected) ids.add(selected);
-    return [...ids];
-  }, [inProgress, selected]);
+  // The pointed-at part reads strongly; parts in progress get the lighter outline.
+  const outlined = useMemo(() => (selected ? [selected] : []), [selected]);
   // Stress shows in 3D only, once there is a result (the last one stays while a new one runs).
   const stress = useMemo(
     () =>
@@ -95,8 +92,8 @@ function UserScene() {
     [stressOn, view, stressResult, project, floor, lookFrom, steps],
   );
   const spec = useMemo<ViewSpec>(
-    () => ({ mode: stress ? 'stress' : 'textured', stress, floor, lookFrom, steps, dimensions, outlined, proposal }),
-    [stress, floor, lookFrom, steps, dimensions, outlined, proposal],
+    () => ({ mode: stress ? 'stress' : 'textured', stress, floor, lookFrom, steps, dimensions, outlined, inProgress, proposal }),
+    [stress, floor, lookFrom, steps, dimensions, outlined, inProgress, proposal],
   );
 
   const cutMm = project ? cutPlaneFor(lookFrom, project.levels) : null;

@@ -39,9 +39,11 @@ import {
   noClashes,
   noClashesWith,
   pergolaPolycarbonate,
+  bottomPlatePieces,
   poolFence,
   rafterCuts,
   rafterFlushAtRidge,
+  sameWalls,
   slabFootprint,
   soundBuild,
 } from './checks.ts';
@@ -49,7 +51,7 @@ import { questionNoChange } from './cases/question-no-change.ts';
 import { SCENARIOS } from './cases/index.ts';
 import { budgetStatus, classifyToolError, inProcessKeyhole } from './harness.ts';
 import { scenarioLines, summaryLines, totalsOf, turnLine } from './report.ts';
-import { POOL_HOUSE_WALLS, POOL_IN_YARD, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
+import { POOL_HOUSE_WALLS, POOL_HOUSE_WITH_DOOR, POOL_IN_YARD, SHED_WALLS_8x10, TREE_ON_LINE, type SeedCommands } from './seeds.ts';
 import { defineScenario } from './scenario.ts';
 import { runSuite } from './suite.ts';
 
@@ -106,6 +108,7 @@ function section(title: string, fn: () => void | Promise<void>) {
 const goodModels = section('Checks pass on correct builder output', () => {
   for (const [name, seed] of [
     ['POOL_HOUSE_WALLS', POOL_HOUSE_WALLS],
+    ['POOL_HOUSE_WITH_DOOR', POOL_HOUSE_WITH_DOOR],
     ['SHED_WALLS_8x10', SHED_WALLS_8x10],
     ['TREE_ON_LINE', TREE_ON_LINE],
     ['POOL_IN_YARD', POOL_IN_YARD],
@@ -189,6 +192,26 @@ const goodModels = section('Checks pass on correct builder output', () => {
   failsCheck('48in door is wider than a standard door', hasOpening(door48, { kind: 'door', wall: 'west', ...STANDARD_DOOR }).fail);
   failsCheck('36in door fails an exact 38in width', hasOpening(door36, { kind: 'door', wall: 'west', widthIn: 38 }).fail);
   failsCheck('a door looked for on the wrong wall', hasOpening(door, { kind: 'door', wall: 'east' }).fail);
+
+  // resize-door (LOC-118): update_opening then remove_opening, walls untouched.
+  const walls4 = ['W1', 'W2', 'W3', 'W4'];
+  const resized = build([...POOL_HOUSE_WITH_DOOR, ['update_opening', { openingId: 'O1', width: '3ft' }]]);
+  passesCheck('resized door model is sound', soundBuild(resized, catalog));
+  const rd = hasOpening(resized, { kind: 'door', wall: 'south', widthIn: 36 });
+  passesCheck('36in door on the south wall', rd.fail);
+  check('the resized door is still O1', rd.opening?.asmId === 'O1');
+  passesCheck('header over the resized door', headerOverOpening(resized, rd.opening));
+  passesCheck('the walls keep their ids after update_opening', sameWalls(resized, walls4));
+  const removed = build([...POOL_HOUSE_WITH_DOOR, ['update_opening', { openingId: 'O1', width: '3ft' }], ['remove_opening', { openingId: 'O1' }]]);
+  passesCheck('model with the door removed is sound', soundBuild(removed, catalog));
+  passesCheck('no openings after remove_opening', assemblyCount(removed, 'opening', 0, 'openings'));
+  passesCheck('the walls keep their ids after remove_opening', sameWalls(removed, walls4));
+  check("W3's bottom plate is one piece again", bottomPlatePieces(removed, 'W3') === 1, bottomPlatePieces(removed, 'W3'));
+  // A rebuilt south wall comes back with a new id (W5): hand-edit the assembly map to stand for that.
+  const seeded = build(POOL_HOUSE_WITH_DOOR);
+  const { W3: south, ...otherAssemblies } = seeded.assemblies;
+  const rebuilt: Project = { ...seeded, assemblies: { ...otherAssemblies, W5: { ...south!, id: 'W5' } } };
+  failsCheck('a rebuilt south wall', sameWalls(rebuilt, walls4));
 
   // follow-ups-after-build: T4 asks for a window on a span the build left clear.
   const bare = build(POOL_HOUSE_WALLS);

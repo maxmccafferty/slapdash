@@ -189,6 +189,29 @@ describe('takeoff on the pool-house shell', () => {
   });
 });
 
+describe('takeoff after editing an opening in place', () => {
+  it('still counts every part once after update_opening, with the new header', () => {
+    const bus = poolHouse();
+    const before = rowsOf(takeoff(bus.project, CATALOG, TABLE));
+    exec(bus, 'update_opening', { openingId: 'O1', width: '5ft' });
+    const p = bus.project;
+    const rows = rowsOf(takeoff(p, CATALOG, TABLE));
+    const built = Object.values(p.parts).map((x) => x.id).sort();
+    expect(rows.flatMap((r) => r.partIds).sort()).toEqual(built);
+    const headers = Object.values(p.parts).filter((x) => x.role === 'header' && x.tags.includes('opening:O1'));
+    expect(headers).toHaveLength(2);
+    // The 6ft sliding door's 2-2x10 becomes a 2-2x8 over the 5ft opening.
+    expect(headers.every((h) => h.sectionId === '2x8')).toBe(true);
+    expect(headers[0]!.size.length).toBeCloseTo((60 + 2 * 1.5 * (p.assemblies.O1!.builder!.params as { jacks: number }).jacks) * IN, 6);
+    const headerRow = rows.find((r) => r.partIds.includes(headers[0]!.id))!;
+    expect(headerRow.sectionId).toBe('2x8');
+    // The old 2x10 plies are gone from the list.
+    const oldPlies = before.filter((r) => r.sectionId === '2x10').flatMap((r) => r.partIds);
+    expect(oldPlies.length).toBeGreaterThan(0);
+    expect(rows.flatMap((r) => r.partIds).some((id) => oldPlies.includes(id))).toBe(false);
+  });
+});
+
 describe('takeoff with the person\'s own prices', () => {
   it('a per-foot price replaces the range for that size, and undo restores the table', () => {
     const bus = poolHouse();

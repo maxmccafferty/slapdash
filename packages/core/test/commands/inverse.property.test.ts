@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util';
 import { describe, expect, it } from 'vitest';
 import { createProject, type Project } from '../../src/index.ts';
 import { applyInverse, makeBus, model, run } from '../helpers.ts';
@@ -161,21 +162,58 @@ const generators: Gen[] = [
       input: { from: { x: `${x}ft`, z: `${z}ft` }, to: { x: `${x + 12}ft`, z: `${z + 10}ft` }, height: pick(['2ft', '4ft'], r), ...(r() < 0.5 ? { stairs: { side: 'south', at: '3ft' } } : {}) },
     };
   },
+  // Opening edits (indices 23–24).
+  (p, r) => {
+    const o = pick(Object.values(p.assemblies).filter((a) => a.builder?.name === 'add_opening'), r);
+    if (!o) return null;
+    const wall = p.assemblies[(o.builder!.params as { wallId: string }).wallId];
+    const length = (wall?.builder?.params as { length?: number } | undefined)?.length ?? 6000;
+    const k = r();
+    const change =
+      k < 1 / 3
+        ? { width: pick(['30in', '3ft', '4ft', '6ft'], r) }
+        : k < 2 / 3
+          ? { centerAt: Math.round(length * (0.3 + r() * 0.4)) }
+          : { height: pick(['3ft', '4ft', '6ft 8in'], r) };
+    return { name: 'update_opening', input: { openingId: o.id, ...change } };
+  },
+  (p, r) => {
+    const o = pick(Object.values(p.assemblies).filter((a) => a.builder?.name === 'add_opening'), r);
+    return o ? { name: 'remove_opening', input: { openingId: o.id } } : null;
+  },
 ];
 
 // Weight the generators towards building things so the model grows.
-const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19, 20, 21, 22].map((i) => generators[i]!);
+const weighted = [0, 1, 1, 1, 1, 2, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 15, 16, 16, 17, 18, 19, 20, 21, 22, 23, 23, 24].map((i) => generators[i]!);
+
+/**
+ * `expect(actual).toEqual(expected)`, fast. vitest's toEqual walks both projects in full, and
+ * this test compares projects with thousands of parts after every step; with the opening-edit
+ * generators that pushed a seed past vitest's 5 s default. `isDeepStrictEqual` is native,
+ * short-circuits on shared (identical) subtrees and is stricter than toEqual (it also tells
+ * undefined from missing), so when it passes toEqual would too. On a mismatch toEqual runs, to
+ * give the same verdict and diff as before.
+ */
+function expectSame(actual: unknown, expected: unknown): void {
+  if (!isDeepStrictEqual(actual, expected)) expect(actual).toEqual(expected);
+}
 
 const builtAnySeed = new Set<string>();
 
 describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
-  // Each seed runs a long random command sequence and checks every inverse, which
-  // takes about 3 s on the full stack and can pass vitest's 5 s default when every
-  // package runs in parallel (as in CI). 30 s leaves plenty of headroom.
+  // Each seed runs 250 random commands, builders included, checks every inverse, then undoes
+  // and redoes the lot. That is real work, not assertion overhead (see expectSame): 2–5 s a
+  // seed on a laptop with this file alone, more in CI where every package's tests run at once,
+  // so vitest's 5 s default is too tight. 30 s is headroom for a loaded machine; if a seed
+  // gets near it, look for what made the steps slow rather than raising it.
   it('every recorded inverse restores the previous state; full undo/redo round-trips', { timeout: 30_000 }, () => {
     const r = rng(seed);
     const bus = makeBus();
-    let project = createProject({ name: 'Test' });
+    // Carry the bus's state forward from step to step. It is deep-frozen, so run() mutating its
+    // input would throw, and run() and the bus share every subtree a step leaves alone, so the
+    // full comparisons below skip them by identity.
+    let project = bus.project;
+    expectSame(project, createProject({ name: 'Test' }));
     const states: Project[] = [project];
     let applied = 0;
     const built = new Set<string>();
@@ -185,11 +223,11 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
       if (!cmd) continue;
       const res = run(project, cmd);
       if (!res.ok) continue; // e.g. a duplicate joint: refused, which is fine
-      expect(model(applyInverse(res.project, res.inverse))).toEqual(model(project));
+      expectSame(model(applyInverse(res.project, res.inverse)), model(project));
       const viaBus = bus.execute(cmd.name, cmd.input);
       expect(viaBus.ok).toBe(true);
-      expect(bus.project).toEqual(res.project);
-      project = res.project;
+      expectSame(bus.project, res.project);
+      project = bus.project;
       states.push(project);
       applied++;
       if (res.redo.name === 'patch_entities') {
@@ -204,14 +242,14 @@ describe.each([1, 2, 3, 42, 2026])('inverse property (seed %i)', (seed) => {
 
     const final = bus.project;
     while (bus.canUndo) expect(bus.undo().ok).toBe(true);
-    expect(model(bus.project)).toEqual(model(states[0]!));
+    expectSame(model(bus.project), model(states[0]!));
     while (bus.canRedo) expect(bus.redo().ok).toBe(true);
-    expect(bus.project).toEqual(final);
+    expectSame(bus.project, final);
   });
 });
 
 describe('builder coverage across seeds', () => {
   it('every builder generator succeeded at least once', () => {
-    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'place_structure', 'build_fence', 'build_pergola', 'build_deck']) expect(builtAnySeed, name).toContain(name);
+    for (const name of ['pour_slab', 'build_wall', 'add_opening', 'update_opening', 'remove_opening', 'place_structure', 'build_fence', 'build_pergola', 'build_deck']) expect(builtAnySeed, name).toContain(name);
   });
 });
