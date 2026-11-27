@@ -11,6 +11,9 @@
  * - **Per-board variation.** `aVariation` (per instance) offsets the texture and tints the
  *   colour by up to ±4%, so neighbouring studs don't look stamped.
  * - **The Inside cut** (see `CutFaces.ts`).
+ * - **Entering parts.** `aEnter` (per instance, 0 settled … 1 not drawn yet) fades a new part
+ *   in (see `entrances.ts`). While a batch has parts entering, its material is held transparent
+ *   (`holdTransparent`); otherwise opaque materials stay in the opaque pass.
  *
  * Blueprint and x-ray are snapshot-only modes (ADR-0003 §J removes them from the UI).
  *
@@ -46,7 +49,7 @@ import { TIER_SETTINGS } from './quality.ts';
 import { loadTexture, textureSet } from './textures.ts';
 import type { SceneMode } from './snapshot/types.ts';
 
-const PATCH_VERSION = 'slapdash-part-v1';
+const PATCH_VERSION = 'slapdash-part-v2';
 
 /** Stripe period and paper share of the over-limit hatching, in mm. */
 export const HATCH_PERIOD_MM = 60;
@@ -71,6 +74,8 @@ const STRESS_FRAGMENT_HATCH = /* glsl */ `
 const VERTEX_PARS = /* glsl */ `
 attribute vec2 aVariation;
 attribute float aCuttable;
+attribute float aEnter;
+varying float vEnter;
 uniform vec2 uTileSize;
 varying float vTint;
 varying float vCuttable;
@@ -96,6 +101,7 @@ const VERTEX_MAIN = /* glsl */ `
     vBoxUv = uvMm / uTileSize + vec2(aVariation.x * 7.31, aVariation.x * 3.17);
     vTint = aVariation.y;
     vCuttable = aCuttable;
+    vEnter = aEnter;
     vWorldY = (modelMatrix * im * vec4(position, 1.0)).y;
   }
   #ifdef USE_MAP
@@ -116,6 +122,7 @@ const VERTEX_MAIN = /* glsl */ `
 `;
 
 const FRAGMENT_PARS = /* glsl */ `
+varying float vEnter;
 uniform float uCutActive;
 uniform float uCutY;
 uniform vec3 uCutColor;
@@ -128,13 +135,18 @@ const FRAGMENT_CUT = /* glsl */ `
   if (uCutActive > 0.5 && vCuttable > 0.5 && vWorldY > uCutY) discard;
 `;
 
+/** An entering part fades in (opaque materials only blend while held transparent). */
+const FRAGMENT_ENTER = /* glsl */ `
+  diffuseColor.a *= 1.0 - vEnter;
+`;
+
 const FRAGMENT_TINT = /* glsl */ `
   diffuseColor.rgb *= 1.0 + vTint;
 `;
 
 /** The cut faces: with the top cut off, the inside of a box (its back faces) shows. Paint it dark. */
 const FRAGMENT_CUT_FACE = /* glsl */ `
-  if (uCutActive > 0.5 && !gl_FrontFacing) gl_FragColor = vec4(uCutColor, 1.0);
+  if (uCutActive > 0.5 && !gl_FrontFacing) gl_FragColor = vec4(uCutColor, gl_FragColor.a);
 `;
 
 interface PatchOptions {
@@ -204,6 +216,7 @@ function patch(shader: WebGLProgramParametersWithUniforms, opts: PatchOptions) {
   let frag = shader.fragmentShader
     .replace('#include <common>', `#include <common>\n${FRAGMENT_PARS}`)
     .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\n${FRAGMENT_CUT}`);
+  frag = frag.replace('#include <color_fragment>', `#include <color_fragment>\n${FRAGMENT_ENTER}`);
   if (opts.tint) frag = frag.replace('#include <color_fragment>', `#include <color_fragment>\n${FRAGMENT_TINT}`);
   if (opts.cutFaces) frag = frag.replace('#include <dithering_fragment>', `#include <dithering_fragment>\n${FRAGMENT_CUT_FACE}`);
   // The includes aren't expanded yet: inline the chunk, then fix its channel reads.
@@ -218,11 +231,12 @@ function patchDepth(shader: WebGLProgramParametersWithUniforms, cut: CutUniforms
   shader.uniforms.uCutActive = cut.uCutActive;
   shader.uniforms.uCutY = cut.uCutY;
   shader.vertexShader = shader.vertexShader
-    .replace('#include <common>', '#include <common>\nattribute float aCuttable;\nvarying float vCuttable;\nvarying float vWorldY;')
+    .replace('#include <common>', '#include <common>\nattribute float aCuttable;\nattribute float aEnter;\nvarying float vCuttable;\nvarying float vEnter;\nvarying float vWorldY;')
     .replace(
       '#include <project_vertex>',
       `#include <project_vertex>
       vCuttable = aCuttable;
+      vEnter = aEnter;
       #ifdef USE_INSTANCING
         vWorldY = (modelMatrix * instanceMatrix * vec4(position, 1.0)).y;
       #else
@@ -230,8 +244,8 @@ function patchDepth(shader: WebGLProgramParametersWithUniforms, cut: CutUniforms
       #endif`,
     );
   shader.fragmentShader = shader.fragmentShader
-    .replace('#include <common>', '#include <common>\nuniform float uCutActive;\nuniform float uCutY;\nvarying float vCuttable;\nvarying float vWorldY;')
-    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\n${FRAGMENT_CUT}`);
+    .replace('#include <common>', '#include <common>\nuniform float uCutActive;\nuniform float uCutY;\nvarying float vCuttable;\nvarying float vEnter;\nvarying float vWorldY;')
+    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>\n${FRAGMENT_CUT}\n  if (vEnter > 0.5) discard;`);
 }
 
 export interface PartMaterials {
@@ -404,4 +418,24 @@ export function setCutSide(materials: Iterable<PartMaterials>, active: boolean):
 /** Every material made for a scene, e.g. to switch sides when the cut toggles. */
 export function sceneMaterials(cut: CutUniforms): PartMaterials[] {
   return [...(caches.get(cut)?.values() ?? [])];
+}
+
+/** How many batches hold each opaque material transparent while their parts enter. */
+const holds = new WeakMap<ThreeMaterial, number>();
+
+/**
+ * Hold a batch's material transparent while some of its parts fade in, or let it go. Counted,
+ * because batches of the same material share it. Materials that are transparent anyway (glass,
+ * ghosts) are left alone.
+ */
+export function holdTransparent(materials: PartMaterials, hold: boolean): void {
+  if (materials.transparent) return;
+  const m = materials.material;
+  const n = (holds.get(m) ?? 0) + (hold ? 1 : -1);
+  holds.set(m, Math.max(0, n));
+  const want = n > 0;
+  if (m.transparent !== want) {
+    m.transparent = want;
+    m.needsUpdate = true;
+  }
 }

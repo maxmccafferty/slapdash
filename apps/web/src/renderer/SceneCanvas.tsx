@@ -4,7 +4,7 @@
  * quality management, post effects and the offscreen snapshot host.
  */
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useMemo } from 'react';
 import { ACESFilmicToneMapping } from 'three';
 import { useMediaQuery } from '../hooks/useMediaQuery.ts';
 import { useModelStore } from '../state/model-store.ts';
@@ -12,6 +12,7 @@ import { useShellStore } from '../state/shell-store.ts';
 import { SCENE_COLORS } from '../styles/tokens.ts';
 import { createCutUniforms } from './CutFaces.ts';
 import { Effects } from './Effects.tsx';
+import { EntranceSchedule } from './entrances.ts';
 import { scaleScreenSprites } from './labels.ts';
 import { Picking } from './Picking.tsx';
 import { QualityManager } from './QualityManager.tsx';
@@ -55,6 +56,7 @@ function UserScene() {
   const inProgress = useModelStore((s) => s.inProgress);
   const proposal = useModelStore((s) => s.proposal);
   const lastEvent = useModelStore((s) => s.lastEvent);
+  const loadId = useModelStore((s) => s.loadId);
   const floor = useShellStore((s) => s.floor);
   const lookFrom = useShellStore((s) => s.lookFrom);
   const dimensions = useShellStore((s) => s.dimensions);
@@ -66,6 +68,15 @@ function UserScene() {
   const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
   const cut = useMemo(() => createCutUniforms(), []);
   useRendererDebug();
+
+  // New parts fall and fade in. Any bus event (a command, or undo, redo and restore bringing
+  // parts back) animates what it added; opening a project and the scene's first render don't.
+  // This runs after the batches' layout effects and before the next frame draws them.
+  const entrances = useMemo(() => new EntranceSchedule(), []);
+  useLayoutEffect(() => {
+    if (!project) return;
+    entrances.update(project, { loadId, animate: lastEvent !== null && lastEvent !== 'load', reducedMotion, now: performance.now() });
+  }, [entrances, project, loadId, lastEvent, reducedMotion]);
 
   const outlined = useMemo(() => {
     const ids = new Set(inProgress);
@@ -98,7 +109,7 @@ function UserScene() {
           spec={spec}
           cut={cut}
           tier={tier}
-          animateNew={!reducedMotion && lastEvent === 'execute'}
+          entrances={entrances}
         />
       )}
       <ViewControls3D enabled={view === '3d'} />
