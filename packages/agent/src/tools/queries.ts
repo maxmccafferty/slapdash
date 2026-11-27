@@ -12,10 +12,14 @@ import {
   getAssembly,
   getPart,
   hasCuts,
+  isUnitPart,
   jointsForPart,
   notFound,
   partBox,
   partSolidAabb,
+  unitOpeningId,
+  unitPartsOf,
+  unitStyleWords,
   zodIssuesToErrors,
   type Aabb,
   type CatalogIndex,
@@ -87,9 +91,37 @@ function partRow(part: Part, extra = ''): string {
   return [part.id, part.role, part.name ?? '—', part.assemblyId, materialLabel(part), ft(part.size.length)].join(' · ') + extra;
 }
 
+// ── window and door units ───────────────────────────────────────────────────
+
+/** Roles only a window or door unit has; asking for one lists the unit's pieces. */
+const UNIT_ROLES = new Set(['frame', 'sash', 'glass', 'door']);
+
+/**
+ * "3' 0" × 4' 0" casement window, white vinyl (Casement window)": the unit in an opening,
+ * from its recipe and the catalog. Null when the opening has no recipe.
+ */
+export function unitDescription(project: Project, catalog: CatalogIndex, openingId: string): string | null {
+  const asm = project.assemblies[openingId];
+  const p = asm?.builder?.name === 'add_opening' ? (asm.builder.params as Record<string, unknown>) : null;
+  if (!p || typeof p.width !== 'number' || typeof p.height !== 'number') return null;
+  const kind = typeof p.kind === 'string' ? p.kind : 'opening';
+  const style = typeof p.style === 'string' ? p.style : undefined;
+  const parts = unitPartsOf(project, openingId);
+  const material = catalog.materials.get(typeof p.product === 'string' ? p.product : (parts[0]?.materialId ?? ''));
+  const finish = material?.unit?.finish;
+  return `${ft(p.width)} × ${ft(p.height)} ${unitStyleWords(style, kind)}${finish ? `, ${finish}` : ''}${material ? ` (${material.name})` : ''}`;
+}
+
+/** "frame, sash, glass": the roles of some unit parts, in a fixed order. */
+function unitRoles(parts: readonly Part[]): string {
+  const order = ['frame', 'sash', 'glass', 'door', 'trim'];
+  const roles = new Set(parts.map((p) => p.role));
+  return [...order.filter((r) => roles.has(r as Part['role'])), ...[...roles].filter((r) => !order.includes(r))].join(', ');
+}
+
 // ── find_parts ──────────────────────────────────────────────────────────────
 
-export const findParts: Query = (project, _catalog, raw) => {
+export const findParts: Query = (project, catalog, raw) => {
   const p = parsed(zFindParts, raw);
   if (!p.ok) return p;
   const q = p.data;
@@ -113,13 +145,39 @@ export const findParts: Query = (project, _catalog, raw) => {
     rows = rows.filter((part) => distances!.get(part.id)! <= within).sort((a, b) => distances!.get(a.id)! - distances!.get(b.id)!);
   }
   if (rows.length === 0) return { ok: true, text: 'No parts match.' };
-  const shown = rows.slice(0, q.limit);
-  const lines = [`${plural(rows.length, 'part matches', 'parts match')}.`, 'id · role · name · assembly · material/section · length'];
-  for (const part of shown) {
-    const d = distances?.get(part.id);
-    lines.push(partRow(part, d === undefined ? '' : ` · ${ft(d)} away`));
+  // A window or door unit is one row, unless the question is about its pieces.
+  const tagNamesPiece = q.tag !== undefined && q.tag !== 'unit' && !q.tag.startsWith('opening:') && !['window', 'door', 'sliding-door'].includes(q.tag);
+  const collapse = !(q.role !== undefined && UNIT_ROLES.has(q.role)) && !tagNamesPiece;
+  type Entry = { part: Part; unit?: { id: string; parts: Part[] } };
+  const entries: Entry[] = [];
+  const units = new Map<string, Entry>();
+  for (const part of rows) {
+    if (!collapse || !isUnitPart(part)) {
+      entries.push({ part });
+      continue;
+    }
+    const id = unitOpeningId(part);
+    const e = units.get(id);
+    if (e) e.unit!.parts.push(part);
+    else {
+      const entry: Entry = { part, unit: { id, parts: [part] } };
+      units.set(id, entry);
+      entries.push(entry);
+    }
   }
-  if (rows.length > shown.length) lines.push(`…and ${rows.length - shown.length} more; narrow with role or assembly.`);
+  const shown = entries.slice(0, q.limit);
+  const lines = [`${plural(entries.length, 'part matches', 'parts match')}.`, 'id · role · name · assembly · material/section · length'];
+  for (const { part, unit } of shown) {
+    const d = unit ? Math.min(...unit.parts.map((x) => distances?.get(x.id) ?? Infinity)) : distances?.get(part.id);
+    const away = d === undefined || !Number.isFinite(d) ? '' : ` · ${ft(d)} away`;
+    if (unit) {
+      const desc = unitDescription(project, catalog, unit.id) ?? 'window or door unit';
+      lines.push(`${unit.id} · unit · ${desc} · ${part.assemblyId} · ${part.materialId} · ${plural(unit.parts.length, 'part')} (${unitRoles(unit.parts)})${away}`);
+    } else {
+      lines.push(partRow(part, away));
+    }
+  }
+  if (entries.length > shown.length) lines.push(`…and ${entries.length - shown.length} more; narrow with role or assembly.`);
   return { ok: true, text: lines.join('\n') };
 };
 
@@ -178,7 +236,15 @@ function describePart(project: Project, catalog: CatalogIndex, part: Part): stri
   const material = catalog.materials.get(part.materialId);
   const section = part.sectionId ? catalog.sections.get(part.sectionId) : undefined;
   const s = part.size;
-  const lines = [
+  const lines: string[] = [];
+  if (isUnitPart(part)) {
+    const id = unitOpeningId(part);
+    const desc = unitDescription(project, catalog, id);
+    lines.push(
+      `Part of ${id}: ${desc ? `a ${desc}` : 'a window or door unit'}. Change it with update_opening / remove_opening on ${id}, not part by part.`,
+    );
+  }
+  lines.push(
     `${part.id} · ${part.role}${part.name ? ` "${part.name}"` : ''} · in ${part.assemblyId}${asm ? ` "${asm.name}"` : ''}`,
     `Material: ${part.materialId}${material ? ` (${material.name})` : ''}${part.sectionId ? `, section ${part.sectionId}${section?.nominal ? ` (${section.nominal})` : ''}` : ''}`,
     `Size: ${ft(s.length)} long × ${ft(s.width)} × ${ft(s.height)} (${Math.round(s.length)} × ${Math.round(s.width)} × ${Math.round(s.height)} mm)`,
@@ -187,7 +253,7 @@ function describePart(project: Project, catalog: CatalogIndex, part: Part): stri
     `Rotation: x ${part.rotation.x}°, y ${part.rotation.y}°, z ${part.rotation.z}°`,
     `Build step: ${part.buildStep.phase}${part.buildStep.seq !== undefined ? ` #${part.buildStep.seq}` : ''}`,
     `Tags: ${part.tags.length > 0 ? part.tags.join(', ') : 'none'}`,
-  ];
+  );
   const joints = jointsForPart(project, part.id).sort((a, b) => compareIds(a.id, b.id));
   if (joints.length === 0) {
     lines.push('Joints: none');
@@ -202,7 +268,7 @@ function describePart(project: Project, catalog: CatalogIndex, part: Part): stri
   return lines.join('\n');
 }
 
-function describeAssembly(project: Project, id: string): string {
+function describeAssembly(project: Project, catalog: CatalogIndex, id: string): string {
   const asm = project.assemblies[id]!;
   const parts = Object.values(project.parts).filter((p) => p.assemblyId === id);
   const lines = [`${asm.id} "${asm.name}" (${asm.kind}) · ${plural(parts.length, 'part')} · level ${asm.levelId}`];
@@ -215,8 +281,12 @@ function describeAssembly(project: Project, id: string): string {
   } else {
     lines.push('Made by hand (no builder recipe).');
   }
+  const unit = parts.filter(isUnitPart);
+  if (unit.length > 0) {
+    lines.push(`Unit: ${unitDescription(project, catalog, id) ?? 'window or door unit'}, ${plural(unit.length, 'part')} (${unitRoles(unit)})`);
+  }
   const byRole = new Map<string, number>();
-  for (const p of parts) byRole.set(p.role, (byRole.get(p.role) ?? 0) + 1);
+  for (const p of parts) if (!isUnitPart(p)) byRole.set(p.role, (byRole.get(p.role) ?? 0) + 1);
   if (byRole.size > 0) lines.push(`Parts by role: ${[...byRole].map(([r, n]) => `${n} ${r}`).join(', ')}`);
   const b = boundsOf(parts);
   if (b) lines.push(`Bounds: ${describeBounds(b)}`);
@@ -229,7 +299,7 @@ export const getPartInfo: Query = (project, catalog, raw) => {
   const id = p.data.id;
   const part = getPart(project, id);
   if (part) return { ok: true, text: describePart(project, catalog, part) };
-  if (getAssembly(project, id)) return { ok: true, text: describeAssembly(project, id) };
+  if (getAssembly(project, id)) return { ok: true, text: describeAssembly(project, catalog, id) };
   return { ok: false, errors: [unknownId(project, id, 'id')] };
 };
 

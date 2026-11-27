@@ -7,6 +7,7 @@ import {
   DESIGN_LOAD_KEYS,
   codeNotes,
   formatLoad,
+  isUnitPart,
   resolveDesignLoads,
   type Assembly,
   type CatalogIndex,
@@ -43,7 +44,7 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 const pt = (p: Pt) => `(${ft(p.x)}, ${ft(p.z)})`;
 
 /** Key dimensions from the builder recipe, or the bounds when there is none. */
-function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
+function keyDimensions(asm: Assembly, parts: readonly Part[], catalog?: CatalogIndex): string {
   const p = asm.builder?.params ?? {};
   switch (asm.builder?.name) {
     case 'pour_slab':
@@ -63,7 +64,9 @@ function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
       const w = num(p.width);
       const h = num(p.height);
       const at = num(p.at);
-      if (w && h) return `${ft(w)} × ${ft(h)} ${String(p.kind ?? 'opening')} RO in ${String(p.wallId)}${at !== undefined ? ` · from ${ft(at)} along the wall` : ''}`;
+      if (w && h) {
+        return `${ft(w)} × ${ft(h)} ${String(p.kind ?? 'opening')} RO in ${String(p.wallId)}${at !== undefined ? ` · from ${ft(at)} along the wall` : ''}${unitWords(p, catalog)}`;
+      }
       break;
     }
     case 'frame_floor':
@@ -112,6 +115,24 @@ function keyDimensions(asm: Assembly, parts: readonly Part[]): string {
   return b ? `${ft(b.max.x - b.min.x)} × ${ft(b.max.z - b.min.z)} × ${ft(b.max.y - b.min.y)}` : 'empty';
 }
 
+/** " · casement unit, white vinyl (Casement window)": the window or door drawn in an opening, from its recipe. */
+function unitWords(p: Record<string, unknown>, catalog: CatalogIndex | undefined): string {
+  if (typeof p.style !== 'string') return '';
+  const product = typeof p.product === 'string' ? catalog?.materials.get(p.product) : undefined;
+  const generic = typeof p.product !== 'string' ? [...(catalog?.materials.values() ?? [])].find((m) => m.category === 'opening' && m.unit && !m.unit.style) : undefined;
+  const finish = (product ?? generic)?.unit?.finish;
+  return ` · ${p.style} unit${finish ? `, ${finish}` : ''}${product ? ` (${product.name})` : ''}`;
+}
+
+/** "13 parts", or for an opening with a unit "1 unit (13 parts)" (plus any other parts). */
+function partCount(asm: Assembly, own: readonly Part[]): string {
+  if (asm.kind !== 'opening') return plural(own.length, 'part');
+  const unit = own.filter(isUnitPart).length;
+  if (unit === 0) return plural(own.length, 'part');
+  const rest = own.length - unit;
+  return `1 unit (${plural(unit, 'part')})${rest > 0 ? ` + ${plural(rest, 'part')}` : ''}`;
+}
+
 function siteLine(project: Project, defaults: SiteDefaults | undefined): string {
   const site = resolveDesignLoads(project, defaults);
   const bits: string[] = [];
@@ -152,7 +173,7 @@ export function projectSummary(project: Project, opts: SummaryOptions = {}): str
     const max = opts.maxAssemblies ?? 40;
     for (const asm of assemblies.slice(0, max)) {
       const own = byAssembly.get(asm.id) ?? [];
-      lines.push(`- ${asm.id} ${asm.name} (${asm.kind}) ${keyDimensions(asm, own)} · ${plural(own.length, 'part')}`);
+      lines.push(`- ${asm.id} ${asm.name} (${asm.kind}) ${keyDimensions(asm, own, opts.catalog)} · ${partCount(asm, own)}`);
     }
     if (assemblies.length > max) lines.push(`- …${assemblies.length - max} more; use find_parts`);
   }
