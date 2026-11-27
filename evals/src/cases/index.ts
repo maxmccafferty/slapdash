@@ -2,10 +2,12 @@
 import type { Scenario } from '../scenario.ts';
 import { clashAvoidance } from './clash-avoidance.ts';
 import { fence } from './fence.ts';
+import { followUpsAfterBuild } from './follow-ups-after-build.ts';
 import { gableRoof } from './gable-roof.ts';
 import { justDoIt } from './just-do-it.ts';
 import { pergolaPolycarbonateScenario } from './pergola-polycarbonate.ts';
 import { planRevision } from './plan-revision.ts';
+import { plansOnRequest } from './plans-on-request.ts';
 import { poolHouse } from './pool-house.ts';
 import { poolFenceScenario } from './pool-fence.ts';
 import { poolHouseSlidingDoor } from './pool-house-sliding-door.ts';
@@ -30,6 +32,8 @@ export const SCENARIOS: readonly Scenario[] = [
   resizeDoor,
   planRevision,
   justDoIt,
+  plansOnRequest,
   clashAvoidance,
   questionNoChange,
+  followUpsAfterBuild,
 ];

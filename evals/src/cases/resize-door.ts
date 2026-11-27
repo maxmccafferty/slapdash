@@ -1,7 +1,7 @@
 import { assemblyCount, bottomPlatePieces, calledTool, didNotCall, hasOpening, headerOverOpening, noPlan, sameWalls, soundBuild } from '../checks.ts';
 import { defineScenario, undoSteps } from '../scenario.ts';
 import { POOL_HOUSE_WITH_DOOR } from '../seeds.ts';
-import { expectSoundStep } from './common.ts';
+import { buildInOneTurn, expectSoundStep } from './common.ts';
 
 const WALLS = ['W1', 'W2', 'W3', 'W4'];
 
@@ -12,9 +12,9 @@ export const resizeDoor = defineScenario({
   seed: POOL_HOUSE_WITH_DOOR,
   typical: true,
   async run(ctx) {
-    const t1 = await ctx.turn('Make the door 3 feet wide');
+    // Plans are opt-in (ADR-0002 §F1) and this scenario leaves them off: both edits happen straight away.
+    const t1 = await buildInOneTurn(ctx, 'Make the door 3 feet wide');
     const p1 = ctx.session.bus.project;
-    ctx.expect(noPlan(t1, 'turn 1'));
     ctx.expect(calledTool(t1, 'update_opening'));
     ctx.expect(didNotCall(t1, 'build_wall'));
     ctx.expect(didNotCall(t1, 'delete_assembly'));
@@ -27,6 +27,7 @@ export const resizeDoor = defineScenario({
 
     const t2 = await ctx.turn('Actually, remove that door');
     const p2 = ctx.session.bus.project;
+    ctx.expect(noPlan(t2, 'turn 2'));
     ctx.expect(calledTool(t2, 'remove_opening'));
     ctx.expect(didNotCall(t2, 'build_wall'));
     ctx.expect(assemblyCount(p2, 'opening', 0, 'openings'));

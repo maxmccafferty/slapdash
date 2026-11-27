@@ -4,6 +4,7 @@
  * scenario reads as a list of what should be true.
  */
 import type { ChatPrefs, KeyholeClient, TurnResult, UserInput } from '@slapdash/agent';
+import { noBadInput } from './checks.ts';
 import { evalSession, type EvalSession, type TurnRecord } from './harness.ts';
 import type { SeedCommands } from './seeds.ts';
 
@@ -40,6 +41,11 @@ export interface Scenario {
   typical?: boolean;
   /** A full build from nothing: its cost is quoted in the cap check. */
   fullBuild?: boolean;
+  /**
+   * Turns off the default "no input-parse rejections" check, for scenarios that deliberately feed
+   * bad input. The rejections are still counted in the report and the run's summary.
+   */
+  allowBadInput?: boolean;
   run(ctx: ScenarioContext): Promise<void>;
 }
 
@@ -104,9 +110,21 @@ export async function runScenario(scenario: Scenario, client: KeyholeClient, opt
       async turn(input) {
         const text = typeof input === 'string' ? input : input.text;
         log(`  T${turns.length + 1} "${text}"`);
-        const { result, record } = await session.turn(input);
+        let turn;
+        try {
+          turn = await session.turn(input);
+        } catch (e) {
+          // An upstream error (e.g. the API refusing the replayed history) ends the scenario as an
+          // error, never a pass: say which turn it was.
+          const msg = e instanceof Error ? e.message : String(e);
+          const status = typeof (e as { status?: unknown })?.status === 'number' ? ` (HTTP ${(e as { status: number }).status})` : '';
+          log(`    ✗ error${status}: ${msg}`);
+          throw new Error(`T${turns.length + 1} "${text.slice(0, 60)}" ended in an error${status}: ${msg}`, { cause: e });
+        }
+        const { result, record } = turn;
         turns.push(record);
         log(`    Claude: ${record.text.replace(/\s+/g, ' ').slice(0, 400)}`);
+        if (!scenario.allowBadInput) ctx.expect(noBadInput(record, `T${turns.length}`));
         return { ...result, record };
       },
     };

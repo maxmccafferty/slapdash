@@ -1,20 +1,22 @@
-import { distanceFromWallEnd, fi, FT, headerOverOpening, hasOpening, noPlan } from '../checks.ts';
+import { distanceFromWallEnd, fi, FT, headerOverOpening, hasOpening, noPlan, STANDARD_DOOR } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_HOUSE_WALLS } from '../seeds.ts';
 import { expectSoundStep } from './common.ts';
 
-/** A door is a small change: built straight away, one undo step, where it was asked for. */
+/** A door is a small change: built straight away, one undo step, where it was asked for, even with plans on. */
 export const smallChangeNoPlan = defineScenario({
   name: 'small-change-no-plan',
-  description: 'Add a door 4ft from the north corner of the west wall, without a plan',
+  description: 'With plans on, add a door 4ft from the north corner of the west wall without a plan',
   seed: POOL_HOUSE_WALLS,
+  prefs: { confirmBigChanges: true },
   typical: true,
   async run(ctx) {
     const t = await ctx.turn('Add a door to the west wall, 4ft from the north corner');
     const p = ctx.session.bus.project;
     ctx.expect(noPlan(t));
     expectSoundStep(ctx, t);
-    const { fail, opening } = hasOpening(p, { kind: 'door', wall: 'west', widthIn: 38 });
+    // The prompt gives no width, so any standard exterior door (2' 8" to 3' 2") will do.
+    const { fail, opening } = hasOpening(p, { kind: 'door', wall: 'west', ...STANDARD_DOOR });
     ctx.expect(fail);
     ctx.expect(headerOverOpening(p, opening));
     if (opening) {

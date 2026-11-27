@@ -149,26 +149,26 @@ describe('agent memory', () => {
 
   it('saves a chat log storage accepts, without snapshot bytes, and restores prefs and the pending plan', async () => {
     const mem = new AgentMemory(undefined, { now: () => 7 });
-    mem.setPrefs({ confirmBigChanges: false });
+    mem.setPrefs({ confirmBigChanges: true });
     turn(mem, 't1', 'Look', { snapshot: true });
     turn(mem, 't2', 'Build a shed', { plan: "I'll build an 8×10 shed." });
     expect(mem.pendingPlan).toBe("I'll build an 8×10 shed.");
     const log: ChatLog = mem.toChatLog();
     expect(zChatLog.safeParse(log).success).toBe(true);
     expect(JSON.stringify(log)).not.toContain('PNG-t1');
-    expect(log.prefs).toEqual({ confirmBigChanges: false });
+    expect(log.prefs).toEqual({ confirmBigChanges: true });
 
     const back = new AgentMemory(log satisfies ChatLogLike);
-    expect(back.prefs).toEqual({ confirmBigChanges: false });
+    expect(back.prefs).toEqual({ confirmBigChanges: true });
     expect(back.pendingPlan).toBe("I'll build an 8×10 shed.");
     const msgs = await back.toApiMessages();
     expect(texts(msgs)).toContain(snapshotStub('top view, textured, 768px'));
     expectValidMessages(msgs);
   });
 
-  it('defaults to confirming big changes, and a new turn clears the pending plan', () => {
+  it('defaults to building without a plan, and a new turn clears the pending plan', () => {
     const mem = new AgentMemory();
-    expect(mem.prefs).toEqual({ confirmBigChanges: true });
+    expect(mem.prefs).toEqual({ confirmBigChanges: false });
     expect(mem.toChatLog().prefs).toBeUndefined();
     turn(mem, 't1', 'Shed', { plan: 'Plan A' });
     expect(mem.pendingPlan).toBe('Plan A');
@@ -187,6 +187,7 @@ describe('agent memory', () => {
     expectValidMessages(msgs);
     expect(blocks(msgs[2]!).map((b) => b.type)).toEqual(['tool_result', 'text']);
   });
+
   it('transcript() rebuilds the chat panel from a saved log: what was asked and what Claude said', () => {
     const mem = new AgentMemory();
     turn(mem, 't1', 'Build a wall', { tool: true });
@@ -203,5 +204,45 @@ describe('agent memory', () => {
     const mem = new AgentMemory();
     mem.beginTurn('t1', [{ type: 'slapdash_project', text: '<project/>' }, { type: 'text', text: 'Add a door' }]);
     expect(mem.transcript()).toEqual([{ turnId: 't1', asked: 'Add a door', reply: '' }]);
+  });
+
+  it('drops thinking from finished turns but keeps it in the turn in progress', async () => {
+    const mem = new AgentMemory();
+    mem.beginTurn('t1', [{ type: 'slapdash_project', text: '<project>\nt1\n</project>' }, { type: 'text', text: 'Build a shed' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Plan the shed.', signature: 'sig-1' },
+      { type: 'redacted_thinking', data: 'opaque-1' },
+      { type: 'tool_use', id: 'tu-1', name: 'build_wall', input: {} },
+    ]);
+    mem.append('user', [{ type: 'tool_result', tool_use_id: 'tu-1', content: 'Built wall W1.' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Done.', signature: 'sig-2' },
+      { type: 'text', text: 'Built it.' },
+    ]);
+    mem.endTurn({ asked: 'Build a shed', changeSummaries: ['Built wall W1.'] });
+
+    mem.beginTurn('t2', [{ type: 'text', text: 'Add a door' }]);
+    mem.append('assistant', [
+      { type: 'thinking', thinking: 'Where does the door go?', signature: 'sig-3' },
+      { type: 'tool_use', id: 'tu-2', name: 'add_door', input: {} },
+    ]);
+    mem.append('user', [{ type: 'tool_result', tool_use_id: 'tu-2', content: 'Added door D1.' }]);
+
+    const msgs = await mem.toApiMessages();
+    expectValidMessages(msgs);
+    const isThinking = (b: Block) => b.type === 'thinking' || b.type === 'redacted_thinking';
+    const currentStart = msgs.findIndex((m) => blocks(m).some((b) => b.type === 'text' && b.text === 'Add a door'));
+    expect(currentStart).toBeGreaterThan(0);
+    expect(msgs.slice(0, currentStart).flatMap(blocks).filter(isThinking)).toEqual([]);
+    expect(msgs.slice(currentStart).flatMap(blocks).filter(isThinking)).toEqual([
+      { type: 'thinking', thinking: 'Where does the door go?', signature: 'sig-3' },
+    ]);
+    // The finished turn keeps the rest of its content.
+    expect(texts(msgs.slice(0, currentStart))).toContain('Built it.');
+
+    // Once the turn ends, its thinking goes too.
+    mem.append('assistant', [{ type: 'text', text: 'Door added.' }]);
+    mem.endTurn({ asked: 'Add a door', changeSummaries: [] });
+    expect((await mem.toApiMessages()).flatMap(blocks).filter(isThinking)).toEqual([]);
   });
 });

@@ -71,7 +71,7 @@ ADR-0001 set the architecture: a parts-and-joints model as the source of truth, 
 
 ### F. Experience and project hygiene
 
-1. **Claude confirms big changes, not small ones.** Small edits apply at once, since undo covers them. Large ones — a new structure, a roof, or roughly 50 or more parts — get a one-line plan and a go-ahead first ("I'll build a 16×20 shell with a gable roof — go?"). Saying "just do it" turns the check off for that project.
+1. **Claude confirms big changes, not small ones.** *(Amended 2026-11-27: now opt-in and off by default; see the amendment at the end.)* Small edits apply at once, since undo covers them. Large ones — a new structure, a roof, or roughly 50 or more parts — get a one-line plan and a go-ahead first ("I'll build a 16×20 shell with a gable roof — go?"). Saying "just do it" turns the check off for that project.
 2. **Sign-in: password or passkey, with a long-lived session** (Supabase adapter). Magic links are not the main route: on an iPad they tend to open in a different browser than the home-screen app.
 3. **Installable as a PWA** — manifest, icons, full-screen launch from the home screen, and an offline app shell.
 4. **A "something's off" report.** A button, and a `report_problem` tool Claude can call, save the project, the recent conversation and a snapshot through `ProjectStore` — to the owner's Supabase on the hosted copy, or as a downloadable file in local mode — so a problem can be replayed exactly.
@@ -107,3 +107,11 @@ Deliberately not decided yet:
 - **Open-source license** — MIT keeps it easiest to play with; note that building on any AGPL code would force AGPL.
 - **Interactivity** — how pointing and selecting work in a view-only 3D view (e.g. tapping a part to say "that one"); worked out in the design.
 - **Eval mechanics** — real API calls versus recorded responses, and how often each runs.
+
+## Amendment (2026-11-27): §F1 is opt-in
+
+The big-change confirmation in §F1 is now **off by default**. Claude builds what the person asks straight away, big or small, and says what it chose when it had to fill a gap.
+
+Why: in use, the plan and "Build it" step was friction more than protection. People asked for a shell and got a question back, then had to tap again before anything appeared. A turn is already a single undo step, so Undo takes back a whole build in one tap. That is the safety net §F1 was standing in for, and it costs the person nothing until they need it.
+
+The check still exists for people who want it. Asking to see plans first makes Claude call `set_preferences` with `confirmBigChanges: true`. From then on the loop's guard refuses big changes without an approved plan, Claude shows `propose_plan` and the app shows the plan card with Build it / Change something, exactly as §F1 described. Saying "just do it" turns it off again. The setting is saved with the project's chat log. Logs saved earlier with no preference now read as off.

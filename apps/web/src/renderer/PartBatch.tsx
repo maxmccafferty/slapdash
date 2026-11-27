@@ -7,6 +7,11 @@
  * In stress mode each instance also gets a fill colour (`instanceColor`) and a hatch flag
  * (`aHatch`) from the band map. They are rewritten whenever the map changes, not only when
  * parts do: a new analysis recolours the same parts.
+ *
+ * New parts fall into place and fade in (`entrances.ts`). That runs in `useFrame`, writing
+ * the entering instances' matrices and `aEnter` straight into the buffers: no React render
+ * per frame. A part that hasn't started yet gets a zero-size matrix, so it can't be picked
+ * while it isn't drawn; one mid-fall is picked where it is drawn.
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
@@ -14,14 +19,12 @@ import { BoxGeometry, Color, InstancedBufferAttribute, InstancedMesh, Matrix4 } 
 import type { CatalogIndex, Part } from '@slapdash/core';
 import { partMatrix, partVariation, type Batch } from './batches.ts';
 import type { CutUniforms } from './CutFaces.ts';
-import { getPartMaterials } from './materials.ts';
+import { entranceFrame, type EntranceSchedule } from './entrances.ts';
+import { getPartMaterials, holdTransparent, type PartMaterials } from './materials.ts';
 import type { QualityTier } from './quality.ts';
 import type { SceneMode } from './snapshot/types.ts';
 import type { StressBand } from '../analysis/stress.ts';
 import { SCENE_COLORS } from '../styles/tokens.ts';
-
-export const DROP_MS = 250;
-export const DROP_HEIGHT_M = 0.3;
 
 export interface PartBatchProps {
   batch: Batch;
@@ -34,8 +37,8 @@ export interface PartBatchProps {
   tier: QualityTier;
   cut: CutUniforms;
   catalog: CatalogIndex | null;
-  /** Parts added from now on drop in (someone is building, and motion is allowed). */
-  animateNew: boolean;
+  /** The user's view: new parts fall and fade in. Snapshots pass none. */
+  entrances?: EntranceSchedule | null;
 }
 
 const nextPow2 = (n: number) => 2 ** Math.ceil(Math.log2(Math.max(n, 1)));
@@ -46,6 +49,7 @@ function makeGeometry(capacity: number): BoxGeometry {
   g.setAttribute('aVariation', new InstancedBufferAttribute(new Float32Array(capacity * 2), 2));
   g.setAttribute('aCuttable', new InstancedBufferAttribute(new Float32Array(capacity), 1));
   g.setAttribute('aHatch', new InstancedBufferAttribute(new Float32Array(capacity), 1));
+  g.setAttribute('aEnter', new InstancedBufferAttribute(new Float32Array(capacity), 1));
   return g;
 }
 
@@ -60,9 +64,9 @@ export const STRESS_FILL: Record<StressBand, string> = {
   unchecked: SCENE_COLORS.paper,
 };
 
-const easeOut = (t: number) => 1 - (1 - t) ** 3;
+const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
-export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mode, stress, tier, cut, catalog, animateNew }: PartBatchProps) {
+export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mode, stress, tier, cut, catalog, entrances = null }: PartBatchProps) {
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
   const capacity = nextPow2(batch.parts.length);
@@ -89,43 +93,48 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
     parts: [],
     cuttable: null,
   });
-  const seen = useRef<Set<string> | null>(null);
-  const drops = useRef(new Map<string, number>());
-
-  useLayoutEffect(() => {
-    // New members (not seen before in this batch) drop in when someone is building.
-    const known = seen.current;
-    if (known) {
-      for (const p of batch.parts) if (!known.has(p.id) && animateNew) drops.current.set(p.id, -1);
-    } else if (animateNew) {
-      for (const p of batch.parts) drops.current.set(p.id, -1);
-    }
-    seen.current = new Set(batch.parts.map((p) => p.id));
-  }, [batch, animateNew]);
+  /** Slot of each visible part, for the entrance frames. */
+  const index = useRef(new Map<string, number>());
+  /** Parts of this batch drawn mid-entrance, to settle when their entrance ends. */
+  const entering = useRef(new Set<string>());
+  /** The materials this batch holds transparent while parts enter. */
+  const held = useRef<PartMaterials | null>(null);
+  useEffect(
+    () => () => {
+      if (held.current) holdTransparent(held.current, false);
+      held.current = null;
+    },
+    [mats],
+  );
 
   useLayoutEffect(() => {
     const s = slots.current;
     const force = s.mesh !== mesh || s.cuttable !== isCuttable;
     const variation = geometry.getAttribute('aVariation') as InstancedBufferAttribute;
     const cuttable = geometry.getAttribute('aCuttable') as InstancedBufferAttribute;
+    const enter = geometry.getAttribute('aEnter') as InstancedBufferAttribute;
     const m = new Matrix4();
     let changed = force || parts.length !== mesh.count;
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i]!;
       if (!force && s.parts[i] === part) continue;
-      mesh.setMatrixAt(i, partMatrix(part, m, drops.current.has(part.id) ? DROP_HEIGHT_M : 0));
+      // Settled here; an entering part is moved and faded on the next frame (before it draws).
+      mesh.setMatrixAt(i, partMatrix(part, m));
       const [seed, tint] = partVariation(part.id);
       variation.setXY(i, seed, tint);
       cuttable.setX(i, isCuttable(part) ? 1 : 0);
+      enter.setX(i, 0);
       changed = true;
     }
     mesh.count = parts.length;
     mesh.userData.partIds = parts.map((p) => p.id);
     mesh.userData.cuttable = parts.map((p) => isCuttable(p));
+    index.current = new Map(parts.map((p, i) => [p.id, i]));
     if (changed) {
       mesh.instanceMatrix.needsUpdate = true;
       variation.needsUpdate = true;
       cuttable.needsUpdate = true;
+      enter.needsUpdate = true;
       mesh.computeBoundingSphere();
       mesh.computeBoundingBox();
       invalidate();
@@ -149,22 +158,53 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
   }, [mode, mesh, parts, stress, geometry, invalidate]);
 
   useFrame((state) => {
-    if (drops.current.size === 0) return;
-    const now = state.clock.elapsedTime * 1000;
-    const ids = mesh.userData.partIds as string[];
+    if (!entrances || (entrances.size === 0 && entering.current.size === 0)) return;
+    const now = performance.now();
+    const active = entrances.active(now);
+    const enter = geometry.getAttribute('aEnter') as InstancedBufferAttribute;
+    const placed = slots.current.parts;
     const m = new Matrix4();
-    for (const [id, start] of drops.current) {
-      const begin = start < 0 ? now : start;
-      if (start < 0) drops.current.set(id, now);
-      const t = Math.min(1, (now - begin) / DROP_MS);
-      const i = ids.indexOf(id);
-      const part = slots.current.parts[i];
-      if (part) mesh.setMatrixAt(i, partMatrix(part, m, DROP_HEIGHT_M * (1 - easeOut(t))));
-      if (t >= 1) drops.current.delete(id);
+    let touched = false;
+    for (const [id, e] of active) {
+      const i = index.current.get(id);
+      const part = i === undefined ? undefined : placed[i];
+      if (i === undefined || !part) continue;
+      const f = entranceFrame(e, now);
+      mesh.setMatrixAt(i, f.started ? partMatrix(part, m, f.lift) : HIDDEN);
+      enter.setX(i, 1 - f.opacity);
+      entering.current.add(id);
+      touched = true;
     }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (drops.current.size === 0) mesh.computeBoundingSphere();
-    state.invalidate();
+    // Entrances that ended (or were dropped) since the last frame: put those parts in place.
+    let busy = false;
+    for (const id of entering.current) {
+      if (active.has(id)) {
+        busy = true;
+        continue;
+      }
+      entering.current.delete(id);
+      const i = index.current.get(id);
+      const part = i === undefined ? undefined : placed[i];
+      if (i !== undefined && part) {
+        mesh.setMatrixAt(i, partMatrix(part, m));
+        enter.setX(i, 0);
+        touched = true;
+      }
+    }
+    if (touched) {
+      mesh.instanceMatrix.needsUpdate = true;
+      enter.needsUpdate = true;
+    }
+    if (busy !== (held.current !== null)) {
+      holdTransparent(mats, busy);
+      held.current = busy ? mats : null;
+    }
+    // Bounds come from the settled matrices; refresh them once everything has landed.
+    if (touched && !busy) {
+      mesh.computeBoundingSphere();
+      mesh.computeBoundingBox();
+    }
+    if (touched || busy) state.invalidate();
   });
 
   return <primitive object={mesh} />;

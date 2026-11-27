@@ -120,6 +120,25 @@ describe('update_opening', () => {
     expect(plateIds(back, 'W3').size).toBe(2);
   });
 
+  it('a part that comes out of the re-framing unchanged keeps its ID and joints', () => {
+    // A door only made shorter: the kings, the bottom plate pieces and the sheathing beside it
+    // are laid out again exactly where they were, so they aren't swapped for new IDs.
+    const before = withOpenings(door);
+    const res = expectRoundTrip(before, 'update_opening', { openingId: 'O1', height: '6ft 6in' });
+    const p = res.project;
+    const kings = (q: Project) => tagged(q, 'W3', 'stud', 'king').map((x) => x.id).sort();
+    expect(kings(p)).toEqual(kings(before));
+    expect(plateIds(p, 'W3')).toEqual(plateIds(before, 'W3'));
+    for (const id of kings(before)) expect(p.parts[id]).toBe(before.parts[id]);
+    const jointsOf = (q: Project, id: string) => Object.values(q.joints).filter((j) => j.partIds.includes(id)).length;
+    for (const id of kings(before)) expect(jointsOf(p, id)).toBe(jointsOf(before, id));
+    // Whatever did change is still the same model as framing the shorter door fresh.
+    const same = fresh({ ...door, height: '6ft 6in' });
+    expect(geometry(p)).toEqual(geometry(same));
+    expect(jointCount(p)).toBe(jointCount(same));
+    expect(Object.keys(p.parts).filter((id) => !before.parts[id]).length).toBeLessThan(Object.keys(before.parts).filter((id) => before.parts[id]!.assemblyId === 'W3').length / 3);
+  });
+
   describe('refuses, changing nothing', () => {
     const before = withOpenings(door, { wallId: 'W3', kind: 'window', at: '2ft' });
     const cases: [string, Record<string, unknown>, RegExp, string?][] = [

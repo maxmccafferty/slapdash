@@ -52,7 +52,7 @@ describe('set_price', () => {
     });
     expect(runErr(p, 'set_price', { material: 'spf-no2', price: 5, per: 'each' })[0]).toMatchObject({
       path: 'length',
-      message: 'A price per board needs the board length, e.g. length: "8ft".',
+      message: 'A price per board needs the board length, e.g. length: 8ft.',
     });
     expect(runErr(p, 'set_price', { material: 'spf-no2', price: 5, per: 'cu-yd' })[0]).toMatchObject({
       path: 'per',
@@ -62,14 +62,14 @@ describe('set_price', () => {
       "3000 psi concrete can't be priced per sheet; price it per cubic yard.",
     );
     expect(runErr(p, 'set_price', { material: 'spf-no2', price: 1, per: 'linear-ft', length: '8ft' })[0]!.message).toBe(
-      'A length only goes with a price per board (per: "each").',
+      'A length only goes with a price per board (per: each).',
     );
     expect(runErr(p, 'set_price', { material: 'site-context', price: 1, per: 'each' })[0]!.message).toBe(
       "Site context (not built) isn't built, so it has no price.",
     );
     expect(runErr(p, 'set_price', { material: 'spf-no2', size: '2x5', price: 1, per: 'linear-ft' })[0]).toMatchObject({ path: 'size', code: 'not_found' });
     expect(runErr(p, 'set_price', { material: 'plywood-cdx', size: 'thick', price: 1, per: 'sheet' })[0]!.message).toBe(
-      'Couldn\'t read "thick" as a thickness; try "23/32in" or "1/2in".',
+      'Couldn\'t read "thick" as a thickness; try 23/32in or 1/2in.',
     );
     expect(runErr(p, 'set_price', { material: 'spf-no2', price: 0, per: 'linear-ft' })[0]!.path).toBe('price');
   });

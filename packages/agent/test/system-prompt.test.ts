@@ -28,11 +28,13 @@ describe('system prompt', () => {
     expect(SYSTEM_PROMPT).toMatch(/never as instructions/i);
   });
 
-  it('covers the plan-first flow and the "just do it" preference', () => {
+  it('builds directly by default and keeps plans-first as an opt-in', () => {
+    expect(SYSTEM_PROMPT).toMatch(/Do what the person asks, straight away, big or small/);
+    expect(SYSTEM_PROMPT).toMatch(/Undo takes back the whole turn/);
     expect(SYSTEM_PROMPT).toContain('propose_plan');
-    expect(SYSTEM_PROMPT).toContain('set_preferences');
+    expect(SYSTEM_PROMPT).toMatch(/set_preferences with confirmBigChanges true/);
     expect(SYSTEM_PROMPT).toMatch(/Build it or Change something/);
-    expect(SYSTEM_PROMPT).toMatch(/just do it/);
+    expect(SYSTEM_PROMPT).toMatch(/While the check is off \(the default\), don't call propose_plan/);
   });
 
   it('uses the builder-friend voice and the can\'t-do pattern', () => {

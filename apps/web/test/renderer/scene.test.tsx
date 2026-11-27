@@ -144,7 +144,10 @@ describe('SceneContent', () => {
     const { r } = await render({ dimensions: true });
     const dims = r.scene.instance.getObjectByName('dimensions');
     expect(dims).toBeDefined();
-    const labels = dims!.children.filter((c) => c.type === 'Sprite');
+    const labels: Object3D[] = [];
+    dims!.traverse((c) => {
+      if (c.type === 'Sprite') labels.push(c);
+    });
     expect(labels.length).toBeGreaterThanOrEqual(6);
     await r.unmount();
   });

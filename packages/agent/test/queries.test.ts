@@ -81,6 +81,13 @@ describe('measure', () => {
     expect(text(measure(p, c, { from: 'W1-S02', to: 'W1' }))).toMatch(/overlap by/);
   });
 
+  it('reads ids wrapped in quote marks inside the string the same as bare ids', () => {
+    const bare = text(measure(p, c, { from: 'W1', to: 'W3' }));
+    expect(text(measure(p, c, { from: '"W1"', to: ' “W3” ' }))).toBe(bare);
+    expect(text(getPartInfo(p, c, { id: '"W1-S02"' }))).toBe(text(getPartInfo(p, c, { id: 'W1-S02' })));
+    expect(text(findParts(p, c, { assembly: '"W1"', limit: 3 }))).toBe(text(findParts(p, c, { assembly: 'W1', limit: 3 })));
+  });
+
   it('refuses unknown ids', () => {
     const r = measure(p, c, { from: 'W1', to: 'W7' });
     expect(!r.ok && r.errors.map((e) => e.path)).toEqual(['to']);

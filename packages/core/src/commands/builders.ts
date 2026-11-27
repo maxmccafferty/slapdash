@@ -36,13 +36,14 @@ import { layoutRoof } from '../builders/layout/roof.ts';
 import { layoutSlab } from '../builders/layout/slab.ts';
 import { STRUCTURE_KINDS, layoutStructure } from '../builders/layout/structure.ts';
 import { layoutWall, neighbourMembers, openingUnitMaterial, openingsIn, resolveWall, supportJoints } from '../builders/layout/wall.ts';
-import { OPENING_BUILDER, WALL_BUILDER, hasTag, loadWallState, removeItem, studTop, wallParamsOf, type WallParams, type WallState } from '../builders/layout/wall-state.ts';
+import { OPENING_BUILDER, WALL_BUILDER, hasTag, keepUnchangedParts, loadWallState, removeItem, studTop, wallParamsOf, type WallParams, type WallState } from '../builders/layout/wall-state.ts';
 import type { FrameBox } from '../geometry/frame.ts';
 import { describeClashes, findClashes } from '../model/clash.ts';
 import { jointsForParts } from '../model/queries.ts';
 import type { Assembly, Project } from '../model/schema.ts';
 import { MM_PER_INCH } from '../units/length.ts';
 import { LENGTH_DESCRIPTION, zLength, zPitch, zPositiveLength } from '../units/zod.ts';
+import { zId } from './common.ts';
 import { commandError, formatErrors, notFound, type CommandError } from './errors.ts';
 import { patchWithInverse } from './internal.ts';
 import { defineCommand, type CommandContext } from './types.ts';
@@ -212,13 +213,13 @@ const buildWallSchema = z.strictObject({
   start: zPlanPoint.describe('Start of the wall: a plan point on the outside face of the framing (a building corner).'),
   end: zPlanPoint.describe('End of the wall: a plan point on the outside face of the framing.'),
   height: zPositiveLength.describe(
-    `Overall framed height, bottom of the bottom plate to the top of the double top plate (e.g. "9ft" → 103 1/2in studs). ${LENGTH_DESCRIPTION}`,
+    `Overall framed height, bottom of the bottom plate to the top of the double top plate (e.g. 9ft → 103 1/2in studs). ${LENGTH_DESCRIPTION}`,
   ),
-  studLength: zPositiveLength.optional().describe(`Use this stud length instead (e.g. precut "104 5/8in"); the height follows from it. ${LENGTH_DESCRIPTION}`),
-  exterior: z.enum(['left', 'right']).optional().describe('Which side is outside, walking from start to end in a north-up plan. Default "left".'),
+  studLength: zPositiveLength.optional().describe(`Use this stud length instead (e.g. precut 104 5/8in); the height follows from it. ${LENGTH_DESCRIPTION}`),
+  exterior: z.enum(['left', 'right']).optional().describe('Which side is outside, walking from start to end in a north-up plan. Default left.'),
   baseElevation: zLength.optional().describe(`Bottom of the bottom plate. Default: top of the slab or floor under the wall, else the ground. ${LENGTH_DESCRIPTION}`),
-  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default "2x4".'),
-  spacing: z.enum(SPACINGS).optional().describe('Stud spacing on center, measured from the wall start. Default "16in".'),
+  studSize: z.enum(['2x4', '2x6']).optional().describe('Stud size. Default 2x4.'),
+  spacing: z.enum(SPACINGS).optional().describe('Stud spacing on center, measured from the wall start. Default 16in.'),
   loadBearing: z.boolean().optional().describe('Whether the wall carries the roof. Sets header sizes. Default true.'),
   buildingWidth: zPositiveLength
     .optional()
@@ -229,7 +230,7 @@ const buildWallSchema = z.strictObject({
     .describe('Wall bracing: 7/16in OSB sheathing panels (default), 1x4 let-in diagonal braces at both ends, or none.'),
   openings: z.array(zOpeningItem).optional().describe('Openings to frame in the wall now. Same fields as add_opening without wallId.'),
   materials,
-  name: zBuilderName.describe('Readable name, e.g. "South wall".'),
+  name: zBuilderName.describe('Readable name, e.g. South wall.'),
 });
 
 export const buildWall = builderCommand({
@@ -242,7 +243,7 @@ export const buildWall = builderCommand({
 // ── add_opening ─────────────────────────────────────────────────────────────
 
 const addOpeningSchema = z.strictObject({
-  wallId: z.string().min(1).describe('The wall to frame the opening in, e.g. "W2". Must have been made with build_wall.'),
+  wallId: zId.describe('The wall to frame the opening in, e.g. W2. Must have been made with build_wall.'),
   ...zOpeningFields,
 });
 
@@ -331,13 +332,13 @@ export const frameFloor = builderCommand({
     top: zLength
       .optional()
       .describe(`Top of the subfloor. Default: sits on the foundation; with piers, 2ft above grade. ${LENGTH_DESCRIPTION}`),
-    joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default "2x8".'),
-    spacing: z.enum(SPACINGS).optional().describe('Joist spacing on center. Default "16in".'),
-    joistDirection: z.enum(['x', 'z']).optional().describe('Direction the joists run: "x" east-west, "z" north-south. Default: across the shorter side.'),
+    joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default 2x8.'),
+    spacing: z.enum(SPACINGS).optional().describe('Joist spacing on center. Default 16in.'),
+    joistDirection: z.enum(['x', 'z']).optional().describe('Direction the joists run: x east-west, z north-south. Default: across the shorter side.'),
     support: z
       .enum(['foundation', 'piers'])
       .optional()
-      .describe('"foundation" (default): sill plates on an existing slab/footing; "piers": concrete piers at most 6ft apart under the joist ends.'),
+      .describe('foundation (default): sill plates on an existing slab/footing; piers: concrete piers at most 6ft apart under the joist ends.'),
     materials,
     name: zBuilderName,
   }),
@@ -354,11 +355,11 @@ export const buildRoof = builderCommand({
     type: z.enum(['gable', 'shed']).describe('Roof type.'),
     from: zPlanPoint.describe('One corner of the wall footprint (outside face of the framing).'),
     to: zPlanPoint.describe('The opposite corner.'),
-    pitch: zPitch.describe('Roof pitch, 1 in 12 to 24 in 12, e.g. "6 in 12".'),
-    ridgeAxis: z.enum(['x', 'z']).optional().describe('Gable only: direction of the ridge, "x" east-west or "z" north-south. Default: along the longer side.'),
+    pitch: zPitch.describe('Roof pitch, 1 in 12 to 24 in 12, e.g. 6 in 12.'),
+    ridgeAxis: z.enum(['x', 'z']).optional().describe('Gable only: direction of the ridge, x east-west or z north-south. Default: along the longer side.'),
     lowSide: z.enum(['north', 'south', 'east', 'west']).optional().describe('Shed only: the low eave side.'),
-    rafterSize: z.enum(['2x6', '2x8', '2x10']).optional().describe('Rafter size. Default "2x6".'),
-    spacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing on center. Default "16in".'),
+    rafterSize: z.enum(['2x6', '2x8', '2x10']).optional().describe('Rafter size. Default 2x6.'),
+    spacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing on center. Default 16in.'),
     overhang: zLength.optional().describe(`Eave overhang, measured level from the outside face of the framing. Default 12in. ${LENGTH_DESCRIPTION}`),
     rake: zLength.optional().describe(`Gable-end overhang (adds fly rafters). Default 0. ${LENGTH_DESCRIPTION}`),
     bearingHeight: zLength.optional().describe(`Top of the wall plates the rafters sit on. Default: from the walls under the eaves. ${LENGTH_DESCRIPTION}`),
@@ -376,25 +377,23 @@ const zFenceGate = z
     at: zLength.optional().describe(`Where the gate opening starts, measured along the whole path from its first point. Give "at" or "centerAt". ${LENGTH_DESCRIPTION}`),
     centerAt: zLength.optional().describe(`Where the middle of the gate opening is, measured along the whole path. ${LENGTH_DESCRIPTION}`),
     width: zPositiveLength.optional().describe(`Opening between the gate posts, 3ft to 6ft. Default 4ft. ${LENGTH_DESCRIPTION}`),
-    hinge: z.enum(['start', 'end']).optional().describe('Which gate post the hinges go on, the one nearer the start or the end of the path. Default "start".'),
-    swing: z.enum(['in', 'out']).optional().describe('"in" swings toward the pool side (or the left of the path), "out" away. Default "out"; a pool barrier gate must swing out.'),
+    hinge: z.enum(['start', 'end']).optional().describe('Which gate post the hinges go on, the one nearer the start or the end of the path. Default start.'),
+    swing: z.enum(['in', 'out']).optional().describe('in swings toward the pool side (or the left of the path), out away. Default out; a pool barrier gate must swing out.'),
   })
   .describe('A single gate in the fence line.');
 
 export const buildFence = builderCommand({
   name: 'build_fence',
   description:
-    'Build a fence along a path. Styles: "privacy" (1x6 boards) or "picket" (1x4 pickets) on 2x4 rails and pressure-treated 4x4 posts set in concrete at most 8ft apart; "chain-link" (galvanized terminal and line posts at most 10ft apart, top rail, fabric); "aluminum" (6ft panels on 2x2 posts); "glass" (frameless tempered panels on spigots in a concrete deck). Gates get posts on both sides, hinges and a latch. With "poolBarrier": at least 4ft tall, gaps under 4in, 1 1/4in mini-mesh for chain link, rails on the pool side, self-closing hinges and a magnetic latch 54in up, gates swinging away from the pool (IRC Appendix AG105; a reminder, not a code check).',
+    'Build a fence along a path. Styles: privacy (1x6 boards) or picket (1x4 pickets) on 2x4 rails and pressure-treated 4x4 posts set in concrete at most 8ft apart; chain-link (galvanized terminal and line posts at most 10ft apart, top rail, fabric); aluminum (6ft panels on 2x2 posts); glass (frameless tempered panels on spigots in a concrete deck). Gates get posts on both sides, hinges and a latch. With "poolBarrier": at least 4ft tall, gaps under 4in, 1 1/4in mini-mesh for chain link, rails on the pool side, self-closing hinges and a magnetic latch 54in up, gates swinging away from the pool (IRC Appendix AG105; a reminder, not a code check).',
   schema: z.strictObject({
     path: z.array(zPlanPoint).min(2).describe('Fence line: two or more plan points; a post goes at each.'),
     height: zPositiveLength.optional().describe(`Fence height above grade, 3ft to 8ft (4ft minimum for a pool barrier, 6ft maximum for glass). Default 6ft (4ft for glass). ${LENGTH_DESCRIPTION}`),
-    style: z.enum(FENCE_STYLES).optional().describe('"privacy" (default), "picket", "chain-link", "aluminum" or "glass".'),
+    style: z.enum(FENCE_STYLES).optional().describe('privacy (default), picket, chain-link, aluminum or glass.'),
     postSpacing: zPositiveLength
       .optional()
       .describe(`Maximum post spacing: up to 8ft for wood (default 8ft), 10ft for chain-link (default 10ft), 6ft for aluminum (default 6ft). Ignored for glass. ${LENGTH_DESCRIPTION}`),
-    infill: z
-      .string()
-      .min(1)
+    infill: zId
       .optional()
       .describe('Catalog material for the boards (lumber, for wood styles) or the fabric/panels (fencing, for chain-link, aluminum and glass). Default: the style\'s own.'),
     gates: z.array(zFenceGate).max(8).optional().describe('Gates, each inside one straight run of the path.'),
@@ -419,18 +418,16 @@ export const buildPergola = builderCommand({
     from: zPlanPoint.describe('One corner of the pergola (outside face of the posts).'),
     to: zPlanPoint.describe('The opposite corner.'),
     height: zPositiveLength.optional().describe(`Top of the beams on the high side. Default 8ft. ${LENGTH_DESCRIPTION}`),
-    postSize: z.enum(['4x4', '6x6']).optional().describe('Post size. Default "6x6".'),
-    beamSize: z.enum(['2x8', '2x10', '2x12']).optional().describe('Doubled beam size: 2x8 spans 8ft between posts, 2x10 10ft, 2x12 12ft. Default "2x8".'),
+    postSize: z.enum(['4x4', '6x6']).optional().describe('Post size. Default 6x6.'),
+    beamSize: z.enum(['2x8', '2x10', '2x12']).optional().describe('Doubled beam size: 2x8 spans 8ft between posts, 2x10 10ft, 2x12 12ft. Default 2x8.'),
     beamAxis: z.enum(['x', 'z']).optional().describe('Direction the beams run. Default: along the longer side (or across the low side if given).'),
-    rafterSize: z.enum(['2x6', '2x8']).optional().describe('Rafter size. Default "2x6".'),
+    rafterSize: z.enum(['2x6', '2x8']).optional().describe('Rafter size. Default 2x6.'),
     rafterSpacing: z.enum(['12in', '16in', '24in']).optional().describe('Rafter spacing. Default 16in, or 24in with roofing.'),
     overhang: zLength.optional().describe(`How far beams and rafters run past the posts. Default 12in. ${LENGTH_DESCRIPTION}`),
-    roofing: z
-      .string()
-      .min(1)
+    roofing: zId
       .optional()
-      .describe('"none" (default, open), "polycarbonate" (clear corrugated panels), "metal", or a catalog roofing material id.'),
-    slope: zPitch.optional().describe('Rafter slope, e.g. "1 in 12". Default 1 in 12 with roofing (polycarbonate needs at least that), flat when open.'),
+      .describe('none (default, open), polycarbonate (clear corrugated panels), metal, or a catalog roofing material ID.'),
+    slope: zPitch.optional().describe('Rafter slope, e.g. 1 in 12. Default 1 in 12 with roofing (polycarbonate needs at least that), flat when open.'),
     lowSide: z.enum(['north', 'south', 'east', 'west']).optional().describe('The low side the rafters slope down to. Default north (beams along x) or west.'),
     materials,
     name: zBuilderName,
@@ -451,11 +448,11 @@ export const buildDeck = builderCommand({
     joistSize: z.enum(['2x6', '2x8', '2x10', '2x12']).optional().describe('Joist size. Default: the smallest that spans (IRC R507.6); more beams are added if needed.'),
     spacing: z.enum(['12in', '16in']).optional().describe('Joist spacing. Default 16in, or 12in for composite decking (most makers require it).'),
     joistDirection: z.enum(['x', 'z']).optional().describe('Direction the joists run. Default: across the shorter side.'),
-    decking: z.string().min(1).optional().describe('Decking material id: "pt-syp-no2-gc" (5/4x6 treated pine, default), "cedar-wrc" or "composite-decking".'),
+    decking: zId.optional().describe('Decking material ID: pt-syp-no2-gc (5/4x6 treated pine, default), cedar-wrc or composite-decking.'),
     railing: z
       .enum(['auto', 'none', 'wood', 'cable', 'glass'])
       .optional()
-      .describe('Guard infill. "auto" (default): wood balusters when the deck is over 30in up, else none. "none" is refused over 30in (IRC R312.1.1).'),
+      .describe('Guard infill. auto (default): wood balusters when the deck is over 30in up, else none. none is refused over 30in (IRC R312.1.1).'),
     stairs: z
       .strictObject({
         side: z.enum(['north', 'south', 'east', 'west']).describe('The side the stairs come down from.'),
@@ -494,11 +491,7 @@ export const placeStructure = builderCommand({
 // ── resize_header ───────────────────────────────────────────────────────────
 
 const resizeHeaderSchema = z.strictObject({
-  opening: z
-    .string()
-    .trim()
-    .min(1)
-    .describe('The opening assembly made by add_opening (e.g. "O1"), or the ID of one of its header plies.'),
+  opening: zId.describe('The opening assembly made by add_opening (e.g. O1), or the ID of one of its header plies.'),
   size: z
     .string()
     .trim()
@@ -772,6 +765,7 @@ function updateOpeningLayout(project: Project, input: z.output<typeof updateOpen
   unframeOpening(state, asm.id, op, others, panels);
   const unit = o.product ?? openingUnitMaterial(ctx.catalog);
   frameOpening(state, o, asm.id, unit ? { materialId: unit, seq: asm.buildStep?.seq ?? project.parts[panels[0] ?? ""]?.buildStep.seq ?? 0 } : undefined);
+  keepUnchangedParts(state, project);
   const { joints, removedJoints } = openingJoints(project, state, op.wallId);
 
   const isCommon = (tags: readonly string[], role: string) => role === 'stud' && tags.includes('common');
@@ -826,6 +820,7 @@ function removeOpeningLayout(project: Project, input: z.output<typeof removeOpen
   // Everything in the O assembly goes with it (the unit, and anything added to it since).
   const own = Object.values(project.parts).filter((x) => x.assemblyId === asm.id).map((x) => x.id);
   const back = unframeOpening(state, asm.id, op, others, own);
+  keepUnchangedParts(state, project);
   const { joints, removedJoints } = openingJoints(project, state, op.wallId);
   const restored = [
     `${back.commons} common stud${back.commons === 1 ? '' : 's'}`,

@@ -165,3 +165,54 @@ export const hasTag = (item: { tags: readonly string[] }, tag: string) => item.t
 
 /** Top of the studs (underside of the top plate), in wall v. */
 export const studTop = (p: WallParams, t: number) => t + p.studLength;
+
+const SAME_MM = 0.01;
+const SAME_DEG = 1e-6;
+const near = (a: number, b: number, tol: number) => Math.abs(a - b) <= tol;
+const sameTags = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((t, i) => t === b[i]);
+
+function sameAsPart(spec: PartSpec, part: Part): boolean {
+  return (
+    spec.assembly === part.assemblyId &&
+    spec.role === part.role &&
+    spec.materialId === part.materialId &&
+    spec.sectionId === part.sectionId &&
+    spec.name === part.name &&
+    spec.buildStep.phase === part.buildStep.phase &&
+    spec.buildStep.seq === part.buildStep.seq &&
+    sameTags(spec.tags, part.tags) &&
+    (['x', 'y', 'z'] as const).every((k) => near(spec.position[k], part.position[k], SAME_MM) && near(spec.rotation[k], part.rotation[k], SAME_DEG)) &&
+    near(spec.size.length, part.size.length, SAME_MM) &&
+    near(spec.size.width, part.size.width, SAME_MM) &&
+    near(spec.size.height, part.size.height, SAME_MM)
+  );
+}
+
+/**
+ * Re-framing takes an opening's framing out and lays it out again, so a part that ends up
+ * exactly where it was (a king stud when only the height changed, an uncut sheathing sheet)
+ * would come back under a new ID. Keep the old part instead: its ID, joints and any edits stay,
+ * and the view doesn't show it arriving again. Run after framing, before working out joints.
+ */
+export function keepUnchangedParts(state: WallState, project: Project): void {
+  const removed = new Set(state.removed);
+  for (const item of state.items) {
+    if (!item.isNew) continue;
+    const spec = state.specs.find((s) => s.key === item.ref);
+    if (!spec || spec.tags.some((t) => t.includes('#'))) continue;
+    let match: string | undefined;
+    for (const id of removed) {
+      const part = project.parts[id];
+      if (part && sameAsPart(spec, part)) {
+        match = id;
+        break;
+      }
+    }
+    if (match === undefined) continue;
+    removed.delete(match);
+    state.removed = state.removed.filter((id) => id !== match);
+    state.specs = state.specs.filter((s) => s !== spec);
+    item.ref = match;
+    item.isNew = false;
+  }
+}

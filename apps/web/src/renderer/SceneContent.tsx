@@ -14,6 +14,7 @@ import { floorBounds, isContextPart } from './bounds.ts';
 import { Compass } from './Compass.tsx';
 import { setCut, type CutUniforms } from './CutFaces.ts';
 import { Dimensions } from './Dimensions.tsx';
+import type { EntranceSchedule } from './entrances.ts';
 import { dimensionSet } from './dimensions.ts';
 import { clipBelow, partEdgeSegments, type V3 } from './edges.ts';
 import { Floor } from './Floor.tsx';
@@ -54,8 +55,8 @@ export interface SceneContentProps {
   spec: ViewSpec;
   cut: CutUniforms;
   tier: QualityTier;
-  /** New parts drop in (only in the user's view, when someone is building and motion is allowed). */
-  animateNew?: boolean;
+  /** The user's view only: new parts fall and fade in, and their dimensions wait for them. */
+  entrances?: EntranceSchedule | null;
 }
 
 /** Ink edges for blueprint and x-ray snapshots, clipped by the Inside cut. */
@@ -81,7 +82,7 @@ function BatchEdges({ parts, isCuttable: cuttable, cutY, opacity }: { parts: rea
   );
 }
 
-export function SceneContent({ project, catalog, spec, cut, tier, animateNew = false }: SceneContentProps) {
+export function SceneContent({ project, catalog, spec, cut, tier, entrances = null }: SceneContentProps) {
   const invalidate = useThree((s) => s.invalidate);
   const previous = useRef<Batch[]>([]);
   const batches = useMemo(() => (previous.current = groupParts(project, previous.current)), [project]);
@@ -151,7 +152,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
             tier={tier}
             cut={cut}
             catalog={catalog}
-            animateNew={animateNew}
+            entrances={entrances}
           />
         ))}
       </group>
@@ -167,7 +168,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
           />
         ))}
       <SiteContext parts={context} />
-      {spec.dimensions && <Dimensions lines={lines} />}
+      {spec.dimensions && <Dimensions lines={lines} entrances={entrances} />}
       <Highlights parts={outlinedParts} proposal={spec.proposal} />
       {spec.mode === 'stress' && spec.stress && (
         <>

@@ -196,7 +196,7 @@ async function run(call: ToolCall, ctx: DispatchContext): Promise<ToolOutcome> {
       return ok(
         p.data.confirmBigChanges
           ? 'Big-change check is on: show a plan with propose_plan before big changes.'
-          : 'Big-change check is off for this project: build without a plan first. The person can ask for plans again any time.',
+          : 'Big-change check is off for this project: just build. The person can ask for plans again any time.',
         { prefs: p.data },
       );
     }

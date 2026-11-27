@@ -11,7 +11,7 @@ export type Result<T, E = string> = { ok: true; value: T } | { ok: false; error:
 
 export type UnitSystem = 'imperial' | 'metric';
 
-const EXAMPLES = `Try 16ft 6in, 9', 5 1/2" or 4877mm.`;
+const EXAMPLES = `Try 16ft 6in, 9', 5 1/2in or 4877mm.`;
 
 type Unit = 'ft' | 'in' | 'mm' | 'cm' | 'm';
 
@@ -88,14 +88,48 @@ function readUnit(s: string): { unit: Unit; rest: string } | null {
 }
 
 /**
+ * If `input` (trimmed) is wrapped in a matching pair of quote marks (`"…"` or `“…”`),
+ * return what is inside, trimmed; otherwise null. Claude sometimes sends the JSON
+ * string `"\"9ft\""`. Callers must try the inner text first and fall back to the
+ * original, because a lone trailing `"` is a real inch mark (`5 1/2"`).
+ */
+export function unwrapQuotes(input: string): string | null {
+  const s = input.trim();
+  if (s.length < 2) return null;
+  const first = s[0];
+  const last = s[s.length - 1];
+  if ((first === '"' && last === '"') || (first === '“' && last === '”')) {
+    return s.slice(1, -1).trim();
+  }
+  return null;
+}
+
+/** True for a unitless zero like `0`, `0.0`, `-0` or `+.0`. Zero is the same in every unit. */
+export function isUnitlessZero(input: string): boolean {
+  return /^[-+]?(?:0+(?:\.0*)?|\.0+)$/.test(input.trim());
+}
+
+/**
  * Parse a length written by a person into millimetres.
  *
  * Accepts feet/inches in most common spellings (`16ft 6in`, `16' 6"`, `16'-6"`,
  * `16 ft 6 1/2 in`, `5 1/2"`, `0.75'`), and metric (`4877mm`, `487.7 cm`, `4.877 m`).
- * A bare number is rejected because it is ambiguous; JSON numbers are already mm.
+ * A bare number is rejected because it is ambiguous, except zero; JSON numbers are
+ * already mm. Text wrapped in quote marks (`"9ft"`, `“16ft 6in”`) is read without them.
  * Negative values parse; schemas decide whether a sign is allowed.
  */
 export function parseLength(input: string): Result<number> {
+  const inner = unwrapQuotes(input);
+  if (inner === null) return parseBareLength(input);
+  const unwrapped = parseBareLength(inner);
+  if (unwrapped.ok) return unwrapped;
+  const whole = parseBareLength(input);
+  // Neither reading works: the inner error ("has no unit") is the more useful one.
+  return whole.ok ? whole : unwrapped;
+}
+
+function parseBareLength(input: string): Result<number> {
+  if (isUnitlessZero(input)) return { ok: true, value: 0 };
   const original = input.trim();
   if (original === '') {
     return { ok: false, error: `Enter a length. ${EXAMPLES}` };

@@ -6,6 +6,7 @@
  */
 import { LENGTH_DESCRIPTION, MATERIAL_CATEGORIES, PART_ROLES, zLength, zPositiveLength } from '@slapdash/core';
 import { z } from 'zod';
+import { zId } from './ids.ts';
 import { zSnapshotRequest } from './snapshot.ts';
 import { zCheckStructure } from './structure.ts';
 
@@ -20,7 +21,7 @@ export const zQueryPoint = z
 export type QueryPoint = { x: number; y?: number | undefined; z: number };
 
 const zTarget = z
-  .union([z.string().min(1).describe('A part or assembly id, e.g. "W1-S03" or "W1".'), zQueryPoint])
+  .union([zId('A part or assembly id, e.g. W1-S03 or W1.'), zQueryPoint])
   .describe('A part or assembly id, or a point.');
 
 const zPlanXZ = z.strictObject({
@@ -29,9 +30,9 @@ const zPlanXZ = z.strictObject({
 });
 
 export const zFindParts = z.strictObject({
-  assembly: z.string().min(1).optional().describe('Only parts in this assembly, e.g. "W1".'),
+  assembly: zId('Only parts in this assembly, e.g. W1.').optional(),
   role: z.enum(PART_ROLES).optional().describe('Only parts with this role, e.g. "stud".'),
-  material: z.string().min(1).optional().describe('Only parts of this material id, e.g. "spf-no2" (a part of the id matches too).'),
+  material: zId('Only parts of this material id, e.g. spf-no2 (a part of the id matches too).').optional(),
   tag: z.string().min(1).optional().describe('Only parts with this tag, e.g. "king" or "corner-backer".'),
   near: zQueryPoint.optional().describe('Only parts near this point, nearest first.'),
   within: zPositiveLength.optional().describe(`With "near": how close a part must be. Default 1ft. ${LENGTH_DESCRIPTION}`),
@@ -39,7 +40,7 @@ export const zFindParts = z.strictObject({
 });
 
 export const zGetPart = z.strictObject({
-  id: z.string().min(1).describe('A part id ("W1-S03") or an assembly id ("W1").'),
+  id: zId('A part id (W1-S03) or an assembly id (W1).'),
 });
 
 export const zMeasure = z.strictObject({
@@ -48,13 +49,13 @@ export const zMeasure = z.strictObject({
 });
 
 export const zListMaterials = z.strictObject({
-  assembly: z.string().min(1).optional().describe('Only this assembly, e.g. "W1". Default: the whole project.'),
+  assembly: zId('Only this assembly, e.g. W1. Default: the whole project.').optional(),
 });
 
 export const zSearchCatalog = z.strictObject({
-  text: z.string().trim().min(1).optional().describe('Words to match in the id, name or description, e.g. "pool fence" or "gfci". All words must match.'),
-  category: z.enum(MATERIAL_CATEGORIES).optional().describe('Only this category, e.g. "fencing", "plumbing" or "roofing".'),
-  flag: z.string().min(1).optional().describe('Only materials with this code flag, e.g. "pool-barrier", "safety-glazing" or "licensed-trade".'),
+  text: z.string().trim().min(1).optional().describe('Words to match in the id, name or description, e.g. pool fence or gfci. All words must match.'),
+  category: z.enum(MATERIAL_CATEGORIES).optional().describe('Only this category, e.g. fencing, plumbing or roofing.'),
+  flag: z.string().min(1).optional().describe('Only materials with this code flag, e.g. pool-barrier, safety-glazing or licensed-trade.'),
   limit: z.number().int().min(1).max(100).default(25).describe('How many rows to list. Default 25.'),
 });
 
@@ -79,7 +80,7 @@ export const zRequestPhoto = z.strictObject({
 });
 
 export const zSetPreferences = z.strictObject({
-  confirmBigChanges: z.boolean().describe('false: skip plans for this project ("just do it"). true: show plans again.'),
+  confirmBigChanges: z.boolean().describe('true: show a plan before big changes. false: just build (the default).'),
 });
 
 export const zOfferOptions = z.strictObject({
@@ -150,7 +151,7 @@ export const agentToolDefs = [
   {
     name: 'propose_plan',
     description:
-      'Show the person a one-line plan with Build it / Change something before a big change (a new structure, a roof, or about 50+ parts). Give the footprint and height when you know them. Then stop and wait for their answer.',
+      'Only while the big-change check is on (the person asked to see plans first): show a one-line plan with Build it / Change something before a big change (a new structure, a roof, or about 50+ parts). Give the footprint and height when you know them. Then stop and wait for their answer.',
     schema: zProposePlan,
   },
   {
@@ -162,7 +163,7 @@ export const agentToolDefs = [
   {
     name: 'set_preferences',
     description:
-      "Call with false when the person says 'just do it' (skip plans for this project); true when they want plans back.",
+      'Call with true when the person wants to see a plan before big changes; false when they want you to just build again (the default).',
     schema: zSetPreferences,
   },
   {

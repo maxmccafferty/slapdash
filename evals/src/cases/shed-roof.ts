@@ -1,7 +1,7 @@
 import { assembliesOf, partsIn } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { SHED_WALLS_8x10 } from '../seeds.ts';
-import { expectSoundStep, planThenBuild } from './common.ts';
+import { expectSoundStep, buildInOneTurn } from './common.ts';
 
 /** A 3 in 12 shed roof on seeded 10×8 walls, low side north, bearing on the plates. */
 export const shedRoof = defineScenario({
@@ -9,7 +9,7 @@ export const shedRoof = defineScenario({
   description: '3 in 12 shed roof sloping north on existing shed walls: rafters bear on the plates',
   seed: SHED_WALLS_8x10,
   async run(ctx) {
-    const t2 = await planThenBuild(ctx, 'Put a shed roof on it, 3 in 12, sloping down to the north');
+    const t2 = await buildInOneTurn(ctx, 'Put a shed roof on it, 3 in 12, sloping down to the north');
     const p = ctx.session.bus.project;
     expectSoundStep(ctx, t2);
     const roofs = assembliesOf(p, 'roof');
