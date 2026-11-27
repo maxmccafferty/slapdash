@@ -125,7 +125,7 @@ export interface MaterialsReport {
   isEmpty: boolean;
 }
 
-export interface TakeoffOptions extends CutOptions {}
+export type TakeoffOptions = CutOptions;
 
 type Kind = 'board' | 'length' | 'sheet' | 'concrete' | 'pieces' | 'area' | 'hardware';
 const KIND_ORDER: Record<Kind, number> = { concrete: 0, board: 1, length: 1, sheet: 2, area: 3, pieces: 4, hardware: 5 };

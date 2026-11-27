@@ -60,7 +60,7 @@ export function ViewControls3D({ enabled }: { enabled: boolean }) {
     c.update();
     setFitDistance(fit.distance);
     invalidate();
-    // Depends on the project only through loadId and hasParts, on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- depends on the project only through loadId and hasParts, on purpose.
   }, [loadId, hasParts, camera, setFitDistance, invalidate]);
 
   useLayoutEffect(() => {

@@ -1,6 +1,6 @@
 import { assembliesOf, boundsOf, FT, fi, heightAboveGrade, IN, partsIn } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
-import { expectSoundStep, planThenBuild } from './common.ts';
+import { expectSoundStep, buildInOneTurn } from './common.ts';
 
 /** A 40ft privacy fence: posts at most 8ft apart, 6ft tall, rails in every bay, boards on. */
 export const fence = defineScenario({
@@ -8,7 +8,7 @@ export const fence = defineScenario({
   description: '40ft privacy fence along the north edge: posts ≤ 8ft apart, 6ft tall, rails and boards',
   fullBuild: true,
   async run(ctx) {
-    const t2 = await planThenBuild(ctx, 'Build a 6ft privacy fence 40ft long along the north edge, starting at the origin and running east');
+    const t2 = await buildInOneTurn(ctx, 'Build a 6ft privacy fence 40ft long along the north edge, starting at the origin and running east');
     const p = ctx.session.bus.project;
     expectSoundStep(ctx, t2);
     const fences = assembliesOf(p, 'misc').filter((a) => a.builder?.name === 'build_fence');

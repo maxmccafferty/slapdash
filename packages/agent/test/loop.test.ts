@@ -52,11 +52,37 @@ const PLAN = {
   height: '9ft',
 };
 
+/** Memory for a person who asked to see plans before big changes (ADR-0002 §F1, opt-in). */
+function plansFirst(): AgentMemory {
+  const memory = new AgentMemory();
+  memory.setPrefs({ confirmBigChanges: true });
+  return memory;
+}
+
 async function turn(deps: AgentDeps, input: UserInput | string) {
   return runTurn(deps, typeof input === 'string' ? { text: input } : input);
 }
 
-describe('acceptance: plan, then the shell in one undo group', () => {
+describe('by default Claude just builds', () => {
+  it('builds a whole shell in one turn without a plan, as one undo step', async () => {
+    const { deps, bus, script, memory } = setup([
+      call(SHELL[0]!, SHELL[1]!, SHELL[2]!),
+      call(SHELL[3]!, SHELL[4]!),
+      say('Slab and walls are up: 16×20, 9ft walls.'),
+    ]);
+    expect(memory.prefs).toEqual({ confirmBigChanges: false });
+    const r = await turn(deps, 'Build a 16×20 pool house on a slab with 9ft walls');
+    expect(script.remaining()).toBe(0);
+    expect(r.refusals).toBe(0);
+    expect(r.plan).toBeNull();
+    expect(bus.listHistory()).toHaveLength(1);
+    expect(Object.values(bus.project.assemblies).filter((a) => a.kind === 'wall')).toHaveLength(4);
+    const first = script.sent[0]!.at(-1)!.content as { type: string; text?: string }[];
+    expect(first[0]!.text).toContain('Big-change check: off (just build)');
+  });
+});
+
+describe('acceptance (plans first): plan, then the shell in one undo group', () => {
   it('turn 1 shows a plan and changes nothing; turn 2 builds the shell as one undo step', async () => {
     const { deps, bus, script, events, memory } = setup([
       // Turn 1: Claude tries to build at once, is refused, proposes a plan and stops.
@@ -68,7 +94,7 @@ describe('acceptance: plan, then the shell in one undo group', () => {
       call(SHELL[3]!, SHELL[4]!, ['list_materials', {}]),
       call(['snapshot', {}]),
       say('Slab and walls are up: 16×20, 9ft walls with 103 1/2in studs.'),
-    ]);
+    ], { memory: plansFirst() });
     const before = bus.project;
 
     const t1 = await turn(deps, 'Build a 16×20 pool house on a slab with 9ft walls');
@@ -114,7 +140,7 @@ describe('acceptance: plan, then the shell in one undo group', () => {
   });
 });
 
-describe('the big-change guard', () => {
+describe('the big-change guard (plans first)', () => {
   it('refuses building in the same turn as a plan', async () => {
     const { deps, bus, script } = setup([call(['propose_plan', PLAN], ['add_assembly', { name: 'Shed', kind: 'misc' }]), say('Plan above.')]);
     const r = await turn(deps, 'A shed please');
@@ -126,15 +152,24 @@ describe('the big-change guard', () => {
     expect(bus.project.assemblies).toEqual({});
   });
 
-  it('"just do it" turns the check off for later turns, and it is saved', async () => {
+  it('asking for plans turns the check on for later turns, it is saved, and "just do it" turns it off', async () => {
     const { deps, bus, memory } = setup([
+      call(['set_preferences', { confirmBigChanges: true }]),
+      say("Got it, I'll show you a plan before big changes."),
+      call(SHELL[0]!),
+      say('That needs a plan first.'),
       call(['set_preferences', { confirmBigChanges: false }]),
       say("Got it, I'll just build from now on."),
       call(SHELL[0]!),
       say('Slab poured.'),
     ]);
+    await turn(deps, 'Show me a plan before you build anything big');
+    expect(memory.prefs).toEqual({ confirmBigChanges: true });
+    expect(memory.toChatLog().prefs).toEqual({ confirmBigChanges: true });
+    const refused = await turn(deps, 'Pour a 16×20 slab');
+    expect(refused.refusals).toBe(1);
+    expect(bus.project.assemblies).toEqual({});
     await turn(deps, 'Just do it from now on');
-    expect(memory.prefs).toEqual({ confirmBigChanges: false });
     expect(memory.toChatLog().prefs).toEqual({ confirmBigChanges: false });
     const r = await turn(deps, 'Pour a 16×20 slab');
     expect(r.refusals).toBe(0);
@@ -148,7 +183,7 @@ describe('the big-change guard', () => {
       call(['add_assembly', { name: 'Bench', kind: 'misc' }]),
       call(['add_part', { assemblyId: 'M1', role: 'other', materialId: 'spf-no2', sectionId: '2x4', position: { x: 0, y: 0, z: '-5ft' }, length: '6ft' }]),
       say('Added a bench board; the long wall needs a plan first.'),
-    ]);
+    ], { memory: plansFirst() });
     const r = await turn(deps, 'A 40ft wall and a bench');
     const wall = script.sent[1]!.at(-1)!.content as ToolResultBlock[];
     expect(wall[0]).toMatchObject({ is_error: true });
@@ -159,7 +194,7 @@ describe('the big-change guard', () => {
   });
 
   it('counts parts across the turn: the second 20ft wall pushes past 50', async () => {
-    const { deps, bus, script } = setup([call(SHELL[1]!), call(SHELL[2]!), say('One wall up.')]);
+    const { deps, bus, script } = setup([call(SHELL[1]!), call(SHELL[2]!), say('One wall up.')], { memory: plansFirst() });
     await turn(deps, 'Two walls');
     expect(resultText(lastResults(script.sent)[0]!)).toContain(BIG_CHANGE_MESSAGE);
     expect(Object.keys(bus.project.assemblies)).toEqual(['W1']);
@@ -175,7 +210,7 @@ describe('the big-change guard', () => {
       say('Plan above.'),
       call(SHELL[0]!),
       say('Slab poured.'),
-    ]);
+    ], { memory: plansFirst() });
     await turn(deps, 'A pool house');
     const changed = await turn(deps, { text: 'Make it smaller', approvePlan: false });
     expect(changed.refusals).toBe(1);

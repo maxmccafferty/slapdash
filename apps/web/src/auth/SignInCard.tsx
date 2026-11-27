@@ -68,7 +68,7 @@ export function SignInCard({ auth, onSignedIn, storage }: SignInCardProps) {
       set({ phase: 'error', message: res.error });
       return;
     }
-    let answered = true;
+    let answered: boolean;
     try {
       answered = flags?.getItem(PASSKEY_OFFER_KEY) != null;
     } catch {
@@ -96,7 +96,7 @@ export function SignInCard({ auth, onSignedIn, storage }: SignInCardProps) {
     return () => {
       live = false;
     };
-    // Once per card (finish only reads the store and the callback).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per card (finish only reads the store and the callback).
   }, [auth]);
 
   const submit = async (event: FormEvent) => {

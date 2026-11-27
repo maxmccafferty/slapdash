@@ -63,7 +63,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* position: relative makes #root the containing block for any absolutely positioned element
+   with no nearer positioned ancestor (e.g. .visually-hidden text inside a scrolling list), so
+   overflow: hidden clips it rather than it stretching the document past the app. */
 #root {
+  position: relative;
   height: 100dvh;
   overflow: hidden;
 }

@@ -11,13 +11,22 @@
     "build:api": "node scripts/build-api.ts",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
     "smoke": "pnpm --filter @slapdash/core smoke",
     "eval": "pnpm --filter @slapdash/evals eval",
     "check:secrets": "pnpm --filter @slapdash/web check:secrets",
+    "tokens": "pnpm --filter @slapdash/web tokens",
     "test:supabase": "pnpm --filter @slapdash/storage test:supabase",
-    "supabase:add-user": "node scripts/supabase-add-user.ts"
+    "supabase:add-user": "node scripts/supabase-add-user.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
-    "esbuild": "^0.28.2"
+    "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.14.0",
+    "typescript-eslint": "^8.74.0"
   }
 }

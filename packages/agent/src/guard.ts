@@ -75,7 +75,7 @@ const refuse = (message: string, hint?: string): CommandError => commandError('n
 
 export interface GuardContext {
   bus: CommandBus;
-  /** The project's big-change check (false after "just do it"). Read on every call. */
+  /** The project's big-change check (opt-in: true when the person asked for plans first). Read on every call. */
   confirmBigChanges: boolean;
   aborted?: boolean;
 }

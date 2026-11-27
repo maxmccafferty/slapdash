@@ -51,6 +51,32 @@ export function Transcript() {
     if (el && stick.current) el.scrollTop = el.scrollHeight;
   }, [items, working, connection, listening]);
 
+  // Content also grows without a render here: photos and images loading, plan and photo cards
+  // laying out, the composer growing and shrinking the transcript. Watch every row's size (and
+  // the transcript's own), and while the person is at the bottom, keep them there.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const follow = () => {
+      if (stick.current) el.scrollTop = el.scrollHeight;
+    };
+    const sizes = new ResizeObserver(follow);
+    sizes.observe(el);
+    for (const child of el.children) sizes.observe(child);
+    const rows = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) if (node instanceof Element) sizes.observe(node);
+        for (const node of record.removedNodes) if (node instanceof Element) sizes.unobserve(node);
+      }
+      follow();
+    });
+    rows.observe(el, { childList: true });
+    return () => {
+      sizes.disconnect();
+      rows.disconnect();
+    };
+  }, []);
+
   const finished = lastFinished(items);
   const seen = useRef<string | null>(finished?.id ?? null);
   const [announcement, setAnnouncement] = useState('');

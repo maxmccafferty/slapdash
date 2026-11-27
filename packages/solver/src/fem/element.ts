@@ -206,7 +206,7 @@ export function internalForces(
   let Rx = -f1[0]!;
   let Ry = -f1[1]!;
   let Rz = -f1[2]!;
-  let Mx = -f1[3]!;
+  const Mx = -f1[3]!;
   let My = -f1[4]! - x * f1[2]!;
   let Mz = -f1[5]! + x * f1[1]!;
   for (const l of loads) {

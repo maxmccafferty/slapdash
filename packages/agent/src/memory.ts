@@ -40,7 +40,7 @@ export interface StoredMessage {
 }
 
 export interface ChatPrefs {
-  /** False after the person says "just do it": no plan before big changes. */
+  /** True when the person asked to see a plan before big changes (ADR-0002 §F1, opt-in). Default false. */
   confirmBigChanges: boolean;
 }
 
@@ -170,7 +170,7 @@ export class AgentMemory {
   // ── Preferences and plan ──────────────────────────────────────────────────
 
   get prefs(): ChatPrefs {
-    return { confirmBigChanges: this.#prefs?.confirmBigChanges ?? true };
+    return { confirmBigChanges: this.#prefs?.confirmBigChanges ?? false };
   }
 
   setPrefs(prefs: ChatPrefs): void {

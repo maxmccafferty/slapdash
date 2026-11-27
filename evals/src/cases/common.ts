@@ -1,16 +1,15 @@
 /** Steps several scenarios share. */
-import { nothingChanged, oneUndoStep, planShown, soundBuild } from '../checks.ts';
+import { noPlan, oneUndoStep, soundBuild } from '../checks.ts';
 import type { ScenarioContext, Turn } from '../scenario.ts';
 
 /**
- * Turn A: the request, which must end with a plan and change nothing.
- * Turn B: "Build it" (approving the plan). Returns turn B.
+ * The build turn: the request, built straight away with no plan (ADR-0002 §F1 is opt-in, and
+ * off by default). Returns the turn.
  */
-export async function planThenBuild(ctx: ScenarioContext, prompt: string): Promise<Turn> {
-  const t1 = await ctx.turn(prompt);
-  ctx.expect(planShown(t1, 'turn 1'));
-  ctx.expect(nothingChanged(ctx.session, ctx.baseline, 'turn 1'));
-  return ctx.turn({ text: 'Build it', approvePlan: true });
+export async function buildInOneTurn(ctx: ScenarioContext, prompt: string): Promise<Turn> {
+  const t = await ctx.turn(prompt);
+  ctx.expect(noPlan(t, 'the build turn'));
+  return t;
 }
 
 /** The building turn made one undo step and the result is sound (valid joints, nothing loose, no clashes). */

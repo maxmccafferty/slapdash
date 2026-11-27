@@ -5,7 +5,7 @@
  */
 import { useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { DirectionalLight, Object3D, PMREMGenerator, Scene, type Texture, type WebGLRenderer } from 'three';
+import { type DirectionalLight, Object3D, PMREMGenerator, type Scene, type Texture, type WebGLRenderer } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import type { SiteLocation } from '@slapdash/core';
 import { SCENE_COLORS } from '../styles/tokens.ts';
@@ -18,7 +18,7 @@ const environments = new WeakMap<WebGLRenderer, Texture | null>();
 /** One prefiltered environment per renderer, shared by every scene. */
 function roomEnvironment(gl: WebGLRenderer): Texture | null {
   if (environments.has(gl)) return environments.get(gl)!;
-  let texture: Texture | null = null;
+  let texture: Texture | null;
   try {
     const pmrem = new PMREMGenerator(gl);
     const room = new RoomEnvironment();

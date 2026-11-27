@@ -1,0 +1,160 @@
+import { describe, expect, it } from 'vitest';
+import { CommandBus, createProject } from '@slapdash/core';
+import { CATALOG } from '@slapdash/catalog';
+import {
+  DROP_HEIGHT_M,
+  ENTER_MS,
+  EntranceSchedule,
+  entranceFrame,
+  labelOpacity,
+  MAX_TOTAL_MS,
+  REDUCED_FADE_MS,
+} from '../../src/renderer/entrances.ts';
+import { sampleBus } from './fixtures.ts';
+
+const shellCommands: [string, unknown][] = [
+  ['pour_slab', { from: { x: 0, z: 0 }, to: { x: '16ft', z: '12ft' } }],
+  ['build_wall', { start: { x: 0, z: 0 }, end: { x: '16ft', z: 0 }, height: '8ft' }],
+  ['build_wall', { start: { x: '16ft', z: 0 }, end: { x: '16ft', z: '12ft' }, height: '8ft' }],
+];
+
+function emptyBus() {
+  return new CommandBus({ project: createProject({ name: 'Shed' }), catalog: CATALOG });
+}
+
+const opts = (over: Partial<Parameters<EntranceSchedule['update']>[1]> = {}) => ({ loadId: 1, animate: true, reducedMotion: false, now: 1000, ...over });
+
+describe('entrances', () => {
+  it('a project as loaded appears at once', () => {
+    const s = new EntranceSchedule();
+    s.update(sampleBus().project, opts({ animate: false }));
+    expect(s.size).toBe(0);
+  });
+
+  it('the first render of a scene is instant, even after a command', () => {
+    const s = new EntranceSchedule();
+    s.update(sampleBus().project, opts());
+    expect(s.size).toBe(0);
+  });
+
+  it('parts a command adds enter; parts already there do not', () => {
+    const bus = emptyBus();
+    bus.execute(...shellCommands[0]!);
+    const s = new EntranceSchedule();
+    s.update(bus.project, opts());
+    const before = new Set(Object.keys(bus.project.parts));
+    bus.execute(...shellCommands[1]!);
+    s.update(bus.project, opts());
+    const entering = [...s.active(1000).keys()];
+    expect(entering.length).toBeGreaterThan(0);
+    expect(entering.every((id) => !before.has(id))).toBe(true);
+    expect(entering.length).toBe(Object.keys(bus.project.parts).length - before.size);
+    // Same project again: nothing new.
+    s.update(bus.project, opts({ now: 1100 }));
+    expect(s.size).toBe(entering.length);
+  });
+
+  it('opening another project drops everything and is instant', () => {
+    const bus = emptyBus();
+    const s = new EntranceSchedule();
+    s.update(bus.project, opts());
+    bus.execute(...shellCommands[0]!);
+    s.update(bus.project, opts());
+    expect(s.size).toBeGreaterThan(0);
+    s.update(sampleBus().project, opts({ loadId: 2, animate: false }));
+    expect(s.size).toBe(0);
+  });
+
+  it('staggers a build by assembly, lowest first, and stays under the cap', () => {
+    const bus = emptyBus();
+    const s = new EntranceSchedule();
+    s.update(bus.project, opts());
+    for (const c of shellCommands) bus.execute(...c);
+    s.update(bus.project, opts({ now: 0 }));
+    const active = s.active(0);
+    const startOf = (assemblyId: string) => Math.min(...[...active].filter(([id]) => bus.project.parts[id]!.assemblyId === assemblyId).map(([, e]) => e.start));
+    const [slab, w1, w2] = Object.keys(bus.project.assemblies);
+    expect(startOf(slab!)).toBe(0);
+    expect(startOf(w1!)).toBeGreaterThan(startOf(slab!));
+    expect(startOf(w2!)).toBeGreaterThan(startOf(w1!));
+    const end = Math.max(...[...active.values()].map((e) => e.start + e.duration));
+    expect(end).toBeLessThanOrEqual(MAX_TOTAL_MS);
+    // Paced at half speed: about 2.6 s for a whole build.
+    expect(MAX_TOTAL_MS).toBe(2600);
+    expect(s.landsAt).toBe(end);
+    // Inside a wall, the bottom plate starts before the top plates.
+    const wallParts = [...active].filter(([id]) => bus.project.parts[id]!.assemblyId === w1);
+    const byY = wallParts.sort(([a], [b]) => bus.project.parts[a]!.position.y - bus.project.parts[b]!.position.y);
+    expect(byY[0]![1].start).toBeLessThan(byY.at(-1)![1].start);
+    // Finished entrances drop out.
+    expect(s.active(end + 1).size).toBe(0);
+  });
+
+  it('undo removes entering parts; redo brings them back in', () => {
+    const bus = emptyBus();
+    bus.execute(...shellCommands[0]!);
+    const s = new EntranceSchedule();
+    s.update(bus.project, opts());
+    bus.execute(...shellCommands[1]!);
+    s.update(bus.project, opts());
+    const n = s.size;
+    bus.undo();
+    s.update(bus.project, opts({ now: 1100 }));
+    expect(s.size).toBe(0);
+    bus.redo();
+    s.update(bus.project, opts({ now: 1200 }));
+    expect(s.size).toBe(n);
+  });
+
+  it('reduced motion: no fall and no stagger, a quick fade', () => {
+    const bus = emptyBus();
+    const s = new EntranceSchedule();
+    s.update(bus.project, opts());
+    for (const c of shellCommands) bus.execute(...c);
+    s.update(bus.project, opts({ reducedMotion: true, now: 0 }));
+    for (const e of s.active(0).values()) expect(e).toEqual({ start: 0, duration: REDUCED_FADE_MS, drop: 0 });
+  });
+
+  it('falls about a storey, at half the old speed', () => {
+    expect(DROP_HEIGHT_M).toBeCloseTo(1.2, 6);
+    expect(ENTER_MS).toBe(900);
+  });
+
+  it('a part not yet started is not drawn, and starts at the top of its fall', () => {
+    const e = { start: 100, duration: ENTER_MS, drop: DROP_HEIGHT_M };
+    expect(entranceFrame(e, 99.9)).toEqual({ started: false, opacity: 0, lift: DROP_HEIGHT_M, done: false });
+    const first = entranceFrame(e, 100);
+    expect(first).toMatchObject({ started: true, opacity: 0, done: false });
+    expect(first.lift).toBeCloseTo(DROP_HEIGHT_M, 6);
+  });
+
+  it('the fall eases out: it slows as it lands, so parts settle', () => {
+    const e = { start: 0, duration: ENTER_MS, drop: DROP_HEIGHT_M };
+    const at = (k: number) => entranceFrame(e, k * ENTER_MS).lift;
+    const early = at(0) - at(0.1);
+    const late = at(0.9) - at(1);
+    expect(early).toBeGreaterThan(late * 10);
+    expect(late).toBeGreaterThan(0);
+  });
+
+  it('a part falls and fades in, solid before it lands', () => {
+    const e = { start: 100, duration: ENTER_MS, drop: DROP_HEIGHT_M };
+    expect(entranceFrame(e, 50)).toMatchObject({ started: false, opacity: 0 });
+    const mid = entranceFrame(e, 100 + ENTER_MS / 2);
+    expect(mid.started).toBe(true);
+    expect(mid.lift).toBeGreaterThan(0);
+    expect(mid.lift).toBeLessThan(DROP_HEIGHT_M);
+    expect(mid.opacity).toBeGreaterThan(0);
+    expect(entranceFrame(e, 100 + ENTER_MS * 0.7).opacity).toBeCloseTo(1, 6);
+    expect(entranceFrame(e, 100 + ENTER_MS)).toEqual({ started: true, opacity: 1, lift: 0, done: true });
+  });
+
+  it('a new measurement waits for the parts to land; an old one shows at once', () => {
+    const schedule = { lastAddedAt: 1000, landsAt: 2000, reducedMotion: false };
+    expect(labelOpacity(schedule, 999, 1500)).toBe(0);
+    expect(labelOpacity(schedule, 999, 2000)).toBe(0);
+    expect(labelOpacity(schedule, 999, 2100)).toBeGreaterThan(0);
+    expect(labelOpacity(schedule, 999, 5000)).toBe(1);
+    expect(labelOpacity(schedule, 100, 1500)).toBe(1);
+  });
+});

@@ -488,7 +488,7 @@ export class SyncedProjectStore implements ProjectStore {
       return;
     }
     if (!local) return;
-    let remote: ProjectRecord | null = null;
+    let remote: ProjectRecord | null;
     try {
       remote = await this.#remote.load(id);
     } catch (e) {

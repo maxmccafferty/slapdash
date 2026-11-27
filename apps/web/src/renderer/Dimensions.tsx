@@ -1,13 +1,18 @@
 /**
  * Dimension lines (ADR-0003 §C): ink hairlines with extension lines and slash ticks, and a
  * feet-and-inch label at the middle. Labels are screen-sized sprites (14 px) drawn on top.
+ *
+ * A measurement that appears with new parts (a build) waits until they have landed, then
+ * fades in (`entrances.ts`); opacity is set in `useFrame`, so nothing re-renders per frame.
  */
 import { Line } from '@react-three/drei';
-import { useEffect, useMemo } from 'react';
-import { SpriteMaterial } from 'three';
+import { useFrame } from '@react-three/fiber';
+import { useEffect, useLayoutEffect, useMemo, useRef, type ComponentRef } from 'react';
+import { SpriteMaterial, type Object3D } from 'three';
 import type { Vec3 } from '@slapdash/core';
 import { SCENE_COLORS } from '../styles/tokens.ts';
 import type { DimensionLine } from './dimensions.ts';
+import { labelOpacity, type EntranceSchedule } from './entrances.ts';
 import { makeLabelTexture, type ScreenSize } from './labels.ts';
 import { vecToM } from './units.ts';
 
@@ -41,34 +46,58 @@ export function dimensionSegments(line: DimensionLine): V3[] {
   return out;
 }
 
-function DimensionLabel({ text, position }: { text: string; position: V3 }) {
+function DimensionLabel({ text, position, material }: { text: string; position: V3; material: SpriteMaterial }) {
   const label = useMemo(() => makeLabelTexture(text), [text]);
-  const material = useMemo(
-    () => new SpriteMaterial({ map: label.texture, depthTest: false, depthWrite: false, toneMapped: false, transparent: true }),
-    [label],
-  );
-  useEffect(
-    () => () => {
-      material.dispose();
-      label.texture.dispose();
-    },
-    [material, label],
-  );
+  useLayoutEffect(() => {
+    material.map = label.texture;
+    material.needsUpdate = true;
+  }, [material, label]);
+  useEffect(() => () => label.texture.dispose(), [label]);
   const screenSize: ScreenSize = { widthPx: label.widthPx, heightPx: label.heightPx };
   return <sprite material={material} position={position} renderOrder={20} userData={{ screenSize }} raycast={() => null} />;
 }
 
-export function Dimensions({ lines }: { lines: readonly DimensionLine[] }) {
-  const segments = useMemo(() => lines.flatMap(dimensionSegments), [lines]);
+/** One measurement: its line, extension lines, ticks and label. */
+function Dimension({ line, entrances }: { line: DimensionLine; entrances: EntranceSchedule | null }) {
+  const segments = useMemo(() => dimensionSegments(line), [line]);
+  const position = useMemo(() => tuple(add(mul(add(vecToM(line.from), vecToM(line.to)), 0.5), vecToM(line.offset))), [line]);
+  const material = useMemo(() => new SpriteMaterial({ depthTest: false, depthWrite: false, toneMapped: false, transparent: true }), []);
+  useEffect(() => () => material.dispose(), [material]);
+  const group = useRef<Object3D>(null);
+  const lineRef = useRef<ComponentRef<typeof Line>>(null);
+  const mountedAt = useRef(0);
+  const done = useRef(entrances === null);
+  useLayoutEffect(() => {
+    mountedAt.current = performance.now();
+  }, []);
+  useFrame((state) => {
+    if (done.current || !entrances) return;
+    const opacity = labelOpacity(entrances, mountedAt.current, performance.now());
+    material.opacity = opacity;
+    const lm = lineRef.current?.material;
+    if (lm) {
+      lm.opacity = opacity;
+      lm.transparent = true;
+    }
+    if (group.current) group.current.visible = opacity > 0;
+    if (opacity >= 1) done.current = true;
+    else state.invalidate();
+  });
+  return (
+    <group ref={group}>
+      <Line ref={lineRef} points={segments} segments lineWidth={1} color={SCENE_COLORS.ink} depthTest={false} renderOrder={15} raycast={() => null} />
+      <DimensionLabel text={line.label} position={position} material={material} />
+    </group>
+  );
+}
+
+export function Dimensions({ lines, entrances = null }: { lines: readonly DimensionLine[]; entrances?: EntranceSchedule | null }) {
   if (lines.length === 0) return null;
   return (
     <group name="dimensions">
-      <Line points={segments} segments lineWidth={1} color={SCENE_COLORS.ink} depthTest={false} renderOrder={15} raycast={() => null} />
-      {lines.map((l) => {
-        const mid = mul(add(vecToM(l.from), vecToM(l.to)), 0.5);
-        const p = add(mid, vecToM(l.offset));
-        return <DimensionLabel key={`${l.id}:${l.label}`} text={l.label} position={tuple(p)} />;
-      })}
+      {lines.map((l) => (
+        <Dimension key={`${l.id}:${l.label}`} line={l} entrances={entrances} />
+      ))}
     </group>
   );
 }

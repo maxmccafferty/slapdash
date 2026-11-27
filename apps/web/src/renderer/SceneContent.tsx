@@ -14,6 +14,7 @@ import { floorBounds, isContextPart } from './bounds.ts';
 import { Compass } from './Compass.tsx';
 import { setCut, type CutUniforms } from './CutFaces.ts';
 import { Dimensions } from './Dimensions.tsx';
+import type { EntranceSchedule } from './entrances.ts';
 import { dimensionSet } from './dimensions.ts';
 import { clipBelow, partEdgeSegments, type V3 } from './edges.ts';
 import { Floor } from './Floor.tsx';
@@ -43,8 +44,10 @@ export interface ViewSpec {
   /** The build steps shown while Build steps is open; absent or null shows the whole build. */
   steps?: ReadonlySet<StepKey> | null;
   dimensions: boolean;
-  /** Part ids outlined in orange (selection, in progress, or a snapshot's highlights). */
+  /** Part ids outlined strongly in orange: the user's selection, or a snapshot's highlights. */
   outlined: readonly string[];
+  /** Part ids Claude is working on: a lighter orange outline where they are landing. */
+  inProgress?: Iterable<string>;
   proposal: Proposal | null;
 }
 
@@ -54,8 +57,8 @@ export interface SceneContentProps {
   spec: ViewSpec;
   cut: CutUniforms;
   tier: QualityTier;
-  /** New parts drop in (only in the user's view, when someone is building and motion is allowed). */
-  animateNew?: boolean;
+  /** The user's view only: new parts fall and fade in, and their dimensions wait for them. */
+  entrances?: EntranceSchedule | null;
 }
 
 /** Ink edges for blueprint and x-ray snapshots, clipped by the Inside cut. */
@@ -81,7 +84,7 @@ function BatchEdges({ parts, isCuttable: cuttable, cutY, opacity }: { parts: rea
   );
 }
 
-export function SceneContent({ project, catalog, spec, cut, tier, animateNew = false }: SceneContentProps) {
+export function SceneContent({ project, catalog, spec, cut, tier, entrances = null }: SceneContentProps) {
   const invalidate = useThree((s) => s.invalidate);
   const previous = useRef<Batch[]>([]);
   const batches = useMemo(() => (previous.current = groupParts(project, previous.current)), [project]);
@@ -118,6 +121,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
 
   // Filtered member lists are cached per Batch object, so an unchanged batch keeps the same
   // array and its (memoised) PartBatch doesn't re-render.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- a new isVisible must drop the cache.
   const filtered = useMemo(() => new WeakMap<Batch, Part[]>(), [isVisible]);
   const visibleParts = (b: Batch): Part[] => {
     let list = filtered.get(b);
@@ -131,6 +135,10 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
     () => spec.outlined.map((id) => project.parts[id]).filter((p): p is Part => !!p && isVisible(p)),
     [spec.outlined, project.parts, isVisible],
   );
+  const inProgressParts = useMemo(() => {
+    const strong = new Set(spec.outlined);
+    return [...(spec.inProgress ?? [])].filter((id) => !strong.has(id)).map((id) => project.parts[id]).filter((p): p is Part => !!p && isVisible(p));
+  }, [spec.outlined, spec.inProgress, project.parts, isVisible]);
   const settings = TIER_SETTINGS[tier];
 
   return (
@@ -150,7 +158,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
             tier={tier}
             cut={cut}
             catalog={catalog}
-            animateNew={animateNew}
+            entrances={entrances}
           />
         ))}
       </group>
@@ -166,8 +174,8 @@ export function SceneContent({ project, catalog, spec, cut, tier, animateNew = f
           />
         ))}
       <SiteContext parts={context} />
-      {spec.dimensions && <Dimensions lines={lines} />}
-      <Highlights parts={outlinedParts} proposal={spec.proposal} />
+      {spec.dimensions && <Dimensions lines={lines} entrances={entrances} />}
+      <Highlights selected={outlinedParts} inProgress={inProgressParts} proposal={spec.proposal} />
       {spec.mode === 'stress' && spec.stress && (
         <>
           <StressMarks project={project} bands={spec.stress.bands} isVisible={isVisible} exclude={spec.stress.callout?.partId ?? null} />

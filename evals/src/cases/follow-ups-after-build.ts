@@ -15,7 +15,7 @@ import {
   windowSpotPrompt,
 } from '../checks.ts';
 import { baselineOf, defineScenario } from '../scenario.ts';
-import { expectSoundStep, planThenBuild } from './common.ts';
+import { expectSoundStep, buildInOneTurn } from './common.ts';
 
 /**
  * Regression for LOC-108: after a turn in which Claude thought, every later message got HTTP 400
@@ -30,9 +30,9 @@ import { expectSoundStep, planThenBuild } from './common.ts';
  */
 export const followUpsAfterBuild = defineScenario({
   name: 'follow-ups-after-build',
-  description: 'Plan and build the pool house, then a question and a small edit both get real replies',
+  description: 'Build the pool house, then a question and a small edit both get real replies',
   async run(ctx) {
-    const t2 = await planThenBuild(ctx, 'Build a 16×20 pool house on a slab with 9ft walls');
+    const t2 = await buildInOneTurn(ctx, 'Build a 16×20 pool house on a slab with 9ft walls');
     const p2 = ctx.session.bus.project;
     ctx.expect(answered(t2, 'the build turn'));
     expectSoundStep(ctx, t2);

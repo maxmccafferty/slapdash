@@ -130,7 +130,11 @@ describe('chat: plan', () => {
   });
 
   it('Change something focuses the field and the next message answers no', async () => {
-    const { bus, sent } = await setupChat({ steps: [call(['propose_plan', PLAN]), say(PLAN.plan), call(['pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }]), say('Needs a new plan.')] });
+    // Plans are opt-in (ADR-0002 §F1): this person asked for them, so the guard is on.
+    const { bus, sent } = await setupChat({
+      chatLogFor: () => ({ version: 1, messages: [], prefs: { confirmBigChanges: true } }),
+      steps: [call(['propose_plan', PLAN]), say(PLAN.plan), call(['pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }]), say('Needs a new plan.')],
+    });
     await sendText('Build me a pool house');
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Change something' }));

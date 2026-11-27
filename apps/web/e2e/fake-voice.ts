@@ -43,6 +43,7 @@ export async function installFakeVoice(page: Page, opts: { unsupported?: boolean
       onerror: Handler = null;
       onend: (() => void) | null = null;
       start() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias -- the fake tracks the live instance
         current = this;
         state.listening = true;
       }

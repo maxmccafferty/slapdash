@@ -4,11 +4,21 @@
 
 - Node ≥ 22.18 (see `.nvmrc`) and pnpm (the version is pinned in `package.json`;
   `corepack pnpm …` works if pnpm isn't installed globally).
+- gitleaks ≥ 8.19 (`brew install gitleaks`, or a binary from
+  https://github.com/gitleaks/gitleaks/releases). `pnpm install` points `core.hooksPath` at
+  `.githooks/`, whose `pre-commit` scans staged changes with gitleaks (rules in
+  `.gitleaks.toml`) and blocks the commit on a finding, or when gitleaks isn't installed.
+  `--no-verify` doesn't help: CI scans the full history too. If a finding is a false
+  positive, change the fixture so it no longer matches, or add a narrow allowlist entry to
+  `.gitleaks.toml`. Never allowlist `.env`.
 - `pnpm install`, then:
 
 ```sh
 pnpm -r test                             # every package's tests
 pnpm -r typecheck                        # every package's typecheck
+pnpm lint                                # ESLint (eslint.config.js), zero warnings allowed
+pnpm lint:fix                            # apply ESLint's automatic fixes
+pnpm tokens                              # regenerate the design-token CSS/TS from tokens.json
 pnpm --filter @slapdash/core test        # core only (vitest, node environment)
 pnpm --filter @slapdash/core typecheck   # core src without DOM or Node types, then tests/scripts
 pnpm --filter @slapdash/catalog test     # the catalog (tiers 1–3), prices and textures
@@ -19,6 +29,11 @@ pnpm dev                                 # the web app (apps/web, Vite) plus /ap
 pnpm check:secrets                       # build the web app and prove no API key reaches it
 pnpm build:api                           # bundle the Claude keyhole for Vercel
 ```
+
+CI (`.github/workflows/ci.yml`) runs `pnpm lint`, `pnpm typecheck`, `pnpm test`,
+`pnpm check:secrets` and gitleaks on every push and pull request. Lint uses the non-type-aware
+`typescript-eslint` preset plus React's rules of hooks; when a hook's dependency list is
+deliberately short, disable `react-hooks/exhaustive-deps` on that line with a `-- reason`.
 
 Architecture decisions live in `docs/adr/`. `packages/core` is pure TypeScript with no DOM,
 React, Three.js or Node APIs in `src/` (`test/no-dom.test.ts` enforces it). So is
@@ -337,7 +352,7 @@ are `{ x, z }` from the ground origin (+x east, +z south). Every builder takes a
 The web app lives in `apps/web` (see its README). Its colours, type, spacing, radii, shadows,
 sizes and motion come only from `docs/design/tokens.json`:
 
-1. Edit `docs/design/tokens.json`, then run `pnpm --filter @slapdash/web tokens` to regenerate
+1. Edit `docs/design/tokens.json`, then run `pnpm tokens` to regenerate
    `apps/web/src/styles/tokens.css` and `tokens.ts`. Commit both; never edit them by hand.
 2. In component CSS use only `var(--…)`. `apps/web/test/no-raw-values.test.ts` fails on hex,
    `rgb()`, named colours, raw font sizes, raw durations and `px` values other than 1px hairlines.
