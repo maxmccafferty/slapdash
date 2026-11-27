@@ -58,6 +58,13 @@ describe('get_part', () => {
     expect(out).not.toContain('frameU0');
   });
 
+  it('lists a builder rafter\'s cuts and says its length is the long point', () => {
+    const rafter = Object.values(p.parts).find((x) => x.role === 'rafter')!;
+    const out = text(getPartInfo(p, c, { id: rafter.id }));
+    expect(out).toMatch(/\nCuts: plumb 26\.6° both ends · birdsmouth \(seat .+, heel .+\)\nLength is the long point\.\n/);
+    expect(text(getPartInfo(p, c, { id: 'W1-S02' }))).not.toContain('Cuts:');
+  });
+
   it('suggests a close id for an unknown one', () => {
     const r = getPartInfo(p, c, { id: 'W1-S99' });
     expect(r).toEqual({
