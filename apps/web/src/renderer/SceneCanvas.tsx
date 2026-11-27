@@ -3,6 +3,7 @@
  * biggest battery and heat win on phones), with the user's scene, the controls, picking,
  * quality management, post effects and the offscreen snapshot host.
  */
+import { unitPartsOf } from '@slapdash/core';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo } from 'react';
 import { ACESFilmicToneMapping } from 'three';
@@ -53,6 +54,7 @@ function UserScene() {
   const project = useModelStore((s) => s.project);
   const catalog = useModelStore((s) => s.catalog);
   const selected = useModelStore((s) => s.selectedPartId);
+  const selectedUnit = useModelStore((s) => s.selectedUnitId);
   const inProgress = useModelStore((s) => s.inProgress);
   const proposal = useModelStore((s) => s.proposal);
   const lastEvent = useModelStore((s) => s.lastEvent);
@@ -78,8 +80,16 @@ function UserScene() {
     entrances.update(project, { loadId, animate: lastEvent !== null && lastEvent !== 'load', reducedMotion, now: performance.now() });
   }, [entrances, project, loadId, lastEvent, reducedMotion]);
 
-  // The pointed-at part reads strongly; parts in progress get the lighter outline.
-  const outlined = useMemo(() => (selected ? [selected] : []), [selected]);
+  // The pointed-at part reads strongly; parts in progress get the lighter outline. A window
+  // or door unit is outlined whole, by its frame and casing (not every glass edge).
+  const outlined = useMemo(() => {
+    if (!selected) return [];
+    if (selectedUnit && project) {
+      const unit = unitPartsOf(project, selectedUnit).filter((p) => p.role === 'frame' || p.role === 'trim');
+      if (unit.length > 0) return unit.map((p) => p.id);
+    }
+    return [selected];
+  }, [selected, selectedUnit, project]);
   // Stress shows in 3D only, once there is a result (the last one stays while a new one runs).
   const stress = useMemo(
     () =>

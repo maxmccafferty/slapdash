@@ -76,7 +76,7 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
   const cutShape = batch.cutShape;
   const geometry = useMemo(() => (cutShape ? makeCutGeometry(cutShape, capacity) : unitBoxGeometry(capacity)), [cutShape, capacity]);
   useEffect(() => () => (cutShape ? releaseCutGeometry(geometry) : geometry.dispose()), [geometry, cutShape]);
-  const mats = getPartMaterials({ materialId: batch.materialId, mode, tier, cut, catalog, gl, onLoad: invalidate });
+  const mats = getPartMaterials({ materialId: batch.materialId, look: batch.look, mode, tier, cut, catalog, gl, onLoad: invalidate });
   const mesh = useMemo(() => {
     const m = new InstancedMesh(geometry, mats.material, capacity);
     m.count = 0;

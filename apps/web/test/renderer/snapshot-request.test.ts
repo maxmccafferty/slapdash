@@ -74,8 +74,12 @@ describe('validateSnapshotRequest', () => {
 describe('expandIds', () => {
   it('expands assemblies to their parts and keeps part ids', () => {
     const ids = expandIds(project, ['O1', 'W3-H01']);
-    expect(ids).toContain('O1-PN01');
+    // O1 is a window or door unit: every piece of it (frame, sash, glass or slab).
+    const unit = Object.values(project.parts).filter((p) => p.assemblyId === 'O1').map((p) => p.id);
+    expect(unit.length).toBeGreaterThan(1);
+    expect(unit.every((id) => /^O1-(FR|SA|GL|DR|TR)\d+$/.test(id))).toBe(true);
+    for (const id of unit) expect(ids).toContain(id);
     expect(ids).toContain('W3-H01');
-    expect(ids).toHaveLength(2);
+    expect(ids).toHaveLength(unit.length + 1);
   });
 });

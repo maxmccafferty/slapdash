@@ -43,6 +43,8 @@ export interface OpeningRecipe {
   /** Rough-opening bottom and top, above the wall's base. */
   roBottom: number;
   roTop: number;
+  /** The window or door unit's style (casement, entry, sliding, …) when it has one. */
+  style?: string;
 }
 
 export interface RoofRecipe {
@@ -110,6 +112,7 @@ export function readOpening(assembly: Assembly | undefined): OpeningRecipe | nul
     height,
     roBottom,
     roTop: num(p.roTop, roBottom + height),
+    ...(typeof p.style === 'string' ? { style: p.style } : {}),
   };
 }
 

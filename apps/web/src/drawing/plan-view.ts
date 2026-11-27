@@ -8,6 +8,7 @@
  * - the roof overhead, dashed, with its ridge;
  * - wall lengths and opening widths outside each wall, and the footprint as a subtitle.
  */
+import type { Part } from '@slapdash/core';
 import { partAabb, unionAabb } from '../renderer/bounds.ts';
 import { dimensionLabel } from '../renderer/dimensions.ts';
 import { INSIDE_CUT_HEIGHT_MM, cutPlaneFor, isCuttable } from '../renderer/visibility.ts';
@@ -17,6 +18,7 @@ import { bounds2d, convexHull, partCorners, sectionAtY } from './geometry.ts';
 import { DIM } from './style.ts';
 import type { Dim2d, Shape, ViewDraft } from './types.ts';
 import type { P2 } from './views.ts';
+import { isJamb, unitLeaves, unitPieces } from './units.ts';
 
 export const PLAN_TITLE = `Plan at ${dimensionLabel(INSIDE_CUT_HEIGHT_MM)}`;
 
@@ -44,7 +46,70 @@ function subtract(u0: number, u1: number, gaps: ReadonlyArray<readonly [number, 
   return pieces.filter(([a, b]) => b - a > 1e-6);
 }
 
-function openingSymbol(wall: WallRecipe, f: WallFrame, o: OpeningRecipe, id: string): Shape[] {
+/**
+ * A window or door unit in plan, from its parts: the jambs' footprints in the wall gap;
+ * for windows a line per sash track; for sliding doors the two panel lines and an arrow
+ * on the one that slides; for hinged doors each leaf and its swing arc, from its real
+ * hinge side. Empty when the opening has no unit parts.
+ */
+function unitSymbol(wall: WallRecipe, f: WallFrame, o: OpeningRecipe, id: string, parts: readonly Part[]): Shape[] {
+  const pieces = unitPieces(parts, wall, f);
+  if (pieces.length === 0) return [];
+  const p = (u: number, off: number) => wallPoint(wall, f, u, off);
+  const line = (u0: number, o0: number, u1: number, o1: number, key?: string): Shape => ({
+    type: 'line',
+    a: p(u0, o0),
+    b: p(u1, o1),
+    style: 'symbol',
+    assemblyId: id,
+    ...(key ? { id: key } : {}),
+  });
+  const shapes: Shape[] = [];
+  const jambs = pieces.filter(isJamb);
+  for (const j of jambs) shapes.push({ type: 'poly', points: band(wall, f, j.u0, j.u1, j.o1, j.o0), style: 'outline', assemblyId: id, id: `jamb:${j.part.id}` });
+  // The clear opening between the jambs (or the rough opening without them).
+  const in0 = jambs.length >= 2 ? Math.min(...jambs.map((j) => j.u1)) : o.at;
+  const in1 = jambs.length >= 2 ? Math.max(...jambs.map((j) => j.u0)) : o.at + o.width;
+  const leaves = unitLeaves(pieces);
+  const glass = pieces.filter((x) => x.part.role === 'glass');
+  if (leaves.some((l) => l.hinge)) {
+    // Hinged leaves swing inside, each from its own hinge side.
+    const inside = Math.min(...pieces.filter((x) => x.part.role === 'frame').map((x) => x.o0), -wall.depth);
+    for (const l of leaves) {
+      if (!l.hinge) continue;
+      const hu = l.hinge === 'start' ? l.u0 : l.u1;
+      const free = l.hinge === 'start' ? l.u1 : l.u0;
+      const width = l.u1 - l.u0;
+      const hinge = p(hu, inside);
+      const leafEnd = p(hu, inside - width);
+      shapes.push(
+        { type: 'line', a: hinge, b: leafEnd, style: 'symbol', assemblyId: id, id: `leaf:${id}:${l.n}` },
+        { type: 'arc', center: hinge, from: leafEnd, to: p(free, inside), style: 'symbol', assemblyId: id, id: `swing:${id}:${l.n}:${l.hinge}` },
+      );
+    }
+  } else if (leaves.length > 0) {
+    // One line per sash track (windows) or sliding panel, across its own width.
+    for (const l of leaves) {
+      const mid = (l.o0 + l.o1) / 2;
+      shapes.push(line(Math.max(l.u0, in0), mid, Math.min(l.u1, in1), mid, `sash:${id}:${l.n}`));
+      if (l.slides && o.kind === 'sliding-door') {
+        const span = l.u1 - l.u0;
+        const a = l.u0 + span * 0.25;
+        const b = l.u0 + span * 0.75;
+        const off = mid - 150;
+        const head = Math.min(100, span * 0.1);
+        shapes.push(line(a, off, b, off, `slide:${id}:${l.n}`), line(b - head, off + head * 0.6, b, off), line(b - head, off - head * 0.6, b, off));
+      }
+    }
+  } else if (glass.length > 0) {
+    for (const g of glass) shapes.push(line(g.u0, (g.o0 + g.o1) / 2, g.u1, (g.o0 + g.o1) / 2));
+  }
+  return shapes;
+}
+
+function openingSymbol(wall: WallRecipe, f: WallFrame, o: OpeningRecipe, id: string, parts: readonly Part[] = []): Shape[] {
+  const unit = unitSymbol(wall, f, o, id, parts);
+  if (unit.length > 0) return unit;
   const a = o.at;
   const b = o.at + o.width;
   const d = wall.depth;
@@ -112,7 +177,7 @@ export function planView(ctx: DrawContext): ViewDraft {
       drawnByRecipe.add(o.id);
       if (o.recipe.roBottom <= rel && rel <= o.recipe.roTop) {
         gaps.push([o.recipe.at, o.recipe.at + o.recipe.width]);
-        symbols.push(...openingSymbol(wall, f, o.recipe, o.id));
+        symbols.push(...openingSymbol(wall, f, o.recipe, o.id, ctx.byId.get(o.id)?.parts));
       }
     }
     for (const [u0, u1] of subtract(wall.frameU0, wall.frameU1, gaps)) {

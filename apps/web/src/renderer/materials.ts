@@ -42,7 +42,8 @@ import {
   type WebGLProgramParametersWithUniforms,
   type WebGLRenderer,
 } from 'three';
-import type { CatalogIndex, Material } from '@slapdash/core';
+import { DEFAULT_GLASS_SWATCH, DEFAULT_UNIT_SPECS, type CatalogIndex, type Material, type OpeningUnit, type Swatch } from '@slapdash/core';
+import type { PartLook } from './batches.ts';
 import { SCENE_COLORS } from '../styles/tokens.ts';
 import type { CutUniforms } from './CutFaces.ts';
 import type { QualityTier } from './quality.ts';
@@ -273,6 +274,57 @@ function createDepthMaterial(cut: CutUniforms): MeshDepthMaterial {
   return depth;
 }
 
+/**
+ * The swatch a window or door unit piece is drawn in: the product's `unit` (frame, slab,
+ * casing, glass), or the default unit's for a product without one.
+ */
+export function unitSwatch(material: Material | undefined, look: PartLook): Swatch {
+  const unit: OpeningUnit = material?.unit ?? (look === 'door' ? DEFAULT_UNIT_SPECS.door : DEFAULT_UNIT_SPECS['window']);
+  switch (look) {
+    case 'glass':
+      return unit.glassSwatch ?? DEFAULT_GLASS_SWATCH;
+    case 'door':
+      return unit.slab?.swatch ?? DEFAULT_UNIT_SPECS.door.slab!.swatch;
+    case 'trim':
+      return unit.casing?.swatch ?? unit.frame.swatch;
+    case 'frame':
+      return unit.frame.swatch;
+  }
+}
+
+/** Glass: tinted, see-through and reflective (the scene's room environment), drawn after opaque parts. */
+function createGlass(swatch: Swatch, cut: CutUniforms) {
+  const opacity = swatch.opacity ?? DEFAULT_GLASS_SWATCH.opacity;
+  const m = new MeshStandardMaterial({
+    color: new Color(swatch.color),
+    roughness: swatch.roughness ?? DEFAULT_GLASS_SWATCH.roughness,
+    metalness: swatch.metalness ?? DEFAULT_GLASS_SWATCH.metalness,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    envMapIntensity: 1,
+  });
+  const opts: PatchOptions = { cut, tint: false, cutFaces: true, tileSize: [1000, 1000] };
+  m.onBeforeCompile = (shader) => patch(shader, opts);
+  m.customProgramCacheKey = () => PATCH_VERSION;
+  return { material: m, transparent: true };
+}
+
+/** A unit's frame, sash, slab or casing: a plain opaque finish in its swatch, no texture. */
+function createUnitTextured(material: Material | undefined, look: PartLook, cut: CutUniforms) {
+  const swatch = unitSwatch(material, look);
+  if (look === 'glass') return createGlass(swatch, cut);
+  const m = new MeshStandardMaterial({
+    color: new Color(swatch.color),
+    roughness: swatch.roughness ?? 0.6,
+    metalness: swatch.metalness ?? 0,
+  });
+  const opts: PatchOptions = { cut, tint: true, cutFaces: true, tileSize: [1000, 1000] };
+  m.onBeforeCompile = (shader) => patch(shader, opts);
+  m.customProgramCacheKey = () => PATCH_VERSION;
+  return { material: m, transparent: false };
+}
+
 function createTextured(material: Material | undefined, cut: CutUniforms, gl: WebGLRenderer | null, tier: QualityTier, onLoad: () => void) {
   const swatch = material?.swatch;
   const opacity = swatch?.opacity ?? 1;
@@ -380,6 +432,8 @@ export interface MaterialRequest {
   cut: CutUniforms;
   catalog: CatalogIndex | null;
   gl: WebGLRenderer | null;
+  /** Window and door unit pieces: which piece (textured mode draws each in its own finish). */
+  look?: PartLook | null;
   /** Called when a texture arrives (redraw). */
   onLoad: () => void;
 }
@@ -387,7 +441,9 @@ export interface MaterialRequest {
 export function getPartMaterials(req: MaterialRequest): PartMaterials {
   let cache = caches.get(req.cut);
   if (!cache) caches.set(req.cut, (cache = new Map()));
-  const key = `${req.materialId}|${req.mode}|${req.mode === 'textured' ? req.tier : ''}`;
+  // Only textured mode draws unit pieces differently; stress, blueprint and x-ray ignore the look.
+  const look = req.mode === 'textured' ? (req.look ?? null) : null;
+  const key = `${req.materialId}|${req.mode}|${req.mode === 'textured' ? req.tier : ''}${look ? `|${look}` : ''}`;
   const hit = cache.get(key);
   if (hit) return hit;
   const material = req.catalog?.materials.get(req.materialId);
@@ -400,7 +456,9 @@ export function getPartMaterials(req: MaterialRequest): PartMaterials {
       ? createBlueprint(req.cut, material)
       : req.mode === 'xray'
         ? createXray(req.cut, material)
-        : createTextured(material, req.cut, req.gl, req.tier, req.onLoad);
+        : look
+          ? createUnitTextured(material, look, req.cut)
+          : createTextured(material, req.cut, req.gl, req.tier, req.onLoad);
   const out: PartMaterials = { ...made, depthMaterial: createDepthMaterial(req.cut) };
   cache.set(key, out);
   return out;

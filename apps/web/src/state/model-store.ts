@@ -5,7 +5,7 @@
  * store stays UI-only.
  */
 import { create } from 'zustand';
-import type { Aabb, Assembly, BusEventType, CatalogIndex, CommandBus, Part, Project } from '@slapdash/core';
+import { isLegacyOpeningPanel, isUnitPart, unitLabel, unitOpeningId, unitPartsOf, type Aabb, type Assembly, type BusEventType, type CatalogIndex, type CommandBus, type Part, type Project } from '@slapdash/core';
 import { modelBounds } from '../renderer/bounds.ts';
 import { partLabel } from '../renderer/picking.ts';
 
@@ -27,8 +27,13 @@ export interface ModelState {
   /** What changed the project last. Only `execute` (someone adding parts) animates. */
   lastEvent: BusEventType | 'load' | null;
   selectedPartId: string | null;
-  /** "Header, South wall", for the chat chip. */
+  /** "Header, South wall", for the chat chip ("Casement window 3' × 4', Window in South wall" for a unit). */
   selectedPartLabel: string | null;
+  /**
+   * When the selected part is a piece of a window or door unit (or a pre-unit panel), its
+   * opening (O1): the whole unit is outlined, and the chip and Claude refer to the opening.
+   */
+  selectedUnitId: string | null;
   /** Parts Claude is working on right now: orange outlines. */
   inProgress: ReadonlySet<string>;
   proposal: Proposal | null;
@@ -54,20 +59,36 @@ export const initialModelState: ModelState = {
   lastEvent: null,
   selectedPartId: null,
   selectedPartLabel: null,
+  selectedUnitId: null,
   inProgress: EMPTY,
   proposal: null,
 };
 
-/** Drop selection and in-progress ids whose parts no longer exist. */
-function reconcile(state: ModelState, project: Project): Partial<ModelState> {
+/** The opening a part's unit belongs to, when it is a unit piece or a pre-unit panel. */
+function unitOf(project: Project, part: Part): string | null {
+  if (isUnitPart(part) || isLegacyOpeningPanel(project, part)) return unitOpeningId(part);
+  return null;
+}
+
+/** Selection fields for a part (or nothing). */
+export function selectionFor(project: Project | null, catalog: CatalogIndex | null, partId: string | null): Pick<ModelState, 'selectedPartId' | 'selectedPartLabel' | 'selectedUnitId'> {
+  const part = partId && project && Object.hasOwn(project.parts, partId) ? project.parts[partId]! : null;
+  if (!part || !project) return { selectedPartId: null, selectedPartLabel: null, selectedUnitId: null };
+  const unit = unitOf(project, part);
+  const label = (unit ? unitLabel(project, catalog ?? undefined, unit) : null) ?? partLabel(project, part.id);
+  return { selectedPartId: part.id, selectedPartLabel: label, selectedUnitId: unit };
+}
+
+/**
+ * Drop selection and in-progress ids whose parts no longer exist. A selected unit piece
+ * that went (a re-size gave it a new ID) re-anchors to the unit's first part.
+ */
+function reconcile(state: ModelState, project: Project, catalog: CatalogIndex | null): Partial<ModelState> {
   const out: Partial<ModelState> = {};
   if (state.selectedPartId) {
-    if (!project.parts[state.selectedPartId]) {
-      out.selectedPartId = null;
-      out.selectedPartLabel = null;
-    } else {
-      out.selectedPartLabel = partLabel(project, state.selectedPartId);
-    }
+    let id: string | null = state.selectedPartId;
+    if (!project.parts[id]) id = state.selectedUnitId ? (unitPartsOf(project, state.selectedUnitId)[0]?.id ?? null) : null;
+    Object.assign(out, selectionFor(project, catalog, id));
   }
   if (state.inProgress.size > 0 && [...state.inProgress].some((id) => !project.parts[id])) {
     out.inProgress = new Set([...state.inProgress].filter((id) => project.parts[id]));
@@ -91,7 +112,7 @@ export const useModelStore = create<ModelState & ModelActions>()((set, get) => (
     }));
     const off = bus.subscribe((project, event) => {
       if (get().bus !== bus) return;
-      set((s) => ({ project, lastEvent: event.type, ...reconcile(s, project) }));
+      set((s) => ({ project, lastEvent: event.type, ...reconcile(s, project, s.catalog) }));
     });
     return () => {
       off();
@@ -100,9 +121,7 @@ export const useModelStore = create<ModelState & ModelActions>()((set, get) => (
   },
 
   select: (partId) => {
-    const project = get().project;
-    if (partId !== null && !project?.parts[partId]) partId = null;
-    set({ selectedPartId: partId, selectedPartLabel: partId && project ? partLabel(project, partId) : null });
+    set(selectionFor(get().project, get().catalog, partId));
   },
 
   setInProgress: (ids) => set({ inProgress: new Set(ids) }),

@@ -31,7 +31,8 @@ export function Composer({ phone }: { phone: boolean }) {
   const canListen = useChatStore((s) => s.voice.listen);
   const listening = useChatStore((s) => s.listening !== null);
   const speaking = useChatStore((s) => s.speaking);
-  const selectedId = useModelStore((s) => s.selectedPartId);
+  // A window or door unit is one thing to Claude: the chip names its opening (O1).
+  const selectedId = useModelStore((s) => s.selectedUnitId ?? s.selectedPartId);
   const selectedLabel = useModelStore((s) => s.selectedPartLabel);
   const swatch = useModelStore((s) => {
     const part = s.selectedPartId ? s.project?.parts[s.selectedPartId] : undefined;
