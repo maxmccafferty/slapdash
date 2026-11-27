@@ -1,8 +1,12 @@
 /**
  * The shipped sample (`pool-house.slapdash`): the pool-house shell built from
  * `SAMPLE_SHELL_COMMANDS` on the tier-1 catalog with the default design loads, a fixed
- * clock, no undo history and an empty chat. `scripts/build-sample.ts` writes it; the
- * freshness test (`test/projects/sample.test.ts`) fails if the committed file differs.
+ * clock, no undo history and an empty chat. `scripts/build-sample.ts` writes it.
+ *
+ * The committed file is frozen at project schema v1 (before part cuts, LOC-120): it is the
+ * fixture that proves old files still load and render as before. Don't regenerate it
+ * unless that fixture moves elsewhere; `test/projects/sample.test.ts` checks it is v1 and
+ * has the same parts as a fresh build.
  */
 import { CATALOG } from '@slapdash/catalog';
 import { CommandBus, createProject } from '@slapdash/core';

@@ -56,7 +56,7 @@ function validateLayout(project: Project, layout: Layout, ctx: CommandContext): 
   const byKey = new Map(layout.parts.map((p) => [p.key, p]));
   const clashes = findClashes(
     project,
-    layout.parts.map((p) => ({ id: p.key, position: p.position, rotation: p.rotation, size: p.size })),
+    layout.parts.map((p) => ({ id: p.key, position: p.position, rotation: p.rotation, size: p.size, ...(p.cuts ? { cuts: p.cuts } : {}) })),
     { ignore, ...(layout.clashSkip ? { skip: (c, e) => layout.clashSkip!(byKey.get(c.id)!, e) } : {}) },
   );
   return clashes.length > 0 ? [describeClashes(project, clashes, layout.what)] : [];

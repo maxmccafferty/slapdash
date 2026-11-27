@@ -63,6 +63,7 @@ export const CHECKS = [
   'compression',
   'combined',
   'bearing',
+  'notch-shear',
   'deflection',
   'panel-shear',
   'joint-shear',

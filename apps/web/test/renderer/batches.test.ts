@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { formatErrors, partBox } from '@slapdash/core';
-import { groupParts, idHash, partMatrix, partVariation } from '../../src/renderer/batches.ts';
+import { batchKey, cutShapeKey, groupParts, idHash, partMatrix, partVariation } from '../../src/renderer/batches.ts';
 import { sampleBus, sampleProject } from './fixtures.ts';
 
 describe('groupParts', () => {
@@ -42,6 +42,48 @@ describe('groupParts', () => {
       if (b.key === 'spf-no2|2x4') expect(b).not.toBe(old);
       else expect(b, b.key).toBe(old);
     }
+  });
+});
+
+describe('cut batches', () => {
+  const project = sampleProject();
+  const batches = groupParts(project);
+
+  it('puts cut parts in their own keyed batches, and identical rafters share one', () => {
+    const cut = batches.filter((b) => b.cutShape);
+    expect(cut.length).toBeGreaterThan(0);
+    for (const b of cut) {
+      expect(b.key).toMatch(/\|cut:/);
+      expect(b.key.startsWith(`${b.materialId}|${b.sectionId ?? 'none'}|cut:${b.cutShape!.key}`)).toBe(true);
+      expect(b.parts.every((p) => cutShapeKey(p) === b.cutShape!.key)).toBe(true);
+    }
+    for (const b of batches.filter((x) => !x.cutShape)) expect(b.parts.every((p) => !p.cuts)).toBe(true);
+    // Every common rafter of the gable has the same size and cuts: one batch (side mirrors
+    // land in the same local shape).
+    const rafters = Object.values(project.parts).filter((p) => p.role === 'rafter');
+    expect(rafters.length).toBe(32);
+    expect(new Set(rafters.map(batchKey)).size).toBe(1);
+  });
+
+  it('keeps the draw calls near the uncut count (16 × 20 gable shell)', () => {
+    const uncut = { ...project, parts: Object.fromEntries(Object.entries(project.parts).map(([id, p]) => [id, { ...p, cuts: undefined }])) };
+    const before = groupParts(uncut).length;
+    expect(batches.length).toBeLessThanOrEqual(before + 6);
+  });
+
+  it('reuses unchanged cut batches by reference', () => {
+    const again = groupParts(project, batches);
+    for (const b of again) expect(b).toBe(batches.find((x) => x.key === b.key));
+  });
+
+  it('partMatrix still scales a cut part by its size', () => {
+    const rafter = Object.values(project.parts).find((p) => p.role === 'rafter')!;
+    expect(rafter.cuts).toBeDefined();
+    const c = new Vector3(0.5, 0.5, 0.5).applyMatrix4(partMatrix(rafter));
+    const want = partBox(rafter).center;
+    expect(c.x).toBeCloseTo(want.x / 1000, 6);
+    expect(c.y).toBeCloseTo(want.y / 1000, 6);
+    expect(c.z).toBeCloseTo(want.z / 1000, 6);
   });
 });
 

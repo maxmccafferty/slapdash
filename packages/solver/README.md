@@ -99,6 +99,33 @@ expanded over the four directions.
   points (weak axis 0 when sheathed). **CL = 1** (the compression edge is taken as braced
   by sheathing). Checks: biaxial bending, shear at 1.5V/A, axial tension or compression,
   combined (NDS 3.9-1 / 3.9-3), and bearing perpendicular to grain at supports.
+- **Notch shear at birdsmouths (NDS 2018 3.4.3.2).** A member whose part has a
+  `birdsmouth` notch (`Part.cuts`, from `describeCuts` in `@slapdash/core`) is checked
+  when the notch bears on something, i.e. a joint point lies within 5 mm of its x range.
+  With `dn = d − ` the notch's depth square to the member and `F'v = Fv·CD`:
+  - notched face in tension: (a) `V'r = ⅔·F'v·b·dn·(dn/d)²`;
+  - notched face in compression: (b) `V'r = ⅔·F'v·b·[d − ((d − dn)/dn)·e]`, `e` (≤ dn)
+    how far the notch runs past the nearest joint point on that side.
+
+  **Where V is taken.** The clause is about the shear the member carries across its
+  reduced section into the span or the tail. So `V`, the depth-direction shear (local z),
+  is taken at the member sections 5 mm outside each end of the notch, per combination,
+  and the worse side counts. Load passing between two connections that both sit on the
+  seat, such as a rafter tie's heel joint handing load to the cap plate, goes through the
+  bearing, not across the notch, so it is left out.
+
+  **Which branch.** The face in tension comes from the sign of `My` at the same section.
+  `internalForces` reports a sagging member (bottom in tension) as My < 0. So a
+  bottom-face seat is case (a) when My < 0 or |My| is negligible (as near a pinned end),
+  and case (b) when My > 0. Under gravity a rafter's tail hogs over the plate, so its seat
+  is usually (b); under uplift it is usually (a).
+
+  The clauses are written for notches at the ends of bending members, so applying them to
+  a birdsmouth with a tail past it is conservative. Nothing else changes for cut parts:
+  capacity, centreline and the long-point length are as before. The roof builder caps the
+  seat at d/3; IRC R802.7.1 allows d/4 at ends, so this check is what flags a seat that's
+  too deep for its load. On the pool-house shell the rafters peak about 0.28 (interior,
+  0.6D+0.6W+z) and 0.17–0.22 (the gable-end rafters, 0.6D+0.6W±x / +z).
 - **Deflection (IRC R301.7).** Floor joists L/360 under L. Rafters L/240 with a
   ceiling, otherwise L/180. Headers, beams and ridges L/240. Studs H/180 under wind.
 - **Joints.** The link force is resolved into withdrawal (along the contact normal),

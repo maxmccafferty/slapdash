@@ -1,5 +1,5 @@
 /** Pure 2D helpers for the sheet: hulls, projections, sections and bounds. */
-import { boxCorners, partBox, type Part, type Vec3 } from '@slapdash/core';
+import { boxCorners, hasCuts, partBox, partFeatureEdges, partSolidCorners, type Part, type Vec3 } from '@slapdash/core';
 import type { P2, ViewDef } from './views.ts';
 
 export { depthAlong } from './views.ts';
@@ -39,11 +39,12 @@ export function projectPoint(view: ViewDef, v: Vec3): P2 {
   return view.project(v);
 }
 
+/** The part's vertices: its 8 box corners, or every vertex of its cut solid (plumb ends, seats, bevels). */
 export function partCorners(part: Part): Vec3[] {
-  return boxCorners(partBox(part));
+  return hasCuts(part) ? partSolidCorners(part) : boxCorners(partBox(part));
 }
 
-/** The 2D convex hull of the parts' box corners in this view. */
+/** The 2D convex hull of the parts' vertices in this view. */
 export function projectedHull(view: ViewDef, parts: readonly Part[]): P2[] {
   return convexHull(parts.flatMap((p) => partCorners(p).map(view.project)));
 }
@@ -57,11 +58,14 @@ const EDGES: ReadonlyArray<readonly [number, number]> = [
 
 /** The part's section with the plane y = `y`, in plan (x, z) as sheet points, or null when the plane misses it. */
 export function sectionAtY(part: Part, y: number): P2[] | null {
-  const c = partCorners(part);
   const pts: P2[] = [];
-  for (const [i, j] of EDGES) {
-    const a = c[i]!;
-    const b = c[j]!;
+  let segments: Array<readonly [Vec3, Vec3]>;
+  if (hasCuts(part)) segments = partFeatureEdges(part);
+  else {
+    const c = boxCorners(partBox(part));
+    segments = EDGES.map(([i, j]) => [c[i]!, c[j]!] as const);
+  }
+  for (const [a, b] of segments) {
     const da = a.y - y;
     const db = b.y - y;
     if (da * db < 0) {

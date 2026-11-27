@@ -47,9 +47,14 @@ describe('the pool-house sheet', () => {
   });
 
   it('dimensions the wall height and the ridge height on every elevation', () => {
+    // The roof apex is where the bevelled sheathing meets on the ridge centreline:
+    //   9′ 4″ plate top (112″) + rafter underside rise to the ridge face (96 − 3/4 + 7/16)″ × 6/12
+    //   − birdsmouth heel (7/16 + 3 1/2)″ × 6/12 + rafter plumb depth 5 1/2″ / cos θ
+    //   + 3/4″ × 6/12 to the centreline + sheathing 7/16″ / cos θ = 164.88″ = 13′ 8 7/8″,
+    // so 13′ 4 7/8″ above the 4″ slab. (Square-cut, un-notched rafters gave 13′ 6″.)
     for (const id of ELEVATIONS) {
       expect(dim(full, id, `wall-height-${id}`)?.label).toBe('9′ 0″');
-      expect(dim(full, id, `ridge-height-${id}`)?.label).toBe('13′ 6″');
+      expect(dim(full, id, `ridge-height-${id}`)?.label).toBe('13′ 4 7/8″');
     }
   });
 
@@ -174,5 +179,35 @@ describe('edge cases', () => {
 
   it('describes itself for screen readers', () => {
     expect(full.description).toBe('2D drawing: plan at 4′ 0″ with north, south, west and east elevations of Pool house.');
+  });
+});
+
+describe('cut roof framing on the sheet', () => {
+  const IN = 25.4;
+  const S = 16 * 12 * IN;
+  const overhang = 12 * IN;
+  const theta = Math.atan(6 / 12);
+  const th = (7 / 16) * IN; // roof sheathing
+
+  it.each(['west', 'east'] as const)('the %s elevation shows a sharp ridge apex on the centreline and plumb tails', (id) => {
+    const roof = polys(view(full, id)).find((s) => s.id === `${id}:R1`)!;
+    // Sheet y runs down; the apex is the highest point (smallest y).
+    const top = Math.min(...roof.points.map((p) => p.y));
+    const apex = roof.points.filter((p) => Math.abs(p.y - top) < 0.5);
+    expect(apex).toHaveLength(1);
+    // West: sheet x = plan z; east: sheet x = −(plan z). Either way |x| = S/2.
+    expect(Math.abs(apex[0]!.x)).toBeCloseTo(S / 2, 0);
+    // The rafter tails are plumb at ±overhang: the hull's two lowest points sit at the tails.
+    const bottom = Math.max(...roof.points.map((p) => p.y));
+    const tails = roof.points.filter((p) => Math.abs(p.y - bottom) < 0.5).map((p) => Math.abs(p.x)).sort((a, b) => a - b);
+    expect(tails).toHaveLength(2);
+    expect(tails[0]).toBeCloseTo(overhang, 0);
+    expect(tails[1]).toBeCloseTo(S + overhang, 0);
+    // The slope from the eave corner of the sheathing to the apex is the top-row geometry:
+    // the sheathing's top face runs S/2 + overhang + th·sin θ across, at 6/12.
+    const eave = roof.points.reduce((a, b) => (Math.abs(b.x - apex[0]!.x) > Math.abs(a.x - apex[0]!.x) && b.y < bottom - 1 ? b : a));
+    const run = Math.abs(eave.x - apex[0]!.x);
+    expect(run).toBeCloseTo(S / 2 + overhang + th * Math.sin(theta), 0);
+    expect((eave.y - apex[0]!.y) / run).toBeCloseTo(0.5, 3);
   });
 });

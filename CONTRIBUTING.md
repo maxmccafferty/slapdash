@@ -309,14 +309,24 @@ are `{ x, z }` from the ground origin (+x east, +z south). Every builder takes a
 - **Lays out:** gable: rafter pairs at each layout mark from the footprint corner plus the
   ends, a ridge board one size deeper with its top flush with the rafter tops, and a rafter
   tie at plate level beside each pair. Shed: rafters from the low wall over the high wall,
-  no ridge. Rafter undersides pass through the outside face of the wall sheathing at plate
-  height (birdsmouths not modelled). 4×8 OSB roof panels on the rafter tops, staggered.
+  no ridge. 4×8 OSB roof panels on the rafter tops, staggered.
+- **Cuts** (`Part.cuts`, `src/geometry/cuts.ts`): rafters are plumb cut at the ridge face (or
+  a shed's high tail) and at the eave; `size.length` is the long point. Each common rafter
+  gets a birdsmouth per bearing wall: heel at the outside of the wall sheathing, seat on the
+  plate across the sheathing and wall, capped at `BIRDSMOUTH_MAX_DEPTH` (1/3 of the rafter,
+  square to it) and refused under `MIN_RAFTER_BEARING` (1 1/2in). The rafters drop by the
+  heel height, so the ridge is that much lower than the uncut geometry; shed high walls are
+  still built to the uncut roof line, which gives them a matching seat. The gable's top row
+  of sheathing is bevelled plumb to meet on the centreline, rafter ties get their top
+  corners trimmed to the roof plane (and, on a short low roof, a notch under the ridge).
+  Contact joints (`contact.ts`) skip cut members, so the roof writes its joints itself.
 - **Joints:** rafter ↔ ridge 3-16d; rafter ↔ cap plate `hurricane-tie` plus 3-16d toenail;
   tie ↔ rafter 4-16d heel joint; tie ↔ plate 16d; roof sheathing ↔ rafters 8d.
 - **Build phase:** `roofing`. Assembly `R<n>`.
 - **Refuses:** pitch outside 1–24 in 12; no walls under an eave and no `bearingHeight`;
   eave walls at different heights; rafters past the 20ft stock length ("A 6 in 12 gable roof
-  over 36' 0" needs 21' 2 1/16" rafters…"); shed high walls too low or too high, with the
+  over 36' 0" needs 21' 4 13/16" rafters…", measured to the long point); a birdsmouth that
+  can't leave 1 1/2in of bearing; shed high walls too low or too high, with the
   height they need; a clash.
 
 ### `build_fence`

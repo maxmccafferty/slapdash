@@ -14,7 +14,8 @@ import { z } from 'zod';
 import { ASSEMBLY_KINDS, PART_ROLES } from './ids.ts';
 import { zPriceUnit } from '../catalog/prices.ts';
 
-export const PROJECT_SCHEMA_VERSION = 1;
+/** v2 added optional part `cuts`; v1 files migrate by changing only the version. */
+export const PROJECT_SCHEMA_VERSION = 2;
 
 export const zVec3 = z.strictObject({ x: z.number(), y: z.number(), z: z.number() });
 export const zRotation = zVec3;
@@ -82,6 +83,58 @@ export const zPartSize = z.strictObject({
 });
 export type PartSize = z.infer<typeof zPartSize>;
 
+/**
+ * A planar cut across one end (or edge) of a part. Angles are degrees from square,
+ * strictly between −80 and 80.
+ *
+ * The long-point convention: the cut plane passes through the box's end face along the
+ * long-point edge and leans inward, so `size` stays the part's bounding box and
+ * `size.length` is the long-point length. For example `end.slope = −θ` keeps
+ * x ≤ length − (height − z)·tan θ (long point on the top face).
+ */
+export const zEndCut = z.strictObject({
+  /**
+   * Tilt through the depth: rotation about local y (on a width edge, about local x).
+   * > 0: the long point is on the bottom face (z = 0); < 0: on the top face (z = height).
+   * A rafter's plumb cut at pitch θ is ±θ.
+   */
+  slope: z.number().gt(-80).lt(80).optional(),
+  /**
+   * Start/end only. Tilt through the width: rotation about local z, for plan miters.
+   * > 0: the long point is on the y = 0 face; < 0: on the y = width face.
+   */
+  miter: z.number().gt(-80).lt(80).optional(),
+  /** The cut-list wording. Derived from the angles if absent. */
+  name: z.enum(['plumb', 'level', 'bevel', 'miter', 'trim']).optional(),
+});
+export type EndCut = z.infer<typeof zEndCut>;
+
+/**
+ * Material cut out of a part through its full width (local y): a convex polygon in
+ * local x–z, in mm. It may reach outside the box (builders push it ~1 mm past the face
+ * it exits, so no slivers are left); only the part inside the box is removed.
+ * A birdsmouth's profile is ordered [heel exit, inner corner, seat exit].
+ */
+export const zNotch = z.strictObject({
+  kind: z.enum(['birdsmouth', 'trim', 'notch']),
+  profile: z.array(z.strictObject({ x: z.number(), z: z.number() })).min(3).max(8),
+});
+export type Notch = z.infer<typeof zNotch>;
+
+/** Optional cuts on a part; the part's box stays its bound (see {@link zEndCut}). */
+export const zPartCuts = z.strictObject({
+  /** At local x = 0. */
+  start: zEndCut.optional(),
+  /** At local x = length. */
+  end: zEndCut.optional(),
+  /** At local y = 0 (sheet edges; only `slope` applies). */
+  nearEdge: zEndCut.optional(),
+  /** At local y = width (e.g. the ridge bevel on roof sheathing; only `slope` applies). */
+  farEdge: zEndCut.optional(),
+  notches: z.array(zNotch).max(4).optional(),
+});
+export type PartCuts = z.infer<typeof zPartCuts>;
+
 export const zPart = z.strictObject({
   id: z.string(),
   assemblyId: z.string(),
@@ -95,6 +148,8 @@ export const zPart = z.strictObject({
   /** Degrees, intrinsic X then Y then Z. */
   rotation: zRotation,
   size: zPartSize,
+  /** Angled end cuts and notches (schema v2). Absent on plain boxes. */
+  cuts: zPartCuts.optional(),
   buildStep: zBuildStep,
   tags: z.array(z.string()),
 });

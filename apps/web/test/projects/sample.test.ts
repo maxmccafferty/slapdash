@@ -26,7 +26,24 @@ describe('the shipped sample pool house', () => {
     expect(buildStepGroups(decoded.record.project, CATALOG).map((g) => g.title)).toEqual(['Slab', 'Walls', 'Roof']);
   });
 
-  it('matches a fresh build byte for byte', () => {
-    expect(shipped === buildSampleText(), 'src/samples/pool-house.slapdash is out of date: run pnpm --filter @slapdash/web sample').toBe(true);
+  // The shipped file is frozen at project schema v1 (before part cuts, LOC-120) on purpose:
+  // it is the regression fixture for loading old files. A fresh build is v2 with cut rafters.
+  it('is a v1 file that migrates with no cuts', () => {
+    expect((JSON.parse(shipped) as { project: { schemaVersion: number } }).project.schemaVersion).toBe(1);
+    const decoded = decodeSlapdashFile(shipped);
+    if (!decoded.ok) throw new Error(decoded.errors.join('\n'));
+    expect(decoded.record.project.schemaVersion).toBe(2);
+    for (const part of Object.values(decoded.record.project.parts)) expect(part.cuts).toBeUndefined();
+  });
+
+  it('has the same parts as a fresh build, which adds the roof cuts', () => {
+    const fresh = decodeSlapdashFile(buildSampleText());
+    const old = decodeSlapdashFile(shipped);
+    if (!fresh.ok || !old.ok) throw new Error('decode failed');
+    expect(Object.keys(fresh.record.project.parts).sort()).toEqual(Object.keys(old.record.project.parts).sort());
+    expect(Object.keys(fresh.record.project.joints).length).toBe(Object.keys(old.record.project.joints).length);
+    const rafters = Object.values(fresh.record.project.parts).filter((p) => p.role === 'rafter');
+    expect(rafters.length).toBeGreaterThan(0);
+    expect(rafters.every((p) => p.cuts?.end?.name === 'plumb')).toBe(true);
   });
 });

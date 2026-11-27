@@ -2,15 +2,16 @@
  * Bounds the renderer derives from the model, in mm. Memoised per project object: the
  * project is immutable, so a new object is the only change signal.
  */
-import { MM_PER_FOOT, aabbOf, partBox, type Aabb, type Part, type Project } from '@slapdash/core';
+import { MM_PER_FOOT, aabbOf, hasCuts, partBox, partSolidAabb, type Aabb, type Part, type Project } from '@slapdash/core';
 
 /** Site-context parts (place_structure) are drawn stippled and are not "the build". */
 export function isContextPart(part: Part): boolean {
   return part.tags.includes('stippled') || part.tags.includes('site-context');
 }
 
+/** The part's world AABB, mm. A cut part's comes from its solid, so cut-away box corners don't count. */
 export function partAabb(part: Part): Aabb {
-  return aabbOf(partBox(part));
+  return hasCuts(part) ? partSolidAabb(part) : aabbOf(partBox(part));
 }
 
 export function unionAabb(boxes: Iterable<Aabb>): Aabb | null {

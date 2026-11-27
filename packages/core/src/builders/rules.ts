@@ -284,6 +284,15 @@ export const MIN_PITCH_RISE = 1;
 export const MAX_PITCH_RISE = 24;
 /** Ridge board one size deeper than the rafters. */
 export const RIDGE_FOR_RAFTER: Record<string, string> = { '2x6': '2x8', '2x8': '2x10', '2x10': '2x12' };
+/**
+ * Deepest birdsmouth (seat cut), as a fraction of the rafter depth, measured square to the
+ * rafter. One third is the LOC-120 rule of thumb. IRC R802.7.1 limits notches at the ends
+ * of sawn lumber to one quarter of the depth, which is why the solver checks notch shear at
+ * every birdsmouth (NDS 3.4.3.2) rather than trusting this limit.
+ */
+export const BIRDSMOUTH_MAX_DEPTH = 1 / 3;
+/** Least bearing for a rafter on its plate: 1 1/2 in (IRC R802.6). */
+export const MIN_RAFTER_BEARING = 1.5 * IN;
 
 // ── Fences ──────────────────────────────────────────────────────────────────
 

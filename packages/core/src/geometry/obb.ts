@@ -4,6 +4,9 @@
  * `size.length` along local x, `size.width` along local y and `size.height` along
  * local z, and `rotation` is degrees applied intrinsically X, then Y, then Z (the same
  * convention as Three.js Euler order "XYZ", so the renderer agrees).
+ *
+ * A part with `cuts` is still bounded by this box: cuts only remove material, so the box
+ * stays a valid, conservative bound for prefilters. `cuts.ts` gives the exact shape.
  */
 import type { Vec3 } from './vec3.ts';
 

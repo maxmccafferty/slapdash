@@ -1,6 +1,13 @@
 /**
- * Parts → instanced batches. Every part is a box, so one unit box per material and section
- * draws the whole model in a handful of draw calls.
+ * Parts → instanced batches. Most parts are boxes, so one unit box per material and section
+ * draws them in a handful of draw calls.
+ *
+ * Parts with cuts (`Part.cuts`: plumb-cut rafters, trimmed ties, bevelled sheathing) go in
+ * their own batches, keyed `material|section|cut:<shapeKey>`, one per distinct (size, cuts).
+ * A cut batch draws the cut solid's surface mesh normalised to the unit box (vertex = local
+ * mm ÷ size, `cutGeometry.ts`), so the instance matrix is still `partMatrix` (T·R·S(size))
+ * and nothing downstream changes: grain UVs, stress colours, entrances, shadows, picking.
+ * Every common rafter of a roof has the same size and cuts, so they share one batch.
  *
  * The project is structurally shared: an edit returns a new project that reuses every
  * unchanged `Part` object. `groupParts` keeps that sharing one level up: a batch whose
@@ -8,21 +15,71 @@
  * React skips it and only the edited batch re-renders.
  */
 import { Euler, Matrix4, Quaternion, Vector3 } from 'three';
-import type { Part, Project } from '@slapdash/core';
+import { hasCuts, type Part, type PartCuts, type PartSize, type Project } from '@slapdash/core';
 import { isContextPart } from './bounds.ts';
 import { MM_PER_M } from './units.ts';
 
+/** The shape every member of a cut batch shares. */
+export interface CutShape {
+  key: string;
+  size: PartSize;
+  cuts: PartCuts;
+}
+
 export interface Batch {
-  /** `materialId|sectionId` (or `|none`). Stable, so it can be a React key. */
+  /** `materialId|sectionId` (or `|none`), plus `|cut:<shapeKey>` for cut parts. Stable, so it can be a React key. */
   key: string;
   materialId: string;
   sectionId: string | null;
+  /** Cut batches: the shared size and cuts (drawn with a unit-normalised cut mesh). Null for boxes. */
+  cutShape: CutShape | null;
   /** Members, sorted by id, so the instance order is stable across edits. */
   parts: readonly Part[];
 }
 
+/** Canonical JSON: object keys sorted, numbers rounded to 1e-6, so equal cuts give equal text. */
+function canonical(v: unknown): string {
+  if (typeof v === 'number') return String(Math.round(v * 1e6) / 1e6);
+  if (Array.isArray(v)) return `[${v.map(canonical).join(',')}]`;
+  if (v && typeof v === 'object') {
+    const o = v as Record<string, unknown>;
+    return `{${Object.keys(o)
+      .filter((k) => o[k] !== undefined)
+      .sort()
+      .map((k) => `${k}:${canonical(o[k])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(v);
+}
+
+function hash32(text: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+const shapeKeys = new WeakMap<Part, string | null>();
+
+/** A stable key for a cut part's shape: its size (to 0.01 mm) and its cuts. Null for an uncut part. */
+export function cutShapeKey(part: Part): string | null {
+  if (shapeKeys.has(part)) return shapeKeys.get(part)!;
+  let key: string | null = null;
+  if (hasCuts(part)) {
+    const r = (n: number) => Math.round(n * 100) / 100;
+    const text = `${r(part.size.length)}x${r(part.size.width)}x${r(part.size.height)}|${canonical(part.cuts)}`;
+    key = `${hash32(text)}${hash32(`#${text}`)}`;
+  }
+  shapeKeys.set(part, key);
+  return key;
+}
+
 export function batchKey(part: Part): string {
-  return `${part.materialId}|${part.sectionId ?? 'none'}`;
+  const base = `${part.materialId}|${part.sectionId ?? 'none'}`;
+  const shape = cutShapeKey(part);
+  return shape ? `${base}|cut:${shape}` : base;
 }
 
 const byId = (a: Part, b: Part) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -53,7 +110,9 @@ export function groupParts(project: Project, previous: readonly Batch[] = []): B
     const old = prev.get(key);
     if (old && sameMembers(old.parts, parts)) return old;
     const first = parts[0]!;
-    return { key, materialId: first.materialId, sectionId: first.sectionId ?? null, parts };
+    const shape = cutShapeKey(first);
+    const cutShape = shape && first.cuts ? { key: shape, size: first.size, cuts: first.cuts } : null;
+    return { key, materialId: first.materialId, sectionId: first.sectionId ?? null, cutShape, parts };
   });
 }
 

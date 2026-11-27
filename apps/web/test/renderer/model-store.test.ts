@@ -90,7 +90,8 @@ describe('floor stops and the header', () => {
 
   it('come from the model: foundation top, wall top, ridge', () => {
     const project = sampleBus({ context: true }).project;
-    expect(floorStops(project).map((s) => `${s.label} ${s.height}`)).toEqual(['Roof 13′ 10″', 'Floor 1 9′ 4″', 'Foundation 0′ 4″']);
+    // The roof apex is 13′ 8 7/8″ (see dimensions.test.ts); square-cut rafters gave 13′ 10″.
+    expect(floorStops(project).map((s) => `${s.label} ${s.height}`)).toEqual(['Roof 13′ 9″', 'Floor 1 9′ 4″', 'Foundation 0′ 4″']);
     const parts = projectSummary(project).specs.find((s) => s.label === 'Parts')!.value;
     // Site context isn't counted.
     expect(Number(parts)).toBe(Object.values(project.parts).filter((p) => !p.tags.includes('site-context')).length);

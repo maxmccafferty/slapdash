@@ -1,5 +1,7 @@
 /**
- * One instanced mesh per batch (material × section). Only parts whose object changed get
+ * One instanced mesh per batch (material × section, and cut shape for cut parts). A box
+ * batch draws a unit box; a cut batch draws its cut solid normalised to the unit box
+ * (`cutGeometry.ts`), so both use the same instance matrices, attributes and materials. Only parts whose object changed get
  * their matrix rewritten: the project is structurally shared, so `prev[i] !== part` is the
  * whole diff. Hidden parts are not in `parts` at all (compacted), so the instance count is
  * right and a raycast can never hit a hidden part.
@@ -15,10 +17,11 @@
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { BoxGeometry, Color, InstancedBufferAttribute, InstancedMesh, Matrix4 } from 'three';
+import { Color, InstancedBufferAttribute, InstancedMesh, Matrix4 } from 'three';
 import type { CatalogIndex, Part } from '@slapdash/core';
 import { partMatrix, partVariation, type Batch } from './batches.ts';
 import type { CutUniforms } from './CutFaces.ts';
+import { makeCutGeometry, releaseCutGeometry, unitBoxGeometry } from './cutGeometry.ts';
 import { DROP_HEIGHT_M, entranceFrame, type EntranceSchedule } from './entrances.ts';
 import { getPartMaterials, holdTransparent, type PartMaterials } from './materials.ts';
 import type { QualityTier } from './quality.ts';
@@ -42,16 +45,6 @@ export interface PartBatchProps {
 }
 
 const nextPow2 = (n: number) => 2 ** Math.ceil(Math.log2(Math.max(n, 1)));
-
-/** The unit box with its corner at the origin, plus per-instance attributes. */
-function makeGeometry(capacity: number): BoxGeometry {
-  const g = new BoxGeometry(1, 1, 1).translate(0.5, 0.5, 0.5);
-  g.setAttribute('aVariation', new InstancedBufferAttribute(new Float32Array(capacity * 2), 2));
-  g.setAttribute('aCuttable', new InstancedBufferAttribute(new Float32Array(capacity), 1));
-  g.setAttribute('aHatch', new InstancedBufferAttribute(new Float32Array(capacity), 1));
-  g.setAttribute('aEnter', new InstancedBufferAttribute(new Float32Array(capacity), 1));
-  return g;
-}
 
 /** The fill for each stress band (tokens stress-1…5; over is ink, hatched with paper). */
 export const STRESS_FILL: Record<StressBand, string> = {
@@ -80,8 +73,9 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
   const capacity = nextPow2(batch.parts.length);
-  const geometry = useMemo(() => makeGeometry(capacity), [capacity]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
+  const cutShape = batch.cutShape;
+  const geometry = useMemo(() => (cutShape ? makeCutGeometry(cutShape, capacity) : unitBoxGeometry(capacity)), [cutShape, capacity]);
+  useEffect(() => () => (cutShape ? releaseCutGeometry(geometry) : geometry.dispose()), [geometry, cutShape]);
   const mats = getPartMaterials({ materialId: batch.materialId, mode, tier, cut, catalog, gl, onLoad: invalidate });
   const mesh = useMemo(() => {
     const m = new InstancedMesh(geometry, mats.material, capacity);

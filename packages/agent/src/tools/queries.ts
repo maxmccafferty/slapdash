@@ -8,11 +8,14 @@ import {
   MM_PER_FOOT,
   aabbOf,
   commandError,
+  describeCuts,
   getAssembly,
   getPart,
+  hasCuts,
   jointsForPart,
   notFound,
   partBox,
+  partSolidAabb,
   zodIssuesToErrors,
   type Aabb,
   type CatalogIndex,
@@ -58,7 +61,8 @@ function union(boxes: Aabb[]): Aabb | undefined {
   return { min, max };
 }
 
-export const partAabb = (part: Part): Aabb => aabbOf(partBox(part));
+/** A part's world bounds: its cut solid's when it has cuts (tighter than its box). */
+export const partAabb = (part: Part): Aabb => (hasCuts(part) ? partSolidAabb(part) : aabbOf(partBox(part)));
 
 /** Bounds of some parts, or undefined when there are none. */
 export function boundsOf(parts: readonly Part[]): Aabb | undefined {
@@ -162,6 +166,13 @@ function formatParam(key: string, value: unknown): string {
   return String(value);
 }
 
+/** `Cuts: …` and the long-point note, or nothing for a plain box. */
+function cutLines(part: Part): string[] {
+  if (!hasCuts(part)) return [];
+  const d = describeCuts(part);
+  return [`Cuts: ${d.label}`, ...(d.longPoint ? ['Length is the long point.'] : [])];
+}
+
 function describePart(project: Project, catalog: CatalogIndex, part: Part): string {
   const asm = getAssembly(project, part.assemblyId);
   const material = catalog.materials.get(part.materialId);
@@ -171,6 +182,7 @@ function describePart(project: Project, catalog: CatalogIndex, part: Part): stri
     `${part.id} · ${part.role}${part.name ? ` "${part.name}"` : ''} · in ${part.assemblyId}${asm ? ` "${asm.name}"` : ''}`,
     `Material: ${part.materialId}${material ? ` (${material.name})` : ''}${part.sectionId ? `, section ${part.sectionId}${section?.nominal ? ` (${section.nominal})` : ''}` : ''}`,
     `Size: ${ft(s.length)} long × ${ft(s.width)} × ${ft(s.height)} (${Math.round(s.length)} × ${Math.round(s.width)} × ${Math.round(s.height)} mm)`,
+    ...cutLines(part),
     `Position (start corner): x ${ft(part.position.x)}, y ${ft(part.position.y)}, z ${ft(part.position.z)}`,
     `Rotation: x ${part.rotation.x}°, y ${part.rotation.y}°, z ${part.rotation.z}°`,
     `Build step: ${part.buildStep.phase}${part.buildStep.seq !== undefined ? ` #${part.buildStep.seq}` : ''}`,

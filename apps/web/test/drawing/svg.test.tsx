@@ -18,7 +18,7 @@ function contentOf(svg: Element): string {
   return new XMLSerializer().serializeToString(copy);
 }
 
-const LABELS = ['20′ 0″', '16′ 0″', '9′ 0″', '13′ 6″', '6′ 0″', '3′ 0″', '6 in 12', 'North', 'South', 'East', 'West', 'Plan at 4′ 0″'];
+const LABELS = ['20′ 0″', '16′ 0″', '9′ 0″', '13′ 4 7/8″', '6′ 0″', '3′ 0″', '6 in 12', 'North', 'South', 'East', 'West', 'Plan at 4′ 0″'];
 
 describe('the exported SVG', () => {
   let svg = '';

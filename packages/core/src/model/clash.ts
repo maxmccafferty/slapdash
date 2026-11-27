@@ -1,17 +1,22 @@
 /**
- * Clash detection: do new parts run through existing ones? Oriented-box SAT with a
- * 1 mm penetration tolerance, so touching faces are fine. Used by the builders, and
- * exported for evals and the future `measure` tool.
+ * Clash detection: do new parts run through existing ones? Uses each part's exact shape,
+ * cuts included (`geometry/cuts.ts`): a rafter's birdsmouth sits on the plate, a trimmed
+ * tie stays under the sheathing. The test is separating-axis on convex pieces with a 1 mm
+ * penetration tolerance, so touching faces are fine; uncut pairs keep the oriented-box
+ * fast path. Used by the builders, and exported for evals and the future `measure` tool.
  */
 import { aabbOf, aabbsOverlap, boxesOverlap, partBox, type Aabb, type OrientedBox, type PartLike } from '../geometry/obb.ts';
+import { hasCuts, partSolidAabb, partsOverlap } from '../geometry/cuts.ts';
 import { commandError, type CommandError } from '../commands/errors.ts';
-import type { Part, Project } from './schema.ts';
+import type { Part, PartCuts, Project } from './schema.ts';
 
 export const CLASH_TOLERANCE_MM = 1;
 
 export interface ClashCandidate extends PartLike {
   /** An ID or a label used in messages. */
   id: string;
+  /** The part's cuts, if any, so the check sees its real shape. */
+  cuts?: PartCuts;
 }
 
 export interface Clash {
@@ -31,11 +36,20 @@ interface Boxed<T> {
   item: T;
   box: OrientedBox;
   aabb: Aabb;
+  cut: boolean;
 }
 
-function boxed<T extends PartLike>(item: T): Boxed<T> {
+function boxed<T extends PartLike & { cuts?: PartCuts | undefined }>(item: T): Boxed<T> {
   const box = partBox(item);
-  return { item, box, aabb: aabbOf(box) };
+  const cut = hasCuts(item);
+  // A cut part's AABB comes from its solid, which is tighter than its box's.
+  return { item, box, cut, aabb: cut ? partSolidAabb(item) : aabbOf(box) };
+}
+
+/** Boxes computed once per part; the exact cut-shape test only when a cut part is involved. */
+function overlap<A extends PartLike, B extends PartLike>(a: Boxed<A>, b: Boxed<B>, tol: number): boolean {
+  if (!a.cut && !b.cut) return boxesOverlap(a.box, b.box, tol);
+  return partsOverlap(a.item, b.item, tol);
 }
 
 /** New parts against the project's existing parts (not against each other). */
@@ -53,7 +67,7 @@ export function findClashes(
     for (const e of existing) {
       if (!aabbsOverlap(c.aabb, e.aabb, tol)) continue;
       if (opts.skip?.(c.item, e.item)) continue;
-      if (boxesOverlap(c.box, e.box, tol)) out.push({ newPart: c.item.id, existingId: e.item.id });
+      if (overlap(c, e, tol)) out.push({ newPart: c.item.id, existingId: e.item.id });
     }
   }
   return out;
@@ -74,7 +88,7 @@ export function findAllClashes(
       if (b.aabb.min.x >= a.aabb.max.x - tol) break;
       if (!aabbsOverlap(a.aabb, b.aabb, tol)) continue;
       if (opts.skip?.(a.item, b.item)) continue;
-      if (boxesOverlap(a.box, b.box, tol)) out.push([a.item.id, b.item.id]);
+      if (overlap(a, b, tol)) out.push([a.item.id, b.item.id]);
     }
   }
   return out;

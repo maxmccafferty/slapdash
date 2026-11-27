@@ -219,8 +219,13 @@ the CSS dot-grid floor, labelled as "3D isn't available".
   undo, redo and restore) and holds renderer-only state: the selection and its label, parts in
   progress, and a proposal. `?sample=pool-house` builds the 16 × 20 shell from the core acceptance test
   (`src/model/sample-shell.ts`); add `&context=1` for a stippled house and tree.
-- **Drawing.** Every part is a box, so parts are batched by `materialId|sectionId`
-  (`batches.ts`) into one `InstancedMesh` each (`PartBatch.tsx`). Batches are structurally
+- **Drawing.** Most parts are boxes, so parts are batched by `materialId|sectionId`
+  (`batches.ts`) into one `InstancedMesh` each (`PartBatch.tsx`). Parts with cuts (plumb-cut
+  rafters, trimmed ties, bevelled sheathing) get their own batches, `materialId|sectionId|cut:<shape>`,
+  one per distinct size and cuts; each draws the core's cut solid normalised to the unit box
+  (`cutGeometry.ts`), so it keeps the same instance matrices, attributes, shadows and picking.
+  A 16 × 20 gable shell goes from 8 to 13 batches. Outlines use the solid's feature edges
+  (`edges.ts`), bounds its AABB (`bounds.ts`). Batches are structurally
   shared like the project: an edit only rewrites the matrices of parts whose reference changed.
   Scene units are metres (mm ÷ 1000 at the matrix). Materials (`materials.ts`) come from the
   catalog swatch plus the KTX2 texture set at real-world scale, with box UVs whose u axis runs

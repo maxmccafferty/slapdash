@@ -54,6 +54,14 @@ describe('the Materials modal (desktop)', () => {
     expect(within(table).getByText('× 59')).toBeInTheDocument();
   });
 
+  it('the Cut list shows a rafter\'s long point and cut angles', async () => {
+    await setupChat({ sample: true });
+    const user = await openMaterials();
+    await user.click(within(dialog()).getByRole('radio', { name: 'Cut list' }));
+    const label = within(dialog()).getAllByText(/long point · plumb 26\.6° both ends · birdsmouth \(seat 3 15\/16″, heel 2″\)/);
+    expect(label.length).toBeGreaterThan(0);
+  });
+
   it('Escape closes it, unlatches the key and returns focus to it', async () => {
     await setupChat({ sample: true });
     const user = await openMaterials();

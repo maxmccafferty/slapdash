@@ -3,8 +3,9 @@
  * roughness, metalness, opacity) and, when it has one, its CC0 texture set at real-world
  * scale. Nothing else is needed to draw a new material (see CONTRIBUTING "Renderer").
  *
- * Every part is an instance of a unit box, so the standard material is patched
- * (`onBeforeCompile`):
+ * Every part is an instance of a unit box, or of a unit-normalised cut solid (`cutGeometry.ts`:
+ * the same 0..1 local space, so the same instance matrix and attributes), so the standard
+ * material is patched (`onBeforeCompile`):
  * - **World-scale box UVs.** Texture coordinates come from the box's local position times
  *   the instance's size (in mm) divided by the set's `tileSize_mm`. u follows local x, the
  *   board length, so wood grain runs along each board.
@@ -84,8 +85,9 @@ varying vec2 vBoxUv;
 `;
 
 /**
- * After project_vertex: box UVs and the world y. `position` is the unit box (0..1); the
- * instance matrix scales it to the part's size in metres.
+ * After project_vertex: box UVs and the world y. `position` is the unit box (0..1), or a
+ * cut solid normalised to it; the instance matrix scales it to the part's size in metres.
+ * The UV plane follows the face's dominant normal axis, so slanted cut faces map too.
  */
 const VERTEX_MAIN = /* glsl */ `
   {

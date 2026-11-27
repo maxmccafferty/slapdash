@@ -30,7 +30,7 @@ describe('createProject', () => {
   it('starts with one ground level and nothing else', () => {
     const p = createProject({ name: 'Shed' });
     expect(p).toEqual({
-      schemaVersion: 1,
+      schemaVersion: 2,
       name: 'Shed',
       units: { display: 'imperial' },
       levels: [{ id: 'L0', name: 'Ground', elevation_mm: 0 }],
@@ -45,10 +45,40 @@ describe('createProject', () => {
   it('round-trips through migrateProject', () => {
     const p = fixtureProject();
     expect(migrateProject(JSON.parse(JSON.stringify(p)))).toEqual({ ok: true, project: p });
-    expect(migrateProject({ ...p, schemaVersion: 2 })).toEqual({
+    expect(migrateProject({ ...p, schemaVersion: 3 })).toEqual({
       ok: false,
-      errors: ['This project is version 2; this app understands up to 1.'],
+      errors: ['This project is version 3; this app understands up to 2.'],
     });
+    const { schemaVersion: _v, ...noVersion } = p;
+    expect(migrateProject(noVersion)).toEqual({
+      ok: false,
+      errors: ['The project has no schemaVersion; this app understands up to 2.'],
+    });
+  });
+});
+
+describe('migrate v1 → v2', () => {
+  it('only changes the version: v1 parts have no cuts', () => {
+    const p = fixtureProject();
+    const v1 = JSON.parse(JSON.stringify({ ...p, schemaVersion: 1 }));
+    const r = migrateProject(v1);
+    expect(r).toEqual({ ok: true, project: { ...p, schemaVersion: 2 } });
+    if (r.ok) for (const part of Object.values(r.project.parts)) expect(part.cuts).toBeUndefined();
+  });
+
+  it('round-trips parts with cuts', () => {
+    const p = fixtureProject();
+    const first = Object.values(p.parts)[0]!;
+    const cut = { ...first, cuts: { start: { slope: 26.565, name: 'plumb' as const }, notches: [{ kind: 'notch' as const, profile: [{ x: 10, z: -1 }, { x: 30, z: -1 }, { x: 20, z: 20 }] }] } };
+    const withCut = { ...p, parts: { ...p.parts, [first.id]: cut } };
+    expect(migrateProject(JSON.parse(JSON.stringify(withCut)))).toEqual({ ok: true, project: withCut });
+  });
+
+  it('refuses cuts at 80° or more', () => {
+    const p = fixtureProject();
+    const first = Object.values(p.parts)[0]!;
+    const bad = { ...p, parts: { ...p.parts, [first.id]: { ...first, cuts: { end: { slope: 80 } } } } };
+    expect(migrateProject(JSON.parse(JSON.stringify(bad))).ok).toBe(false);
   });
 });
 

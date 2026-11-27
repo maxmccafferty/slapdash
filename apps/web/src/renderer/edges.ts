@@ -1,8 +1,9 @@
 /**
- * Box edges as line segments (pairs of endpoints, metres): outlines for highlights, and
- * the ink edges of the blueprint and x-ray snapshot modes.
+ * Part edges as line segments (pairs of endpoints, metres): outlines for highlights, and
+ * the ink edges of the blueprint and x-ray snapshot modes. A box gives its 12 edges; a part
+ * with cuts gives its cut solid's feature edges (plumb ends, birdsmouth, bevels).
  */
-import { partBox, type Part } from '@slapdash/core';
+import { hasCuts, partBox, partFeatureEdges, type Part } from '@slapdash/core';
 
 export type V3 = [number, number, number];
 
@@ -32,7 +33,12 @@ export const BOX_EDGES: readonly (readonly [number, number])[] = [
 /** Segment endpoint pairs for the edges of these parts. */
 export function partEdgeSegments(parts: readonly Part[]): V3[] {
   const out: V3[] = [];
+  const m = (p: { x: number; y: number; z: number }): V3 => [p.x / 1000, p.y / 1000, p.z / 1000];
   for (const part of parts) {
+    if (hasCuts(part)) {
+      for (const [a, b] of partFeatureEdges(part)) out.push(m(a), m(b));
+      continue;
+    }
     const c = partCornersM(part);
     for (const [a, b] of BOX_EDGES) out.push(c[a]!, c[b]!);
   }

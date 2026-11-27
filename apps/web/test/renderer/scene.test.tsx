@@ -5,14 +5,14 @@
 import ReactThreeTestRenderer from '@react-three/test-renderer';
 import { act } from 'react';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Color, type InstancedMesh, type Material, type Mesh, type Object3D } from 'three';
+import { Color, Raycaster, Vector3, type InstancedMesh, type Intersection, type Material, type Mesh, type Object3D } from 'three';
 import { analyze } from '@slapdash/solver';
 import { calloutText, mostLoaded } from '../../src/analysis/stress.ts';
 import { isStressChecked, UNCHECKED_OPACITY } from '../../src/renderer/materials.ts';
 import { STRESS_FILL } from '../../src/renderer/PartBatch.tsx';
 import { stressSpec } from '../../src/renderer/stress-spec.ts';
 import { MAX_STRESS_MARKS } from '../../src/renderer/StressCallout.tsx';
-import { indexCatalog } from '@slapdash/core';
+import { indexCatalog, rotationAxes, type Part } from '@slapdash/core';
 import { CATALOG } from '@slapdash/catalog';
 import { groupParts } from '../../src/renderer/batches.ts';
 import { createCutUniforms } from '../../src/renderer/CutFaces.ts';
@@ -69,6 +69,46 @@ describe('SceneContent', () => {
     expect(meshes.map((m) => m.name.replace('batch:', ''))).toEqual(groupParts(project).map((b) => b.key));
     expect(meshes.reduce((n, m) => n + m.count, 0)).toBe(Object.keys(project.parts).length);
     for (const m of meshes) expect(m.instanceMatrix.count).toBeGreaterThanOrEqual(m.count);
+    await r.unmount();
+  });
+
+  it('draws cut parts in their own |cut: batches, with the stress colour buffer too', async () => {
+    const names = batchMeshes((await render()).r.scene.instance).map((m) => m.name);
+    expect(names.filter((n) => n.includes('|cut:')).length).toBeGreaterThanOrEqual(2);
+    const result = analyze(project, catalog);
+    const { r } = await render({ mode: 'stress', stress: stressSpec(project, result, () => true) });
+    const cutMeshes = batchMeshes(r.scene.instance).filter((m) => m.name.includes('spf-no2|2x6|cut:'));
+    expect(cutMeshes.length).toBeGreaterThan(0);
+    for (const m of cutMeshes) expect(m.instanceColor, m.name).not.toBeNull();
+    await r.unmount();
+  });
+
+  it('picks the cut shape: a ray through a cut-away box corner misses, one through the solid hits', async () => {
+    const { r } = await render();
+    const scene = r.scene.instance;
+    scene.updateMatrixWorld(true);
+    const mesh = batchMeshes(scene).find((m) => m.name.includes('spf-no2|2x6|cut:') && (m.userData.partIds as string[]).some((id) => project.parts[id]!.role === 'rafter'))!;
+    const id = (mesh.userData.partIds as string[])[0]!;
+    const rafter: Part = project.parts[id]!;
+    const [X, Y, Z] = rotationAxes(rafter.rotation);
+    const world = (x: number, y: number, z: number) =>
+      new Vector3(
+        (rafter.position.x + X.x * x + Y.x * y + Z.x * z) / 1000,
+        (rafter.position.y + X.y * x + Y.y * y + Z.y * z) / 1000,
+        (rafter.position.z + X.z * x + Y.z * y + Z.z * z) / 1000,
+      );
+    const dir = new Vector3(Y.x, Y.y, Y.z).normalize();
+    const hitsRafter = (x: number, z: number) => {
+      const from = world(x, -500, z);
+      const hits: Intersection[] = [];
+      mesh.raycast(new Raycaster(from, dir, 0, 1), hits);
+      return hits.some((h) => h.instanceId !== undefined && (mesh.userData.partIds as string[])[h.instanceId] === id);
+    };
+    const { length: L, height: h } = rafter.size;
+    const tan = Math.tan((Math.abs(rafter.cuts!.end!.slope!) * Math.PI) / 180);
+    // Near the ridge end's bottom: inside the box, but cut away by the plumb cut.
+    expect(hitsRafter(L - 0.3 * h * tan, 0.05 * h)).toBe(false);
+    expect(hitsRafter(L / 2, h / 2)).toBe(true);
     await r.unmount();
   });
 

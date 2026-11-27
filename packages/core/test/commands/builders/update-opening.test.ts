@@ -139,6 +139,18 @@ describe('update_opening', () => {
     expect(Object.keys(p.parts).filter((id) => !before.parts[id]).length).toBeLessThan(Object.keys(before.parts).filter((id) => before.parts[id]!.assemblyId === 'W3').length / 3);
   });
 
+  it('a part that differs only in its cuts is not taken for unchanged', () => {
+    // A king given an angled end by hand: re-framing lays out a plain king in the same box,
+    // which is a different part, so the cut king is replaced rather than kept.
+    const before0 = withOpenings(door);
+    const [cutKing, plainKing] = tagged(before0, 'W3', 'stud', 'king').map((x) => x.id).sort();
+    const before = runOk(before0, 'update_part', { id: cutKing, cuts: { end: { slope: 30 } } }).project;
+    const p = expectRoundTrip(before, 'update_opening', { openingId: 'O1', height: '6ft 6in' }).project;
+    expect(p.parts[cutKing!]).toBeUndefined();
+    expect(p.parts[plainKing!]).toBe(before.parts[plainKing!]);
+    expect(tagged(p, 'W3', 'stud', 'king').every((x) => x.cuts === undefined)).toBe(true);
+  });
+
   describe('refuses, changing nothing', () => {
     const before = withOpenings(door, { wallId: 'W3', kind: 'window', at: '2ft' });
     const cases: [string, Record<string, unknown>, RegExp, string?][] = [

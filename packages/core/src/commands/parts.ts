@@ -6,15 +6,19 @@ import { PART_ID, nextPartId, reserveId, type AssemblyKind } from '../model/ids.
 import { jointsForPart, jointsForParts } from '../model/queries.ts';
 import {
   zBuildStep,
+  zEndCut,
   zPartRole,
   type Assembly,
   type BuildPhase,
   type BuildStep,
   type Part,
+  type PartCuts,
+  type PartSize,
   type Project,
 } from '../model/schema.ts';
+import { describeCuts, hasCuts, validateCuts } from '../geometry/cuts.ts';
 import { formatBoth } from '../units/length.ts';
-import { LENGTH_DESCRIPTION, zPositiveLength, zVec3Input } from '../units/zod.ts';
+import { LENGTH_DESCRIPTION, zLength, zPositiveLength, zVec3Input } from '../units/zod.ts';
 import { commandError, notFound, type CommandError } from './errors.ts';
 import { checkElevation, checkExplicitId, exists, plural, quoteList, zId, zIdList } from './common.ts';
 import { putWithInverse, removeWithInverse } from './internal.ts';
@@ -46,10 +50,49 @@ const zRotationInput = z
 
 const SIZE_TOLERANCE_MM = 0.5;
 
+const zEndCutInput = z.strictObject({
+  slope: zEndCut.shape.slope.describe(
+    'Degrees from square through the depth (about local y; on an edge, about local x), between −80 and 80. > 0 puts the long point on the bottom face (z = 0), < 0 on the top face.',
+  ),
+  miter: zEndCut.shape.miter.describe('Start/end only. Degrees from square through the width (about local z). > 0 puts the long point on the y = 0 face.'),
+  name: zEndCut.shape.name.describe('The cut-list word: plumb, level, bevel, miter or trim.'),
+});
+
+/** Tool input for `Part.cuts`: like the model's, but notch points take lengths with units. */
+export const zCutsInput = z
+  .strictObject({
+    start: zEndCutInput.optional().describe('Cut at local x = 0.'),
+    end: zEndCutInput.optional().describe('Cut at local x = length.'),
+    nearEdge: zEndCutInput.optional().describe('Cut along the local y = 0 edge (slope only), e.g. a sheet bevel.'),
+    farEdge: zEndCutInput.optional().describe('Cut along the local y = width edge (slope only).'),
+    notches: z
+      .array(
+        z.strictObject({
+          kind: z.enum(['birdsmouth', 'trim', 'notch']),
+          profile: z
+            .array(z.strictObject({ x: zLength.describe('Along the part (local x).'), z: zLength.describe('Through the depth (local z).') }))
+            .min(3)
+            .max(8)
+            .describe('A convex polygon in the part\'s local x–z, cut through its full width. It may reach past the faces it cuts; a birdsmouth is [heel exit, inner corner, seat exit].'),
+        }),
+      )
+      .max(4)
+      .optional(),
+  })
+  .describe(
+    "Angled end cuts and notches, so a sloped member sits flush. A rafter at pitch θ = atan(rise/12): start {slope: θ, name: 'plumb'}, end {slope: −θ, name: 'plumb'}; length is the long point.",
+  );
+
+function cutsError(size: PartSize, cuts: PartCuts | undefined, path = 'cuts', hint?: string): CommandError | null {
+  const why = validateCuts(size, cuts);
+  return why ? commandError('invalid_input', why, { path, ...(hint ? { hint } : {}) }) : null;
+}
+
 function describePart(part: Part, catalog: CatalogIndex): string {
   const material = catalog.materials.get(part.materialId)?.name ?? part.materialId;
   const section = part.sectionId ? ` ${catalog.sections.get(part.sectionId)?.name ?? part.sectionId}` : '';
-  return `${part.role} ${part.id} (${material}${section}, ${formatBoth(part.size.length)} long)`;
+  const cuts = hasCuts(part) ? `, ${describeCuts(part).label}` : '';
+  return `${part.role} ${part.id} (${material}${section}, ${formatBoth(part.size.length)} long${hasCuts(part) && describeCuts(part).longPoint ? ' to the long point' : ''}${cuts})`;
 }
 
 function sectionFitsMaterial(section: Section, material: Material, path: string): CommandError | null {
@@ -83,6 +126,7 @@ export const addPart = defineCommand({
     height: zPositiveLength
       .optional()
       .describe(`Height or thickness (local z). Only when there is no sectionId. ${LENGTH_DESCRIPTION}`),
+    cuts: zCutsInput.optional(),
     buildStep: zBuildStep.optional(),
     name: z.string().optional().describe('Optional readable name.'),
     tags: z.array(z.string()).optional().describe('Free-form tags.'),
@@ -133,6 +177,16 @@ export const addPart = defineCommand({
     const low = checkElevation(input.position.y, 'position.y', 'The part');
     if (low) errors.push(low);
 
+    if (input.cuts !== undefined) {
+      const section = input.sectionId !== undefined ? ctx.catalog.sections.get(input.sectionId) : undefined;
+      const width = section ? section.dims_mm.width : input.width;
+      const height = section ? section.dims_mm.depth : input.height;
+      if (width !== undefined && height !== undefined) {
+        const err = cutsError({ length: input.length, width, height }, input.cuts);
+        if (err) errors.push(err);
+      }
+    }
+
     if (input.id !== undefined) {
       const err = checkExplicitId(project, 'parts', input.id, PART_ID, '"W2-S07"');
       if (err) errors.push(err);
@@ -174,6 +228,7 @@ export const addPart = defineCommand({
     };
     if (input.name !== undefined) part.name = input.name;
     if (input.sectionId !== undefined) part.sectionId = input.sectionId;
+    if (input.cuts !== undefined && hasCuts(input)) part.cuts = input.cuts;
 
     const { project: next, inverse } = putWithInverse({ ...project, counters }, { parts: [part] });
     const redoInput: Record<string, unknown> = {
@@ -193,6 +248,7 @@ export const addPart = defineCommand({
       redoInput.height = part.size.height;
     }
     if (part.name !== undefined) redoInput.name = part.name;
+    if (part.cuts !== undefined) redoInput.cuts = part.cuts;
     return {
       project: next,
       inverse,
@@ -289,6 +345,11 @@ export const resizePart = defineCommand({
         }),
       ];
     }
+    if (hasCuts(part)) {
+      const size = { length: input.length ?? part.size.length, width: input.width ?? part.size.width, height: input.height ?? part.size.height };
+      const err = cutsError(size, part.cuts, input.length !== undefined ? 'length' : input.width !== undefined ? 'width' : 'height', `Update or clear ${part.id}'s cuts with update_part ("cuts": null) first.`);
+      if (err) return [{ ...err, message: `${part.id}'s cuts don't fit the new size: ${err.message}` }];
+    }
     return [];
   },
   apply(project, input) {
@@ -323,6 +384,7 @@ export const updatePart = defineCommand({
     buildStep: zBuildStep.optional(),
     tags: z.array(z.string()).optional().describe('Replaces the tags.'),
     assemblyId: zId.optional().describe('Move the part to another assembly (its ID stays the same).'),
+    cuts: zCutsInput.nullable().optional().describe('Replaces the part\'s end cuts and notches, or null to make it a plain box again. ' + zCutsInput.description),
   }),
   check(project, input, ctx) {
     if (!exists(project.parts, input.id)) return [notFound('part', input.id, Object.keys(project.parts), 'id')];
@@ -341,13 +403,22 @@ export const updatePart = defineCommand({
       errors.push(notFound('material', materialId, ctx.catalog.materials.keys(), 'materialId'));
     }
     const sectionId = input.sectionId === undefined ? part.sectionId : (input.sectionId ?? undefined);
+    let size = part.size;
     if (sectionId !== undefined) {
       const section = ctx.catalog.sections.get(sectionId);
       if (!section) errors.push(notFound('section', sectionId, ctx.catalog.sections.keys(), 'sectionId'));
-      else if (material) {
-        const err = sectionFitsMaterial(section, material, input.sectionId !== undefined ? 'sectionId' : 'materialId');
-        if (err) errors.push(err);
+      else {
+        if (material) {
+          const err = sectionFitsMaterial(section, material, input.sectionId !== undefined ? 'sectionId' : 'materialId');
+          if (err) errors.push(err);
+        }
+        if (input.sectionId) size = { ...size, width: section.dims_mm.width, height: section.dims_mm.depth };
       }
+    }
+    const cuts = input.cuts === undefined ? part.cuts : (input.cuts ?? undefined);
+    if (cuts !== undefined) {
+      const err = cutsError(size, cuts, input.cuts !== undefined ? 'cuts' : 'sectionId', input.cuts === undefined ? `Update or clear ${id}'s cuts ("cuts": null) in the same call.` : undefined);
+      if (err) errors.push(input.cuts === undefined ? { ...err, message: `${id}'s cuts don't fit the new section: ${err.message}` } : err);
     }
     if (material && input.materialId !== undefined) {
       const bad = incompatibleJoints(project, id, material);
@@ -384,6 +455,8 @@ export const updatePart = defineCommand({
       part.sectionId = input.sectionId;
       part.size = { ...part.size, width: section.dims_mm.width, height: section.dims_mm.depth };
     }
+    if (input.cuts === null || (input.cuts !== undefined && !hasCuts(input as { cuts: PartCuts }))) delete part.cuts;
+    else if (input.cuts !== undefined) part.cuts = input.cuts;
     const { project: next, inverse } = putWithInverse(project, { parts: [part] });
     return {
       project: next,
