@@ -157,4 +157,46 @@ describe('entrances', () => {
     expect(labelOpacity(schedule, 999, 5000)).toBe(1);
     expect(labelOpacity(schedule, 100, 1500)).toBe(1);
   });
+
+  describe('editing an opening in place', () => {
+    const doorShell: [string, unknown][] = [
+      ['pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } }],
+      ['build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft' }],
+      ['build_wall', { start: { x: '20ft', z: '16ft' }, end: { x: 0, z: '16ft' }, height: '9ft' }],
+      ['add_opening', { wallId: 'W2', kind: 'door', centerAt: '10ft' }],
+    ];
+    function edit(cmd: [string, unknown]) {
+      const bus = emptyBus();
+      for (const c of doorShell) expect(bus.execute(...c).ok).toBe(true);
+      const s = new EntranceSchedule();
+      s.update(bus.project, opts());
+      const before = bus.project.parts;
+      expect(bus.execute(...cmd).ok).toBe(true);
+      s.update(bus.project, opts());
+      const entering = [...s.active(1000).keys()].map((id) => bus.project.parts[id]!);
+      const wallParts = Object.values(bus.project.parts).filter((p) => p.assemblyId === 'W2').length;
+      return { before, entering, wallParts };
+    }
+    const shape = (p: { assemblyId: string; role: string; position: unknown; rotation: unknown; size: unknown }) =>
+      JSON.stringify([p.assemblyId, p.role, p.position, p.rotation, p.size]);
+
+    for (const cmd of [
+      ['update_opening', { openingId: 'O1', width: '3ft' }],
+      ['update_opening', { openingId: 'O1', height: '7ft' }],
+      ['update_opening', { openingId: 'O1', centerAt: '12ft' }],
+      ['remove_opening', { openingId: 'O1' }],
+    ] as [string, unknown][]) {
+      it(`${cmd[0]} ${JSON.stringify(cmd[1])}: only the re-framed parts fall in, not the wall`, () => {
+        const { before, entering, wallParts } = edit(cmd);
+        expect(entering.length).toBeGreaterThan(0);
+        expect(entering.every((p) => !before[p.id])).toBe(true);
+        // The other wall and the slab stay put; most of the edited wall does too.
+        expect(entering.every((p) => p.assemblyId === 'W2' || p.assemblyId === 'O1')).toBe(true);
+        expect(entering.length).toBeLessThan(wallParts / 2);
+        // Nothing enters that is the same piece in the same place as before.
+        const old = new Set(Object.values(before).map(shape));
+        expect(entering.filter((p) => old.has(shape(p))).map((p) => p.id)).toEqual([]);
+      });
+    }
+  });
 });

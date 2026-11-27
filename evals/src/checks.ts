@@ -287,6 +287,18 @@ export function hasOpening(p: Project, want: { kind?: string; wall: Side | strin
   return { fail: null, opening: o };
 }
 
+/** The walls are exactly these IDs, each still a build_wall assembly: an edit didn't rebuild or delete any. */
+export function sameWalls(p: Project, ids: readonly string[]): Fail {
+  const got = assembliesOf(p, 'wall').map((a) => a.id).sort();
+  const want = [...ids].sort();
+  if (got.join(',') !== want.join(',')) return `the walls should still be ${want.join(', ')} (got ${got.join(', ') || 'none'})`;
+  const rebuilt = ids.filter((id) => p.assemblies[id]?.builder?.name !== 'build_wall');
+  return rebuilt.length === 0 ? null : `${rebuilt.join(', ')} should still be made with build_wall`;
+}
+
+/** How many pieces the wall's bottom plate is in (one when no door cuts it). */
+export const bottomPlatePieces = (p: Project, wallId: string): number => partsIn(p, wallId).filter((x) => x.role === 'plate' && x.tags.includes('bottom')).length;
+
 /** A header (tagged with the opening) spans the whole rough opening. */
 export function headerOverOpening(p: Project, o: OpeningInfo | null): Fail {
   if (!o) return null; // hasOpening already failed

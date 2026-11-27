@@ -5,7 +5,7 @@
  * so redo after undo recreates exactly the same IDs.
  */
 import { z } from 'zod';
-import { checkCatalogRefs, emit, fail, type Layout, type LayoutResult } from '../builders/emit.ts';
+import { checkCatalogRefs, emit, fail, type JointSpec, type Layout, type LayoutResult } from '../builders/emit.ts';
 import { contactJoints } from '../builders/contact.ts';
 import { zBuilderMaterials } from '../builders/defaults.ts';
 import { SPACINGS, largestHeader, pickHeader } from '../builders/rules.ts';
@@ -22,15 +22,22 @@ import {
   headerName,
   parseHeaderSize,
   resolveOpening,
+  openingParams,
+  openingParamsOf,
   zOpeningFields,
   zOpeningItem,
+  type ExistingOpening,
+  type OpeningInput,
+  type OpeningParams,
   type ResolvedOpening,
 } from '../builders/layout/opening.ts';
+import { unframeOpening } from '../builders/layout/reframe-opening.ts';
 import { layoutRoof } from '../builders/layout/roof.ts';
 import { layoutSlab } from '../builders/layout/slab.ts';
 import { STRUCTURE_KINDS, layoutStructure } from '../builders/layout/structure.ts';
 import { layoutWall, neighbourMembers, openingUnitMaterial, openingsIn, resolveWall, supportJoints } from '../builders/layout/wall.ts';
-import { OPENING_BUILDER, WALL_BUILDER, hasTag, loadWallState, removeItem, studTop, wallParamsOf, type WallParams } from '../builders/layout/wall-state.ts';
+import { OPENING_BUILDER, WALL_BUILDER, hasTag, keepUnchangedParts, loadWallState, removeItem, studTop, wallParamsOf, type WallParams, type WallState } from '../builders/layout/wall-state.ts';
+import type { FrameBox } from '../geometry/frame.ts';
 import { describeClashes, findClashes } from '../model/clash.ts';
 import { jointsForParts } from '../model/queries.ts';
 import type { Assembly, Project } from '../model/schema.ts';
@@ -192,25 +199,7 @@ function openingAssembly(key: string, o: ResolvedOpening, wallRef: string, wallN
     buildStep: { phase: 'openings' as const, seq },
     builder: (id: (r: string) => string) => ({
       name: OPENING_BUILDER,
-      params: {
-        wallId: id(wallRef),
-        kind: o.kind,
-        at: o.roU0,
-        width: o.width,
-        height: o.height,
-        sillHeight: o.kind === 'window' ? o.roBottom : null,
-        roBottom: o.roBottom,
-        roTop: o.roTop,
-        framingU0: o.framingU0,
-        framingU1: o.framingU1,
-        header: { plies: o.header.plies, sectionId: o.header.sectionId, flat: o.header.flat, length: o.header.length },
-        jacks: o.jacks,
-        kings: o.kings,
-        headerRule: o.headerNote,
-        // Only when given, so recipes made before these fields existed stay the same.
-        ...(o.product !== undefined ? { product: o.product } : {}),
-        ...(o.safetyGlazing !== undefined ? { safetyGlazing: o.safetyGlazing } : {}),
-      },
+      params: openingParams(o, id(wallRef)) as unknown as Record<string, unknown>,
     }),
   };
 }
@@ -284,17 +273,7 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
   const seq = builderSeq(project, OPENING_BUILDER);
   frameOpening(state, r.opening, '#o', unit ? { materialId: unit, seq } : undefined);
 
-  const fresh = state.items.filter((i) => i.isNew);
-  const kept = state.items.filter((i) => !i.isNew && i.role !== 'brace');
-  const partners = new Set<string>([params.butt.start, params.butt.end].filter((x): x is string => x !== null));
-  for (const asm of Object.values(project.assemblies)) {
-    const p = asm.builder?.name === WALL_BUILDER ? (asm.builder.params as unknown as WallParams) : null;
-    if (p && (p.butt.start === input.wallId || p.butt.end === input.wallId)) partners.add(asm.id);
-  }
-  const joints = contactJoints(state.frame, fresh, [...kept, ...neighbourMembers(project, state.frame, [...partners])]);
-  const specMap = new Map(state.specs.map((s) => [s.key, s]));
-  joints.push(...supportJoints(project, state, bottomPlates(state).filter((p) => p.isNew), specMap));
-  const removedJoints = jointsForParts(project, state.removed).map((j) => j.id);
+  const { joints, removedJoints } = openingJoints(project, state, input.wallId);
 
   const o = r.opening;
   return {
@@ -310,6 +289,27 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
         `Framed ${id('#o')} in ${wall.id}: a ${describeOpening(o)}, ${fi(o.roU0)} from the wall's start; removed ${state.removed.filter((x) => project.parts[x]?.role === 'stud').length} common studs.`,
     },
   };
+}
+
+/**
+ * Joints for a re-framed wall state: contacts between the new parts and the kept ones
+ * (and the walls it butts into or that butt into it), anchors or nails under new
+ * bottom plates, and the existing joints of every removed part.
+ */
+function openingJoints(project: Project, state: WallState, wallId: string): { joints: JointSpec[]; removedJoints: string[] } {
+  const params = state.params;
+  const fresh = state.items.filter((i) => i.isNew);
+  const kept = state.items.filter((i) => !i.isNew && i.role !== 'brace');
+  const partners = new Set<string>([params.butt.start, params.butt.end].filter((x): x is string => x !== null && Object.hasOwn(project.assemblies, x)));
+  for (const asm of Object.values(project.assemblies)) {
+    const p = asm.builder?.name === WALL_BUILDER ? (asm.builder.params as unknown as WallParams) : null;
+    if (p && (p.butt.start === wallId || p.butt.end === wallId)) partners.add(asm.id);
+  }
+  const joints = contactJoints(state.frame, fresh, [...kept, ...neighbourMembers(project, state.frame, [...partners])]);
+  const specMap = new Map(state.specs.map((s) => [s.key, s]));
+  joints.push(...supportJoints(project, state, bottomPlates(state).filter((p) => p.isNew), specMap));
+  const removedJoints = jointsForParts(project, state.removed).map((j) => j.id);
+  return { joints, removedJoints };
 }
 
 export const addOpening = builderCommand({
@@ -490,19 +490,6 @@ export const placeStructure = builderCommand({
 
 // ── resize_header ───────────────────────────────────────────────────────────
 
-/** The recipe add_opening stores on an opening assembly (only the fields resize_header uses). */
-interface OpeningParams {
-  wallId: string;
-  kind: string;
-  at: number;
-  width: number;
-  roTop: number;
-  header: { plies: number; sectionId: string; flat: boolean; length: number };
-  jacks: number;
-  kings: number;
-  headerRule: string;
-}
-
 const resizeHeaderSchema = z.strictObject({
   opening: zId.describe('The opening assembly made by add_opening (e.g. O1), or the ID of one of its header plies.'),
   size: z
@@ -515,8 +502,11 @@ const resizeHeaderSchema = z.strictObject({
     ),
 });
 
-/** The opening assembly a resize_header "opening" names: its ID, or one of its header plies. */
-function findOpening(project: Project, ref: string): { asm: Assembly } | { error: CommandError } {
+/**
+ * The opening assembly a ref names: its ID, or one of its header plies. `tool` is the
+ * command asking (for messages); `path` is the input field the ref came from.
+ */
+function findOpening(project: Project, ref: string, tool = 'resize_header', path = 'opening'): { asm: Assembly } | { error: CommandError } {
   const openings = Object.values(project.assemblies).filter((a) => a.kind === 'opening').map((a) => a.id);
   let asm = Object.hasOwn(project.assemblies, ref) ? project.assemblies[ref] : undefined;
   if (!asm && Object.hasOwn(project.parts, ref)) {
@@ -525,7 +515,7 @@ function findOpening(project: Project, ref: string): { asm: Assembly } | { error
     if (!tag) {
       return {
         error: commandError('invalid_input', `${part.id} is a ${part.role}, not an opening's header.`, {
-          path: 'opening',
+          path,
           hint: openings.length > 0 ? `Openings: ${openings.join(', ')}.` : 'There are no openings yet.',
         }),
       };
@@ -533,15 +523,21 @@ function findOpening(project: Project, ref: string): { asm: Assembly } | { error
     asm = project.assemblies[tag.slice('opening:'.length)];
   }
   if (!asm) {
-    const err = notFound('opening', ref, openings, 'opening');
+    const err = notFound('opening', ref, openings, path);
     return { error: err.hint ? err : { ...err, hint: openings.length > 0 ? `Openings: ${openings.join(', ')}.` : 'There are no openings yet.' } };
   }
   if (asm.builder?.name !== OPENING_BUILDER) {
     return {
-      error: commandError('not_allowed', `${asm.id} wasn't made with add_opening, so resize_header can't re-frame its header.`, {
-        path: 'opening',
-        hint: 'Change the header parts with update_part, or frame the opening with add_opening.',
-      }),
+      error:
+        tool === 'resize_header'
+          ? commandError('not_allowed', `${asm.id} wasn't made with add_opening, so resize_header can't re-frame its header.`, {
+              path,
+              hint: 'Change the header parts with update_part, or frame the opening with add_opening.',
+            })
+          : commandError('not_allowed', `${asm.id} wasn't made with add_opening, so ${tool} can't re-frame it.`, {
+              path,
+              hint: 'Change its parts with update_part or delete_part, or frame the opening with add_opening.',
+            }),
     };
   }
   return { asm };
@@ -551,7 +547,7 @@ function resizeHeaderLayout(project: Project, input: z.output<typeof resizeHeade
   const found = findOpening(project, input.opening);
   if ('error' in found) return fail(found.error);
   const asm = found.asm;
-  const op = asm.builder!.params as unknown as OpeningParams;
+  const op = openingParamsOf(asm)!;
   const wall = wallParamsOf(project, op.wallId);
   if (!wall) {
     return fail(commandError('not_allowed', `${asm.id}'s wall ${op.wallId} wasn't made with build_wall, so its header can't be re-framed.`, { path: 'opening' }));
@@ -692,4 +688,166 @@ export const resizeHeader = builderCommand({
   layout: resizeHeaderLayout,
 });
 
-export const builderCommands = [pourSlab, buildWall, addOpening, resizeHeader, frameFloor, buildRoof, buildFence, buildPergola, buildDeck, placeStructure];
+// ── update_opening / remove_opening ─────────────────────────────────────────
+
+interface OpeningContext {
+  op: OpeningParams;
+  wall: WallParams;
+  state: WallState;
+  others: OpeningParams[];
+  /** The other openings, labelled by assembly ID for overlap messages. */
+  existing: ExistingOpening[];
+  braces: FrameBox[];
+}
+
+/** An opening's recipe, its wall loaded into a state, and the wall's other openings. */
+function openingContext(project: Project, asm: Assembly, tool: string): { ctx: OpeningContext } | { error: CommandError } {
+  const op = openingParamsOf(asm)!;
+  const wall = wallParamsOf(project, op.wallId);
+  if (!wall) {
+    return {
+      error: commandError('not_allowed', `${asm.id}'s wall ${op.wallId} wasn't made with build_wall, so ${tool} can't re-frame it.`, { path: 'openingId' }),
+    };
+  }
+  const state = loadWallState(project, op.wallId, wall);
+  const othersById = Object.values(project.assemblies).flatMap((a) => {
+    const o = a.id === asm.id ? null : openingParamsOf(a);
+    return o && o.wallId === op.wallId ? [{ id: a.id, o }] : [];
+  });
+  const others = othersById.map((x) => x.o);
+  const existing = othersById.map(({ id, o }) => ({ label: id, framingU0: o.framingU0, framingU1: o.framingU1 }));
+  const braces = state.items.filter((i) => i.role === 'brace').map((i) => i.box);
+  return { ctx: { op, wall, state, others, existing, braces } };
+}
+
+const zOpeningId = z.string().trim().min(1).describe('The opening to change, e.g. "O1".');
+const unchanged = (d: string) => `${d} Default: unchanged. ${LENGTH_DESCRIPTION}`;
+
+const updateOpeningSchema = z.strictObject({
+  openingId: zOpeningId,
+  width: zOpeningFields.width.describe(unchanged('New rough-opening width. Keeps the opening centred unless you give "at" or "centerAt".')),
+  height: zOpeningFields.height.describe(unchanged('New rough-opening height. A window keeps its sill unless you give "sillHeight".')),
+  at: zOpeningFields.at.describe(unchanged(`New distance from the wall's start point to the near edge of the rough opening. Give "at" or "centerAt", not both.`)),
+  centerAt: zOpeningFields.centerAt.describe(unchanged(`New distance from the wall's start point to the centre of the opening. Give "at" or "centerAt", not both.`)),
+  sillHeight: zOpeningFields.sillHeight.describe(unchanged('Windows only: new height of the bottom of the rough opening above the subfloor.')),
+});
+
+function updateOpeningLayout(project: Project, input: z.output<typeof updateOpeningSchema>, ctx: CommandContext): LayoutResult {
+  const found = findOpening(project, input.openingId, 'update_opening', 'openingId');
+  if ('error' in found) return fail(found.error);
+  const asm = found.asm;
+  const c = openingContext(project, asm, 'update_opening');
+  if ('error' in c) return fail(c.error);
+  const { op, wall, state, others, existing, braces } = c.ctx;
+  if ([input.width, input.height, input.at, input.centerAt, input.sillHeight].every((v) => v === undefined)) {
+    return fail(commandError('invalid_input', 'Give at least one of width, height, at, centerAt or sillHeight.', { path: 'openingId' }));
+  }
+  const width = input.width ?? op.width;
+  const positioned = input.at !== undefined || input.centerAt !== undefined;
+  const opening: OpeningInput = {
+    kind: op.kind,
+    width,
+    height: input.height ?? op.height,
+    ...(input.at !== undefined ? { at: input.at } : {}),
+    ...(input.centerAt !== undefined ? { centerAt: input.centerAt } : {}),
+    // A new width keeps the centre where it was.
+    ...(!positioned ? { centerAt: op.at + op.width / 2 } : {}),
+    // A window keeps its sill unless told otherwise; a door refuses sillHeight in resolveOpening.
+    ...(input.sillHeight !== undefined ? { sillHeight: input.sillHeight } : op.kind === 'window' ? { sillHeight: op.roBottom } : {}),
+    ...(op.product !== undefined ? { product: op.product } : {}),
+    ...(op.safetyGlazing !== undefined ? { safetyGlazing: op.safetyGlazing } : {}),
+  };
+  const r = resolveOpening(wall, opening, existing, braces, (id) => sectionDims(ctx.catalog, id).depth);
+  if (!r.ok) return fail(...r.errors);
+  const o = r.opening;
+
+  const panels = Object.values(project.parts).filter((x) => x.assemblyId === asm.id && x.role === 'panel').map((x) => x.id);
+  unframeOpening(state, asm.id, op, others, panels);
+  const unit = o.product ?? openingUnitMaterial(ctx.catalog);
+  frameOpening(state, o, asm.id, unit ? { materialId: unit, seq: asm.buildStep?.seq ?? project.parts[panels[0] ?? ""]?.buildStep.seq ?? 0 } : undefined);
+  keepUnchangedParts(state, project);
+  const { joints, removedJoints } = openingJoints(project, state, op.wallId);
+
+  const isCommon = (tags: readonly string[], role: string) => role === 'stud' && tags.includes('common');
+  const putBack = state.items.filter((i) => i.isNew && isCommon(i.tags, i.role)).length;
+  const removedCommons = state.removed.filter((id) => {
+    const part = project.parts[id];
+    return part !== undefined && isCommon(part.tags, part.role);
+  }).length;
+  const was: string[] = [];
+  if (Math.abs(o.width - op.width) > 0.5) was.push(`${fi(op.width)} wide`);
+  if (Math.abs(o.height - op.height) > 0.5) was.push(`${fi(op.height)} tall`);
+  if (op.kind === 'window' && Math.abs(o.roBottom - op.roBottom) > 0.5) was.push(`sill at ${fi(op.roBottom)}`);
+  if (Math.abs(o.roU0 - op.at) > 0.5) was.push(`${fi(op.at)} from the start`);
+  const oldHeader = headerName(op.header);
+  const headerChange = oldHeader !== o.header.name ? `; header ${oldHeader} → ${o.header.name}` : '';
+  const updated: Assembly = { ...asm, builder: { name: OPENING_BUILDER, params: openingParams(o, op.wallId) as unknown as Record<string, unknown> } };
+  return {
+    ok: true,
+    layout: {
+      assemblies: [],
+      updateAssemblies: [updated],
+      parts: state.specs,
+      joints,
+      remove: { parts: state.removed, joints: removedJoints },
+      notes: wall.loadBearing ? [`The header is sized for ${wall.snowNote} and ${wall.buildingWidthNote}.`] : [],
+      what: "The opening's framing",
+      summary: () =>
+        `Re-framed ${asm.id} in ${op.wallId}: now a ${describeOpening(o)}, ${fi(o.roU0)} from the wall's start` +
+        (was.length > 0 || headerChange ? ` (was ${was.length > 0 ? was.join(', ') : 'the same size'}${headerChange})` : '') +
+        `; put back ${putBack} common stud${putBack === 1 ? '' : 's'}, removed ${removedCommons}.`,
+    },
+  };
+}
+
+export const updateOpening = builderCommand({
+  name: 'update_opening',
+  description:
+    'Change an opening made by add_opening or build_wall without rebuilding its wall: new width, height, position ("at"/"centerAt", measured along the wall from its start) or window sill height. Re-frames only that opening (kings, jacks, a header re-sized from IRC Table R602.7(1), cripples, sill, the bottom-plate cut, the sheathing cut-out), puts back common studs where the old opening was and removes the ones now in the way. The wall, the opening ID and every other part keep their IDs. A new width keeps the opening centred unless you give a position; a new window height keeps the sill unless you give sillHeight. Kind and product stay; to change them, remove the opening and add a new one.',
+  schema: updateOpeningSchema,
+  layout: updateOpeningLayout,
+});
+
+const removeOpeningSchema = z.strictObject({ openingId: zOpeningId.describe('The opening to remove, e.g. "O1".') });
+
+function removeOpeningLayout(project: Project, input: z.output<typeof removeOpeningSchema>): LayoutResult {
+  const found = findOpening(project, input.openingId, 'remove_opening', 'openingId');
+  if ('error' in found) return fail(found.error);
+  const asm = found.asm;
+  const c = openingContext(project, asm, 'remove_opening');
+  if ('error' in c) return fail(c.error);
+  const { op, state, others } = c.ctx;
+  // Everything in the O assembly goes with it (the unit, and anything added to it since).
+  const own = Object.values(project.parts).filter((x) => x.assemblyId === asm.id).map((x) => x.id);
+  const back = unframeOpening(state, asm.id, op, others, own);
+  keepUnchangedParts(state, project);
+  const { joints, removedJoints } = openingJoints(project, state, op.wallId);
+  const restored = [
+    `${back.commons} common stud${back.commons === 1 ? '' : 's'}`,
+    ...(back.plate ? ['the bottom plate'] : []),
+    ...(back.sheathing > 0 ? ['the sheathing'] : []),
+  ];
+  const list = restored.length > 1 ? `${restored.slice(0, -1).join(', ')} and ${restored.at(-1)!}` : restored[0]!;
+  return {
+    ok: true,
+    layout: {
+      assemblies: [],
+      parts: state.specs,
+      joints,
+      remove: { parts: state.removed, joints: removedJoints, assemblies: [asm.id] },
+      notes: [],
+      what: 'The restored wall framing',
+      summary: () => `Removed ${asm.id} (${fi(op.width)} × ${fi(op.height)} ${op.kind}) from ${op.wallId}: put back ${list}.`,
+    },
+  };
+}
+
+export const removeOpening = builderCommand({
+  name: 'remove_opening',
+  description:
+    'Remove an opening made by add_opening or build_wall: takes out its framing, unit and O assembly, and puts back the common studs, the continuous bottom plate and the sheathing. The wall and its other parts keep their IDs.',
+  schema: removeOpeningSchema,
+  layout: removeOpeningLayout,
+});
+
+export const builderCommands = [pourSlab, buildWall, addOpening, updateOpening, removeOpening, resizeHeader, frameFloor, buildRoof, buildFence, buildPergola, buildDeck, placeStructure];

@@ -511,6 +511,7 @@ budget capped, the remaining scenarios are reported as `SKIP` (the exit code is 
 | `refuse-impossible-span` | A 20ft opening: refused in plain language (header/beam), alternatives offered, nothing changed. |
 | `undo` | A window with no plan, then "undo that" restores the parts exactly and leaves it redoable. |
 | `small-change-no-plan` | A 38in door 4ft from the north corner of the west wall: no plan, one undo step, header. |
+| `resize-door` | On a seeded pool house with a door: "make the door 3ft wide" uses `update_opening` (no plan, one undo step, still O1, header over it), then "remove that door" uses `remove_opening` (no openings, one bottom plate on W3). Neither turn rebuilds or deletes a wall: W1–W4 keep their IDs. |
 | `plan-revision` | Plan a 12×16 floor, "Change something" to 10×14 (new plan, still no change), build 10×14 on piers. |
 | `just-do-it` | "Don't ask me first" turns plans off (`set_preferences`) and builds a 10×12 shed shell in one step. |
 | `clash-avoidance` | A tree on the fence line: Claude routes around it or offers options; nothing runs through the tree, and the fence has no clashes of its own. |
@@ -541,7 +542,7 @@ failure. A turn that ends in an error from Claude or the keyhole makes the scena
 (naming the turn and HTTP status), never a pass, and the run exits 1. Checks that match a length
 in Claude's reply use `feetRe` from `checks.ts`, which accepts `ft`, `feet`, `'`, `′` and `’`. The summary has a
 table, totals and a **cap check**: the average cost of a typical turn (small edits and
-questions: `undo`, `small-change-no-plan`, `question-no-change`) and of a full build
+questions: `undo`, `small-change-no-plan`, `resize-door`, `question-no-change`) and of a full build
 (`pool-house`, `fence`, `just-do-it`), and how many of each the monthly cap
 (`SLAPDASH_MONTHLY_BUDGET_USD`) buys. Every run writes `evals/results/<timestamp>.json`
 (gitignored) with each turn's tokens, cost, tool calls and pass/fail, plus the model, effort,
