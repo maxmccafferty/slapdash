@@ -1,4 +1,4 @@
-import { assembliesOf, partsIn } from '../checks.ts';
+import { assembliesOf, rafterCuts, partsIn } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { SHED_WALLS_8x10 } from '../seeds.ts';
 import { expectSoundStep, buildInOneTurn } from './common.ts';
@@ -25,5 +25,6 @@ export const shedRoof = defineScenario({
     const ids = new Set(rafters.map((r) => r.id));
     const bearing = Object.values(p.joints).filter((j) => j.partIds.some((id) => ids.has(id)) && j.partIds.some((id) => p.parts[id]?.role === 'plate'));
     ctx.expect(bearing.length > 0 ? null : 'the rafters should be joined to the wall plates');
+    ctx.expect(rafterCuts(p, roof.id, 3));
   },
 });

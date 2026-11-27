@@ -8,11 +8,14 @@ import { MUTATING_TOOLS } from '@slapdash/agent';
 import {
   aabbOf,
   checkJoint,
+  describeCuts,
+  hasCuts,
   findAllClashes,
   formatFeetInches,
   MM_PER_FOOT,
   MM_PER_INCH,
   partBox,
+  partSolidAabb,
   type Aabb,
   type Assembly,
   type CatalogIndex,
@@ -165,13 +168,29 @@ export function boundsOf(parts: readonly Part[]): Aabb | null {
   const min = { x: Infinity, y: Infinity, z: Infinity };
   const max = { x: -Infinity, y: -Infinity, z: -Infinity };
   for (const part of parts) {
-    const b = aabbOf(partBox(part));
+    const b = hasCuts(part) ? partSolidAabb(part) : aabbOf(partBox(part));
     for (const k of ['x', 'y', 'z'] as const) {
       min[k] = Math.min(min[k], b.min[k]);
       max[k] = Math.max(max[k], b.max[k]);
     }
   }
   return { min, max };
+}
+
+/**
+ * The roof's common rafters are cut to sit flush (LOC-120): plumb ends at ±atan(rise/12)
+ * and at least one birdsmouth on a plate.
+ */
+export function rafterCuts(p: Project, roofId: string, rise: number): Fail {
+  const theta = (Math.atan(rise / 12) * 180) / Math.PI;
+  const rafters = partsIn(p, roofId).filter((x) => x.role === 'rafter' && x.tags.includes('common'));
+  const bad = rafters.filter((r) => {
+    const slope = r.cuts?.end?.slope;
+    return slope === undefined || Math.abs(slope + theta) > 0.01 || !describeCuts(r).notches.some((n) => n.kind === 'birdsmouth');
+  });
+  return bad.length === 0
+    ? null
+    : `common rafters should have plumb cuts at ${theta.toFixed(2)}° and a birdsmouth (${bad.length} don't, e.g. ${bad[0]!.id})`;
 }
 
 /** World bounding box of an assembly's parts. */

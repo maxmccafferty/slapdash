@@ -40,6 +40,7 @@ import {
   noClashesWith,
   pergolaPolycarbonate,
   poolFence,
+  rafterCuts,
   slabFootprint,
   soundBuild,
 } from './checks.ts';
@@ -126,6 +127,8 @@ const goodModels = section('Checks pass on correct builder output', () => {
   passesCheck('sliding door on the south wall', slider.fail);
   passesCheck('header over the sliding door', headerOverOpening(shell, slider.opening));
   check('the gable ridge runs along x', (shell.assemblies.R1?.builder?.params as { ridgeAxis?: string } | undefined)?.ridgeAxis === 'x');
+  passesCheck('gable rafters have plumb cuts and birdsmouths', rafterCuts(shell, 'R1', 6));
+  check('rafterCuts catches the wrong pitch', rafterCuts(shell, 'R1', 4) !== null);
 
   // fence
   const fence = build([['build_fence', { path: [{ x: 0, z: 0 }, { x: '40ft', z: 0 }], height: '6ft' }]]);
@@ -135,6 +138,7 @@ const goodModels = section('Checks pass on correct builder output', () => {
   // shed-roof
   const shed = build([...SHED_WALLS_8x10, ['build_roof', { type: 'shed', from: { x: 0, z: 0 }, to: { x: '10ft', z: '8ft' }, pitch: '3 in 12', lowSide: 'north' }]]);
   passesCheck('shed roof is sound', soundBuild(shed, catalog));
+  passesCheck('shed rafters have plumb cuts and birdsmouths', rafterCuts(shed, 'R1', 3));
   passesCheck('8ft walls have 91 1/2in studs', commonStudLength(build([...SHED_WALLS_8x10.slice(0, 2)]), 91.5));
 
   // pergola-polycarbonate (LOC-117)
