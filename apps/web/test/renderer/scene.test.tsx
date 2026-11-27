@@ -130,6 +130,27 @@ describe('SceneContent', () => {
     await r.unmount();
   });
 
+  it('parts in progress get a lighter, thinner outline than the selection', async () => {
+    const { r } = await render({ outlined: ['W3-H01'], inProgress: new Set(['W3-H01', 'W3-H02']) });
+    const strong = r.scene.instance.getObjectByName('outline') as Mesh | undefined;
+    const light = r.scene.instance.getObjectByName('outline-in-progress') as Mesh | undefined;
+    expect(strong).toBeDefined();
+    expect(light).toBeDefined();
+    type LineMat = Material & { color: { getHexString(): string }; linewidth: number };
+    const s = strong!.material as LineMat;
+    const l = light!.material as LineMat;
+    expect(s.opacity).toBe(1);
+    expect(s.linewidth).toBe(2);
+    expect(l.opacity).toBeCloseTo(0.4, 6);
+    expect(l.linewidth).toBe(1);
+    expect(`#${l.color.getHexString()}`).toBe('#e8590c');
+    expect(l.depthTest).toBe(false);
+    // The selected part is outlined once, strongly; only the other one is light.
+    const segs = (m: Mesh) => (m.geometry.getAttribute('instanceStart') as { count: number }).count;
+    expect(segs(light!)).toBe(segs(strong!));
+    await r.unmount();
+  });
+
   it('a proposal is a dashed orange box', async () => {
     const { r } = await render({ proposal: { footprint: { from: { x: 0, z: 0 }, to: { x: 3000, z: 2000 } }, height_mm: 2400 } });
     const line = r.scene.instance.getObjectByName('proposal') as Mesh | undefined;
@@ -137,6 +158,7 @@ describe('SceneContent', () => {
     const material = line!.material as Material & { dashed: boolean; color: { getHexString(): string } };
     expect(material.dashed).toBe(true);
     expect(`#${material.color.getHexString()}`).toBe('#e8590c');
+    expect(material.opacity).toBeCloseTo(0.4, 6);
     await r.unmount();
   });
 

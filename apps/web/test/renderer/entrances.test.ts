@@ -79,7 +79,8 @@ describe('entrances', () => {
     expect(startOf(w2!)).toBeGreaterThan(startOf(w1!));
     const end = Math.max(...[...active.values()].map((e) => e.start + e.duration));
     expect(end).toBeLessThanOrEqual(MAX_TOTAL_MS);
-    expect(MAX_TOTAL_MS).toBeLessThan(1500);
+    // Paced at half speed: about 2.6 s for a whole build.
+    expect(MAX_TOTAL_MS).toBe(2600);
     expect(s.landsAt).toBe(end);
     // Inside a wall, the bottom plate starts before the top plates.
     const wallParts = [...active].filter(([id]) => bus.project.parts[id]!.assemblyId === w1);
@@ -112,6 +113,28 @@ describe('entrances', () => {
     for (const c of shellCommands) bus.execute(...c);
     s.update(bus.project, opts({ reducedMotion: true, now: 0 }));
     for (const e of s.active(0).values()) expect(e).toEqual({ start: 0, duration: REDUCED_FADE_MS, drop: 0 });
+  });
+
+  it('falls about a storey, at half the old speed', () => {
+    expect(DROP_HEIGHT_M).toBeCloseTo(1.2, 6);
+    expect(ENTER_MS).toBe(900);
+  });
+
+  it('a part not yet started is not drawn, and starts at the top of its fall', () => {
+    const e = { start: 100, duration: ENTER_MS, drop: DROP_HEIGHT_M };
+    expect(entranceFrame(e, 99.9)).toEqual({ started: false, opacity: 0, lift: DROP_HEIGHT_M, done: false });
+    const first = entranceFrame(e, 100);
+    expect(first).toMatchObject({ started: true, opacity: 0, done: false });
+    expect(first.lift).toBeCloseTo(DROP_HEIGHT_M, 6);
+  });
+
+  it('the fall eases out: it slows as it lands, so parts settle', () => {
+    const e = { start: 0, duration: ENTER_MS, drop: DROP_HEIGHT_M };
+    const at = (k: number) => entranceFrame(e, k * ENTER_MS).lift;
+    const early = at(0) - at(0.1);
+    const late = at(0.9) - at(1);
+    expect(early).toBeGreaterThan(late * 10);
+    expect(late).toBeGreaterThan(0);
   });
 
   it('a part falls and fades in, solid before it lands', () => {

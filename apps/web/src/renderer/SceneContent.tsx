@@ -44,8 +44,10 @@ export interface ViewSpec {
   /** The build steps shown while Build steps is open; absent or null shows the whole build. */
   steps?: ReadonlySet<StepKey> | null;
   dimensions: boolean;
-  /** Part ids outlined in orange (selection, in progress, or a snapshot's highlights). */
+  /** Part ids outlined strongly in orange: the user's selection, or a snapshot's highlights. */
   outlined: readonly string[];
+  /** Part ids Claude is working on: a lighter orange outline where they are landing. */
+  inProgress?: Iterable<string>;
   proposal: Proposal | null;
 }
 
@@ -133,6 +135,10 @@ export function SceneContent({ project, catalog, spec, cut, tier, entrances = nu
     () => spec.outlined.map((id) => project.parts[id]).filter((p): p is Part => !!p && isVisible(p)),
     [spec.outlined, project.parts, isVisible],
   );
+  const inProgressParts = useMemo(() => {
+    const strong = new Set(spec.outlined);
+    return [...(spec.inProgress ?? [])].filter((id) => !strong.has(id)).map((id) => project.parts[id]).filter((p): p is Part => !!p && isVisible(p));
+  }, [spec.outlined, spec.inProgress, project.parts, isVisible]);
   const settings = TIER_SETTINGS[tier];
 
   return (
@@ -169,7 +175,7 @@ export function SceneContent({ project, catalog, spec, cut, tier, entrances = nu
         ))}
       <SiteContext parts={context} />
       {spec.dimensions && <Dimensions lines={lines} entrances={entrances} />}
-      <Highlights parts={outlinedParts} proposal={spec.proposal} />
+      <Highlights selected={outlinedParts} inProgress={inProgressParts} proposal={spec.proposal} />
       {spec.mode === 'stress' && spec.stress && (
         <>
           <StressMarks project={project} bands={spec.stress.bands} isVisible={isVisible} exclude={spec.stress.callout?.partId ?? null} />
