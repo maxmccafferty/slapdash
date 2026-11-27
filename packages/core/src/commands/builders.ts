@@ -31,13 +31,16 @@ import {
   type OpeningParams,
   type ResolvedOpening,
 } from '../builders/layout/opening.ts';
+import { attachmentJoints } from '../builders/layout/opening-unit.ts';
 import { unframeOpening } from '../builders/layout/reframe-opening.ts';
 import { layoutRoof } from '../builders/layout/roof.ts';
 import { layoutSlab } from '../builders/layout/slab.ts';
 import { STRUCTURE_KINDS, layoutStructure } from '../builders/layout/structure.ts';
-import { layoutWall, neighbourMembers, openingUnitMaterial, openingsIn, resolveWall, supportJoints } from '../builders/layout/wall.ts';
+import { allUnitJoints, framingItems, layoutWall, neighbourMembers, openingUnitFor, openingsIn, resolveWall, supportJoints } from '../builders/layout/wall.ts';
 import { OPENING_BUILDER, WALL_BUILDER, hasTag, keepUnchangedParts, loadWallState, removeItem, studTop, wallParamsOf, type WallParams, type WallState } from '../builders/layout/wall-state.ts';
+import { BUILDER_DEFAULTS } from '../builders/defaults.ts';
 import type { FrameBox } from '../geometry/frame.ts';
+import { isUnitPart, unitPiece } from '../model/opening-unit.ts';
 import { describeClashes, findClashes } from '../model/clash.ts';
 import { jointsForParts } from '../model/queries.ts';
 import type { Assembly, Project } from '../model/schema.ts';
@@ -74,6 +77,8 @@ function fitOpeningJoints(project: Project, res: LayoutResult, ctx: CommandConte
   const materialOf = (ref: string) => ctx.catalog.materials.get(specs.get(ref)?.materialId ?? project.parts[ref]?.materialId ?? '');
   let changed = false;
   const joints = res.layout.joints.map((j) => {
+    // A unit's own pieces are held together at the factory, not nailed.
+    if (j.jointTypeId === BUILDER_DEFAULTS.jointTypes.factoryAssembled) return j;
     const a = materialOf(j.a);
     const b = j.b === 'GROUND' ? undefined : materialOf(j.b);
     if (a?.category !== 'opening' && b?.category !== 'opening') return j;
@@ -187,7 +192,8 @@ function wallLayout(project: Project, input: z.output<typeof buildWallSchema>, c
 }
 
 function describeOpening(o: ResolvedOpening): string {
-  return `${fi(o.width)} × ${fi(o.height)} ${o.kind}, ${o.header.name} header, ${o.jacks} jack and ${o.kings} king stud${o.kings === 1 ? '' : 's'} each side`;
+  const unit = o.style ? ` (${o.style})` : '';
+  return `${fi(o.width)} × ${fi(o.height)} ${o.kind}${unit}, ${o.header.name} header, ${o.jacks} jack and ${o.kings} king stud${o.kings === 1 ? '' : 's'} each side`;
 }
 
 function openingAssembly(key: string, o: ResolvedOpening, wallRef: string, wallName: string, seq: number) {
@@ -228,7 +234,10 @@ const buildWallSchema = z.strictObject({
     .enum(['sheathing', 'let-in', 'none'])
     .optional()
     .describe('Wall bracing: 7/16in OSB sheathing panels (default), 1x4 let-in diagonal braces at both ends, or none.'),
-  openings: z.array(zOpeningItem).optional().describe('Openings to frame in the wall now. Same fields as add_opening without wallId.'),
+  openings: z
+    .array(zOpeningItem)
+    .optional()
+    .describe('Openings to frame in the wall now, each with its window or door unit (frame, sash and glass, or a door slab). Same fields as add_opening without wallId.'),
   materials,
   name: zBuilderName.describe('Readable name, e.g. South wall.'),
 });
@@ -269,9 +278,9 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
   if (productErr) return fail(productErr);
   const r = resolveOpening(params, input, openingsIn(project, input.wallId), braces, (id) => sectionDims(ctx.catalog, id).depth);
   if (!r.ok) return fail(...r.errors);
-  const unit = r.opening.product ?? openingUnitMaterial(ctx.catalog);
   const seq = builderSeq(project, OPENING_BUILDER);
-  frameOpening(state, r.opening, '#o', unit ? { materialId: unit, seq } : undefined);
+  const u = openingUnitFor(r.opening, ctx.catalog, seq);
+  frameOpening(state, r.opening, '#o', u.unit);
 
   const { joints, removedJoints } = openingJoints(project, state, input.wallId);
 
@@ -283,7 +292,7 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
       parts: state.specs,
       joints,
       remove: { parts: state.removed, joints: removedJoints },
-      notes: params.loadBearing ? [`The header is sized for ${params.snowNote} and ${params.buildingWidthNote}.`] : [],
+      notes: [...(params.loadBearing ? [`The header is sized for ${params.snowNote} and ${params.buildingWidthNote}.`] : []), ...(u.note ? [u.note] : [])],
       what: 'The opening\'s framing',
       summary: (id) =>
         `Framed ${id('#o')} in ${wall.id}: a ${describeOpening(o)}, ${fi(o.roU0)} from the wall's start; removed ${state.removed.filter((x) => project.parts[x]?.role === 'stud').length} common studs.`,
@@ -298,14 +307,17 @@ function openingLayout(project: Project, input: z.output<typeof addOpeningSchema
  */
 function openingJoints(project: Project, state: WallState, wallId: string): { joints: JointSpec[]; removedJoints: string[] } {
   const params = state.params;
-  const fresh = state.items.filter((i) => i.isNew);
-  const kept = state.items.filter((i) => !i.isNew && i.role !== 'brace');
+  // Window and door units aren't nailed by contact; allUnitJoints attaches them.
+  const framing = framingItems(state);
+  const fresh = framing.filter((i) => i.isNew);
+  const kept = framing.filter((i) => !i.isNew && i.role !== 'brace');
   const partners = new Set<string>([params.butt.start, params.butt.end].filter((x): x is string => x !== null && Object.hasOwn(project.assemblies, x)));
   for (const asm of Object.values(project.assemblies)) {
     const p = asm.builder?.name === WALL_BUILDER ? (asm.builder.params as unknown as WallParams) : null;
     if (p && (p.butt.start === wallId || p.butt.end === wallId)) partners.add(asm.id);
   }
   const joints = contactJoints(state.frame, fresh, [...kept, ...neighbourMembers(project, state.frame, [...partners])]);
+  joints.push(...allUnitJoints(state));
   const specMap = new Map(state.specs.map((s) => [s.key, s]));
   joints.push(...supportJoints(project, state, bottomPlates(state).filter((p) => p.isNew), specMap));
   const removedJoints = jointsForParts(project, state.removed).map((j) => j.id);
@@ -315,7 +327,7 @@ function openingJoints(project: Project, state: WallState, wallId: string): { jo
 export const addOpening = builderCommand({
   name: 'add_opening',
   description:
-    'Frame a window or door in a wall made with build_wall: header sized from IRC Table R602.7(1), jack and king studs, cripples, a window sill, the bottom plate cut out for doors, and the sheathing cut around the rough opening. Only the common studs in the way are removed; other stud IDs stay the same. "at" is measured along the wall from its start point.',
+    'Frame a window or door in a wall made with build_wall: header sized from IRC Table R602.7(1), jack and king studs, cripples, a window sill, the bottom plate cut out for doors, and the sheathing cut around the rough opening, and installs the window or door unit (frame, sash and glass, or a door slab) in the opening\'s O assembly. Pick a catalog product for its style; the generic unit is a casement window, a flat slab door or a sliding door. Only the common studs in the way are removed; other stud IDs stay the same. "at" is measured along the wall from its start point.',
   schema: addOpeningSchema,
   layout: openingLayout,
 });
@@ -637,6 +649,14 @@ function resizeHeaderLayout(project: Project, input: z.output<typeof resizeHeade
   const fresh = state.items.filter((i) => i.isNew);
   const kept = state.items.filter((i) => !i.isNew && i.role !== 'brace');
   const joints = contactJoints(state.frame, fresh, kept);
+  // Nail the unit's head (or a pre-unit panel) to the new plies, as add_opening did to the old ones.
+  const unitHead = Object.values(project.parts).find(
+    (x) => x.assemblyId === asm.id && (isUnitPart(x) ? unitPiece(x) === 'head' : x.role === 'panel'),
+  );
+  if (unitHead) {
+    const ro = { u0: op.at, u1: op.at + op.width, v0: op.roBottom, v1: op.roTop, w0: 0, w1: wall.depth };
+    joints.push(...attachmentJoints(state.frame, ro, fresh.filter((i) => i.role === 'header'), () => unitHead.id));
+  }
   const removedJoints = jointsForParts(project, state.removed).map((j) => j.id);
   if (tableJacks !== null && tableJacks > op.jacks) {
     notes.push(
@@ -761,10 +781,14 @@ function updateOpeningLayout(project: Project, input: z.output<typeof updateOpen
   if (!r.ok) return fail(...r.errors);
   const o = r.opening;
 
-  const panels = Object.values(project.parts).filter((x) => x.assemblyId === asm.id && x.role === 'panel').map((x) => x.id);
-  unframeOpening(state, asm.id, op, others, panels);
-  const unit = o.product ?? openingUnitMaterial(ctx.catalog);
-  frameOpening(state, o, asm.id, unit ? { materialId: unit, seq: asm.buildStep?.seq ?? project.parts[panels[0] ?? ""]?.buildStep.seq ?? 0 } : undefined);
+  // The unit's parts (or a pre-unit single panel, which this upgrades); anything else
+  // someone added to the O assembly stays.
+  const unitParts = Object.values(project.parts)
+    .filter((x) => x.assemblyId === asm.id && (isUnitPart(x) || x.role === 'panel'))
+    .map((x) => x.id);
+  unframeOpening(state, asm.id, op, others, unitParts);
+  const u = openingUnitFor(o, ctx.catalog, asm.buildStep?.seq ?? project.parts[unitParts[0] ?? '']?.buildStep.seq ?? 0);
+  frameOpening(state, o, asm.id, u.unit);
   keepUnchangedParts(state, project);
   const { joints, removedJoints } = openingJoints(project, state, op.wallId);
 
@@ -790,7 +814,7 @@ function updateOpeningLayout(project: Project, input: z.output<typeof updateOpen
       parts: state.specs,
       joints,
       remove: { parts: state.removed, joints: removedJoints },
-      notes: wall.loadBearing ? [`The header is sized for ${wall.snowNote} and ${wall.buildingWidthNote}.`] : [],
+      notes: [...(wall.loadBearing ? [`The header is sized for ${wall.snowNote} and ${wall.buildingWidthNote}.`] : []), ...(u.note ? [u.note] : [])],
       what: "The opening's framing",
       summary: () =>
         `Re-framed ${asm.id} in ${op.wallId}: now a ${describeOpening(o)}, ${fi(o.roU0)} from the wall's start` +
@@ -803,7 +827,7 @@ function updateOpeningLayout(project: Project, input: z.output<typeof updateOpen
 export const updateOpening = builderCommand({
   name: 'update_opening',
   description:
-    'Change an opening made by add_opening or build_wall without rebuilding its wall: new width, height, position ("at"/"centerAt", measured along the wall from its start) or window sill height. Re-frames only that opening (kings, jacks, a header re-sized from IRC Table R602.7(1), cripples, sill, the bottom-plate cut, the sheathing cut-out), puts back common studs where the old opening was and removes the ones now in the way. The wall, the opening ID and every other part keep their IDs. A new width keeps the opening centred unless you give a position; a new window height keeps the sill unless you give sillHeight. Kind and product stay; to change them, remove the opening and add a new one.',
+    'Change an opening made by add_opening or build_wall without rebuilding its wall: new width, height, position ("at"/"centerAt", measured along the wall from its start) or window sill height. Re-frames only that opening (kings, jacks, a header re-sized from IRC Table R602.7(1), cripples, sill, the bottom-plate cut, the sheathing cut-out) and re-sizes the whole window or door unit, puts back common studs where the old opening was and removes the ones now in the way. The wall, the opening ID and every other part keep their IDs. A new width keeps the opening centred unless you give a position; a new window height keeps the sill unless you give sillHeight. Kind and product stay; to change them, remove the opening and add a new one.',
   schema: updateOpeningSchema,
   layout: updateOpeningLayout,
 });
@@ -845,7 +869,7 @@ function removeOpeningLayout(project: Project, input: z.output<typeof removeOpen
 export const removeOpening = builderCommand({
   name: 'remove_opening',
   description:
-    'Remove an opening made by add_opening or build_wall: takes out its framing, unit and O assembly, and puts back the common studs, the continuous bottom plate and the sheathing. The wall and its other parts keep their IDs.',
+    'Remove an opening made by add_opening or build_wall: takes out its framing, the whole window or door unit and the O assembly, and puts back the common studs, the continuous bottom plate and the sheathing. The wall and its other parts keep their IDs.',
   schema: removeOpeningSchema,
   layout: removeOpeningLayout,
 });

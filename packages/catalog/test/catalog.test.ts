@@ -28,6 +28,8 @@ const ESTIMATED_JOINTS = [
   // listed so the materials list counts fittings and hardware.
   'glued-pvc',
   'glued-cpvc',
+  // Holds a window or door unit's own pieces together in the model; no fasteners.
+  'factory-assembled',
   'glued-abs',
   'crimped-pex',
   'sweated-copper',
@@ -269,6 +271,36 @@ describe('catalog (tiers 1–3)', () => {
     for (const s of C.sections) {
       for (const c of s.materialCategories) expect(categories.has(c), `${s.id}: ${c}`).toBe(true);
     }
+  });
+
+  it('every opening has a valid window or door unit and accepts factory-assembled joints', () => {
+    expect(C.jointTypes.find((j) => j.id === 'factory-assembled')).toMatchObject({ behaviour: 'fixed', category: 'glued' });
+    expect(C.jointTypes.find((j) => j.id === 'factory-assembled')!.hardwareId).toBeUndefined();
+    const openings = C.materials.filter((m) => m.category === 'opening');
+    expect(openings).toHaveLength(16);
+    for (const m of openings) {
+      expect(m.unit, m.id).toBeDefined();
+      expect(m.acceptsJoints, m.id).toContain('factory-assembled');
+    }
+    expect(C.materials.filter((m) => m.unit && m.category !== 'opening')).toEqual([]);
+    expect(material('opening-unit').unit!.style).toBeUndefined();
+    expect(material('window-double-hung').unit!.style).toBe('double-hung');
+    expect(material('door-entry').unit).toMatchObject({ style: 'entry', lites: 0, glass: 'none' });
+  });
+
+  it('refuses a unit on a material that is not an opening, and a glazed style without a sash', () => {
+    const withUnit = (id: string, unit: unknown) => ({ ...C, materials: C.materials.map((m) => (m.id === id ? { ...m, unit } : m)) });
+    const r = validateCatalog(withUnit('spf-no2', material('window-casement').unit));
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors.join(' ')).toContain('not an opening');
+    const { sash: _sash, ...noSash } = material('window-casement').unit!;
+    const r2 = validateCatalog(withUnit('window-casement', noSash));
+    expect(r2.ok).toBe(false);
+    if (!r2.ok) expect(r2.errors.join(' ')).toContain('needs a "sash"');
+    const { meetingRail_mm: _mr, ...noMeeting } = material('window-double-hung').unit!.sash!;
+    const r3 = validateCatalog(withUnit('window-double-hung', { ...material('window-double-hung').unit!, sash: noMeeting }));
+    expect(r3.ok).toBe(false);
+    if (!r3.ok) expect(r3.errors.join(' ')).toContain('meetingRail_mm');
   });
 
   it('the generic opening unit is the first opening material that takes 16d nails', () => {

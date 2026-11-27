@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { SAMPLE_CATALOG, codeNotes, createProject, indexCatalog, type Catalog, type Material, type Project } from '../../src/index.ts';
+import { DEFAULT_UNIT_SPECS, SAMPLE_CATALOG, codeNotes, createProject, indexCatalog, type Catalog, type Material, type Project } from '../../src/index.ts';
 import { run } from '../helpers.ts';
 
 const extra: Material[] = [
-  { id: 'opening-unit', name: 'Window or door unit (generic)', category: 'opening', acceptsJoints: ['nailed-16d'] },
+  { id: 'opening-unit', name: 'Window or door unit (generic)', category: 'opening', acceptsJoints: ['nailed-16d', 'factory-assembled'] },
+  {
+    id: 'window-dh',
+    name: 'Double-hung window',
+    category: 'opening',
+    acceptsJoints: ['nailed-16d', 'factory-assembled'],
+    flags: ['not-safety-glazing'],
+    unit: { ...DEFAULT_UNIT_SPECS.window, style: 'double-hung' },
+  },
   { id: 'receptacle-15a', name: '15 A receptacle', category: 'electrical', acceptsJoints: [], flags: ['receptacle-needs-gfci'], density_kg_m3: 500 },
   { id: 'receptacle-gfci-20a', name: '20 A GFCI receptacle', category: 'electrical', acceptsJoints: [], flags: ['gfci'], density_kg_m3: 500 },
   { id: 'subpanel-100a', name: '100 A subpanel', category: 'electrical', acceptsJoints: [], flags: ['licensed-trade'], density_kg_m3: 500 },
@@ -80,6 +88,32 @@ describe('code notes', () => {
     expect(keys(box(p, 'opening-unit', 6, 15, { y: 6 }))).not.toContain('safety-glazing-near-pool');
     expect(keys(box(p, 'window-casement', 6, 15))).toContain('safety-glazing-near-pool');
     expect(keys(box(p, 'door-french', 6, 15))).not.toContain('safety-glazing-near-pool');
+  });
+
+  describe('window and door units by the pool', () => {
+    // A wall 2ft north of the pool, its openings low enough to count.
+    const wall = () => ok(withPool(), 'build_wall', { start: { x: '8ft', z: '8ft' }, end: { x: '24ft', z: '8ft' }, height: '9ft' });
+    const glazing = (p: Project) => codeNotes(p, idx).filter((n) => n.key.startsWith('safety-glazing-near-pool'));
+
+    it('one note per unit about its glass, not one per lite', () => {
+      const p = ok(wall(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '6ft', product: 'window-dh' });
+      const notes = glazing(p);
+      expect(notes).toHaveLength(1);
+      expect(notes[0]!.ids).toHaveLength(2);
+      expect(notes[0]!.ids.every((id) => p.parts[id]!.role === 'glass')).toBe(true);
+      expect(notes[0]!.key).toBe(`safety-glazing-near-pool:${notes[0]!.ids.join(',')}`);
+      expect(notes[0]!.text).toContain("O1's glass (double-hung window) is within 5ft of the pool");
+    });
+
+    it('asking for safety glazing clears it', () => {
+      expect(glazing(ok(wall(), 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '6ft', safetyGlazing: true }))).toEqual([]);
+    });
+
+    it('a solid slab door has no glass, so no note', () => {
+      const p = ok(wall(), 'add_opening', { wallId: 'W1', kind: 'door', centerAt: '6ft' });
+      expect(Object.values(p.parts).some((x) => x.role === 'door')).toBe(true);
+      expect(glazing(p)).toEqual([]);
+    });
   });
 
   it('receptacles: none within 6ft of the pool, GFCI within 20ft or outdoors', () => {

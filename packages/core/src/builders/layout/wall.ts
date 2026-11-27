@@ -27,7 +27,17 @@ import {
   supportUnder,
   type PlanPoint,
 } from '../util.ts';
-import { bottomPlates, frameOpening, openingParamsOf, resolveOpening, type ExistingOpening, type OpeningInput, type ResolvedOpening } from './opening.ts';
+import {
+  bottomPlates,
+  frameOpening,
+  openingParamsOf,
+  resolveOpening,
+  type ExistingOpening,
+  type OpeningInput,
+  type OpeningUnitInput,
+  type ResolvedOpening,
+} from './opening.ts';
+import { resolveUnitSpec, unitJoints } from './opening-unit.ts';
 import {
   WALL_BUILDER,
   addMember,
@@ -486,6 +496,27 @@ export function openingUnitMaterial(catalog: CatalogIndex): string | null {
   return null;
 }
 
+/**
+ * The unit to put in a resolved opening: its product, else the generic unit, drawn as
+ * `resolveUnitSpec` says. None when the catalog has no unit at all. `note` says when the
+ * product's style didn't fit the opening's kind.
+ */
+export function openingUnitFor(o: ResolvedOpening, catalog: CatalogIndex, seq: number): { unit?: OpeningUnitInput; note?: string } {
+  const materialId = o.product ?? openingUnitMaterial(catalog);
+  if (!materialId) return {};
+  const r = resolveUnitSpec(materialId, o.kind, catalog);
+  return { unit: { materialId, spec: r.spec, seq }, ...(r.note ? { note: r.note } : {}) };
+}
+
+/** The wall state's items that aren't window or door unit pieces. */
+export function framingItems(state: WallState): WallItem[] {
+  const units = new Set(state.units.flatMap((u) => u.items));
+  return state.items.filter((i) => !units.has(i));
+}
+
+/** Joints for every unit framed in the state (see `unitJoints`). */
+export const allUnitJoints = (state: WallState): JointSpec[] => state.units.flatMap((u) => unitJoints(state, u));
+
 /** Existing openings in a wall, from their O assemblies. */
 export function openingsIn(project: Project, wallId: string): ExistingOpening[] {
   return Object.values(project.assemblies)
@@ -532,8 +563,9 @@ export function layoutWall(
       return;
     }
     resolved.push(r.opening);
-    const unit = r.opening.product ?? openingUnitMaterial(catalog);
-    frameOpening(state, r.opening, openingRef(i), unit ? { materialId: unit, seq: openingSeq + resolved.length - 1 } : undefined);
+    const u = openingUnitFor(r.opening, catalog, openingSeq + resolved.length - 1);
+    if (u.note) notes.push(u.note);
+    frameOpening(state, r.opening, openingRef(i), u.unit);
   });
   if (errors.length > 0) return { state, openings: resolved, joints: [], backers: [], notes, errors };
 
@@ -611,7 +643,8 @@ export function layoutWall(
     frame,
     [butts.start?.wallId, butts.end?.wallId].filter((x): x is string => x !== undefined),
   );
-  const joints = contactJoints(frame, state.items, neighbours);
+  const joints = contactJoints(frame, framingItems(state), neighbours);
+  joints.push(...allUnitJoints(state));
   const specMap = new Map(state.specs.map((s) => [s.key, s]));
   joints.push(...supportJoints(project, state, bottomPlates(state), specMap));
   joints.push(...braceJoints(state, braces));

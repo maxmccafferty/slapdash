@@ -8,6 +8,8 @@ export type ProjectResult = { ok: true; project: Project } | { ok: false; errors
  * validate it. Each version's step falls through to the next:
  *
  * - v1 → v2 adds optional part `cuts`. A v1 file has none, so only the version changes.
+ * - v2 → v3 adds the part roles frame, sash, glass and door. A v2 file uses none, so
+ *   only the version changes; its single-box window and door `panel` parts stay valid.
  */
 export function migrateProject(raw: unknown): ProjectResult {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
@@ -15,10 +17,12 @@ export function migrateProject(raw: unknown): ProjectResult {
   }
   const version = (raw as { schemaVersion?: unknown }).schemaVersion;
   // v1 → v2: optional part cuts were added; a v1 file has none.
-  if (version === 1) raw = { ...raw, schemaVersion: 2 };
+  // v2 → v3: new part roles for window and door units; a v2 file has none.
+  if (version === 1 || version === 2) raw = { ...raw, schemaVersion: 3 };
   switch (version) {
     case 1:
-    case 2: {
+    case 2:
+    case 3: {
       const parsed = zProject.safeParse(raw);
       if (!parsed.success) {
         return { ok: false, errors: zodIssuesToErrors(parsed.error.issues, raw).map((e) => e.message) };

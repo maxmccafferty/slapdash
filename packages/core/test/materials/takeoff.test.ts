@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import {
+  CommandBus,
   GROUND,
   MM_PER_FOOT,
   MM_PER_INCH,
@@ -17,7 +18,6 @@ import {
   stepOfJoint,
   takeoff,
   type Catalog,
-  type CommandBus,
   type MaterialsReport,
   type PriceTable,
 } from '../../src/index.ts';
@@ -310,5 +310,54 @@ describe('takeoff of cut parts (LOC-120)', () => {
   it('lists the bevelled ridge sheathing in the sheet row', () => {
     const sheet = rowsOf(report).find((r) => r.measure === 'sheets' && r.step === 'roof')!;
     expect(sheet.details).toEqual([expect.stringMatching(/^\d+ × bevel 26\.6° one edge$/)]);
+  });
+});
+
+describe('window and door units (LOC-124)', () => {
+  const unitCatalog: Catalog = structuredClone(CATALOG);
+  const opening = (id: string, priceKey: string) => ({
+    id,
+    name: id,
+    category: 'opening' as const,
+    acceptsJoints: ['nailed-16d', 'factory-assembled'],
+    priceKey,
+  });
+  unitCatalog.materials.push(opening('win-each', 'opening.win-each'), opening('win-area', 'opening.win-area'));
+  const table: PriceTable = {
+    ...TABLE,
+    entries: [
+      ...TABLE.entries,
+      { key: 'opening.win-each', description: 'window', source: 'test', unit: 'each', low_usd: 300, high_usd: 400 },
+      { key: 'opening.win-area', description: 'glass', source: 'test', unit: 'sq-ft', low_usd: 10, high_usd: 20 },
+    ],
+  };
+  const bus = new CommandBus({ project: createProject({ name: 'Units' }), catalog: unitCatalog, now: () => 1 });
+  exec(bus, 'pour_slab', { from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' } });
+  exec(bus, 'build_wall', { start: { x: 0, z: 0 }, end: { x: '20ft', z: 0 }, height: '9ft' });
+  exec(bus, 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '5ft', product: 'win-each' });
+  exec(bus, 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '10ft', product: 'win-each' });
+  exec(bus, 'add_opening', { wallId: 'W1', kind: 'window', centerAt: '15ft', width: '30in', height: '40in', product: 'win-area' });
+  const p = bus.project;
+  const report = takeoff(p, unitCatalog, table);
+  const rows = report.groups.flatMap((g) => g.rows);
+  const partsOf = (materialId: string) => Object.values(p.parts).filter((x) => x.materialId === materialId).map((x) => x.id).sort();
+
+  it('a unit priced each is one piece, however many parts draw it', () => {
+    const row = rows.find((r) => r.materialId === 'win-each')!;
+    expect(partsOf('win-each').length).toBeGreaterThan(20);
+    expect(row).toMatchObject({ measure: 'pieces', quantity: 2 });
+    expect([...row.partIds].sort()).toEqual(partsOf('win-each'));
+  });
+
+  it('a unit priced by area is measured as its rough opening, width × height', () => {
+    const row = rows.find((r) => r.materialId === 'win-area')!;
+    expect(row.measure).toBe('sq-ft');
+    expect(row.quantity).toBeCloseTo((30 * 40) / 144, 6);
+    expect([...row.partIds].sort()).toEqual(partsOf('win-area'));
+  });
+
+  it('no unit part is on the cut list', () => {
+    const cut = new Set(report.cutList.flatMap((g) => g.pieces.flatMap((r) => r.pieceIds)));
+    for (const x of Object.values(p.parts)) if (x.tags.includes('unit')) expect(cut.has(x.id), x.id).toBe(false);
   });
 });

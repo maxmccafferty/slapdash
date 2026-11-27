@@ -76,12 +76,28 @@ export interface WallItem extends Member {
   isNew: boolean;
 }
 
+/** A window or door unit framed into the state (see `layout/opening-unit.ts`). */
+export interface UnitRecord {
+  /** The opening assembly: a layout key or its ID. */
+  openingRef: Ref;
+  /** The rough opening, through the wall's stud depth (where the old single-box unit sat). */
+  ro: FrameBox;
+  /** The unit's pieces, as in `items` (so `keepUnchangedParts` swapping a ref shows here). */
+  items: WallItem[];
+  /** The bottom frame piece (sill or threshold) the other pieces are held to. */
+  anchor: WallItem | null;
+  /** The frame piece nailed to the framing on each side of the rough opening. */
+  sides: Array<['start' | 'end' | 'head' | 'bottom', WallItem]>;
+}
+
 export interface WallState {
   frame: PlanFrame;
   params: WallParams;
   /** The wall assembly: a layout key (new wall) or its ID. */
   wallRef: Ref;
   items: WallItem[];
+  /** Window and door units framed in this state. Their parts are in `items` too, but aren't wall framing. */
+  units: UnitRecord[];
   specs: PartSpec[];
   /** Existing part IDs removed. */
   removed: string[];
@@ -89,7 +105,7 @@ export interface WallState {
 }
 
 export function newWallState(frame: PlanFrame, params: WallParams, wallRef: Ref): WallState {
-  return { frame, params, wallRef, items: [], specs: [], removed: [], nextKey: 0 };
+  return { frame, params, wallRef, items: [], units: [], specs: [], removed: [], nextKey: 0 };
 }
 
 /** Load an existing wall's parts into a state. */

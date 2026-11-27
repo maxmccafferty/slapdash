@@ -116,7 +116,20 @@ const generators: Gen[] = [
     const w = pick(walls, r);
     if (!w) return null;
     const length = (w.builder!.params as { length: number }).length;
-    return { name: 'add_opening', input: { wallId: w.id, kind: pick(['window', 'door', 'sliding-door'], r), centerAt: Math.round(length * (0.3 + r() * 0.4)) } };
+    const kind = pick(['window', 'door', 'sliding-door'] as const, r)!;
+    // A real unit (frame, sashes, glass) needs a product here: the sample catalog has no generic one.
+    const product = pick([undefined, kind === 'window' ? 'window-casement' : 'door-french'], r);
+    const safetyGlazing = pick([undefined, true], r);
+    return {
+      name: 'add_opening',
+      input: {
+        wallId: w.id,
+        kind,
+        centerAt: Math.round(length * (0.3 + r() * 0.4)),
+        ...(product ? { product } : {}),
+        ...(safetyGlazing ? { safetyGlazing } : {}),
+      },
+    };
   },
   (_p, r) => ({
     name: 'place_structure',

@@ -14,8 +14,11 @@ import { z } from 'zod';
 import { ASSEMBLY_KINDS, PART_ROLES } from './ids.ts';
 import { zPriceUnit } from '../catalog/prices.ts';
 
-/** v2 added optional part `cuts`; v1 files migrate by changing only the version. */
-export const PROJECT_SCHEMA_VERSION = 2;
+/**
+ * v2 added optional part `cuts`; v3 added the part roles frame, sash, glass and door
+ * (window and door units). Older files migrate by changing only the version.
+ */
+export const PROJECT_SCHEMA_VERSION = 3;
 
 export const zVec3 = z.strictObject({ x: z.number(), y: z.number(), z: z.number() });
 export const zRotation = zVec3;

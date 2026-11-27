@@ -30,7 +30,7 @@ describe('createProject', () => {
   it('starts with one ground level and nothing else', () => {
     const p = createProject({ name: 'Shed' });
     expect(p).toEqual({
-      schemaVersion: 2,
+      schemaVersion: 3,
       name: 'Shed',
       units: { display: 'imperial' },
       levels: [{ id: 'L0', name: 'Ground', elevation_mm: 0 }],
@@ -45,25 +45,31 @@ describe('createProject', () => {
   it('round-trips through migrateProject', () => {
     const p = fixtureProject();
     expect(migrateProject(JSON.parse(JSON.stringify(p)))).toEqual({ ok: true, project: p });
-    expect(migrateProject({ ...p, schemaVersion: 3 })).toEqual({
+    expect(migrateProject({ ...p, schemaVersion: 4 })).toEqual({
       ok: false,
-      errors: ['This project is version 3; this app understands up to 2.'],
+      errors: ['This project is version 4; this app understands up to 3.'],
     });
     const { schemaVersion: _v, ...noVersion } = p;
     expect(migrateProject(noVersion)).toEqual({
       ok: false,
-      errors: ['The project has no schemaVersion; this app understands up to 2.'],
+      errors: ['The project has no schemaVersion; this app understands up to 3.'],
     });
   });
 });
 
-describe('migrate v1 → v2', () => {
+describe('migrate v1 → v3 and v2 → v3', () => {
   it('only changes the version: v1 parts have no cuts', () => {
     const p = fixtureProject();
     const v1 = JSON.parse(JSON.stringify({ ...p, schemaVersion: 1 }));
     const r = migrateProject(v1);
-    expect(r).toEqual({ ok: true, project: { ...p, schemaVersion: 2 } });
+    expect(r).toEqual({ ok: true, project: { ...p, schemaVersion: 3 } });
     if (r.ok) for (const part of Object.values(r.project.parts)) expect(part.cuts).toBeUndefined();
+  });
+
+  it('only changes the version: v2 files have no unit roles', () => {
+    const p = fixtureProject();
+    const v2 = JSON.parse(JSON.stringify({ ...p, schemaVersion: 2 }));
+    expect(migrateProject(v2)).toEqual({ ok: true, project: { ...p, schemaVersion: 3 } });
   });
 
   it('round-trips parts with cuts', () => {

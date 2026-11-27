@@ -16,6 +16,8 @@
  *   with the later of its two parts' steps.
  * - Masonry units, window and door units and loose hardware are counted as pieces, unless
  *   they are priced by area or length (pavers, veneer, glass panels), like coverings.
+ *   A window or door unit is one piece however many parts draw it (frame, sashes, glass;
+ *   tagged `unit`), and one rough opening's width × height when priced by area.
  * - Anything else is measured in the unit it is priced in.
  *
  * Money is summed in cents; rounding to dollars is for display.
@@ -24,6 +26,7 @@ import type { PriceTable, PriceUnit } from '../catalog/prices.ts';
 import type { Catalog, Material, MaterialCategory, Section, StockLength, Swatch } from '../catalog/schema.ts';
 import { indexCatalog, isCatalogIndex, type CatalogIndex } from '../catalog/validate.ts';
 import { describeCuts, hasCuts, type CutDescription } from '../geometry/cuts.ts';
+import { isUnitPart, unitOpeningId } from '../model/opening-unit.ts';
 import type { Part, PartCuts, Project } from '../model/schema.ts';
 import { MM_PER_FOOT, MM_PER_INCH } from '../units/length.ts';
 import { cutStock, type Board, type CutOptions, type CutPiece } from './optimizer.ts';
@@ -182,6 +185,13 @@ function cents(usd: number): number {
   return Math.round(usd * 100);
 }
 
+/** A unit part's rough opening (width, height) from its opening's add_opening recipe, if it has one. */
+function roughOpening(project: Project, part: Part): [number, number] | null {
+  const asm = project.assemblies[part.assemblyId];
+  const p = asm?.builder?.name === 'add_opening' ? (asm.builder.params as Record<string, unknown>) : null;
+  return p && typeof p.width === 'number' && typeof p.height === 'number' ? [p.width, p.height] : null;
+}
+
 /** Materials list, cut list and totals for a project, priced from `table` and the project's own prices. */
 export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table: PriceTable, opts: TakeoffOptions = {}): MaterialsReport {
   const idx = isCatalogIndex(catalog) ? catalog : indexCatalog(catalog);
@@ -203,6 +213,9 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
   // Members with stock: pieces per (step, material, section), packed below.
   const toCut = new Map<string, { step: StepKey; material: Material; section: Section; pieces: CutPiece[] }>();
 
+  // Window and door units already counted, by opening.
+  const unitsSeen = new Set<string>();
+
   const parts = Object.values(project.parts)
     .filter((p) => isBuiltPart(p, idx))
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -219,6 +232,29 @@ export function takeoff(project: Project, catalog: Catalog | CatalogIndex, table
       continue;
     }
     const base = { step, material, name };
+    if (category === 'opening' && isUnitPart(part)) {
+      // One window or door unit, drawn as many parts: count it once, by its opening.
+      const unit = pricedUnit(project, table, material, section);
+      const m = MEASURE_OF[unit];
+      const b = bucket({ ...base, ...m, key: `${m.kind}|${material.id}|`, unit });
+      const key = `opening:${unitOpeningId(part)}`;
+      if (!unitsSeen.has(key)) {
+        unitsSeen.add(key);
+        const ro = roughOpening(project, part);
+        const { a, b: w } = twoLargest(part);
+        const [rw, rh] = ro ?? [a, w];
+        b.quantity +=
+          m.kind === 'area'
+            ? (rw * rh) / FT2_MM2
+            : m.kind === 'length'
+              ? rw / MM_PER_FOOT
+              : m.kind === 'sheet'
+                ? Math.max(1, Math.ceil((rw * rh) / FT2_MM2 / SHEET_FT2 - 0.01))
+                : 1;
+      }
+      b.partIds.push(part.id);
+      continue;
+    }
     if (category === 'concrete') {
       const b = bucket({ ...base, kind: 'concrete', key: `concrete|${material.id}`, unit: 'cu-yd', measure: 'cu-yd' });
       b.quantity += Math.abs(part.size.length * part.size.width * part.size.height) / YD3_MM3;
