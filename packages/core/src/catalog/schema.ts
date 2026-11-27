@@ -105,6 +105,49 @@ export const zShearPanel = z.strictObject({
 });
 export type ShearPanel = z.infer<typeof zShearPanel>;
 
+export const OPENING_STYLES = ['fixed', 'casement', 'awning', 'single-hung', 'double-hung', 'slider', 'entry', 'french', 'sliding'] as const;
+export type OpeningStyle = (typeof OPENING_STYLES)[number];
+
+const posMm = z.number().positive();
+const nonnegMm = z.number().nonnegative();
+
+/**
+ * How a window or door product is built when it's drawn as a real unit: a frame (jambs,
+ * head, sill or threshold), sashes of stiles and rails holding glass lites, or door
+ * slabs, and optionally a nailing fin or brickmould casing. Sizes in mm.
+ */
+export const zOpeningUnit = z.strictObject({
+  /** Absent: by the opening's kind (window → casement, door → entry, sliding-door → sliding). The generic unit only. */
+  style: z.enum(OPENING_STYLES).optional(),
+  /** Plain words for Claude and the summary, e.g. "white vinyl". */
+  finish: z.string().min(1),
+  frame: z.strictObject({ face_mm: posMm, depth_mm: posMm, swatch: zSwatch }),
+  /** Nailing fin: the frame's outside face sits `setback_mm` proud of the sheathing; the fin is `width_mm` wide. */
+  flange: z.strictObject({ setback_mm: nonnegMm, width_mm: posMm }).optional(),
+  sash: z
+    .strictObject({
+      stile_mm: posMm,
+      topRail_mm: posMm,
+      bottomRail_mm: posMm,
+      /** Hung windows: the rails where the two sashes meet. */
+      meetingRail_mm: posMm.optional(),
+      depth_mm: posMm,
+      swatch: zSwatch.optional(),
+    })
+    .optional(),
+  /** Glass lites per sash or leaf (mullions between them); 0 = a solid slab (doors). */
+  lites: z.number().int().min(0).max(6),
+  /** Slab doors: one leaf or two (a bifold pair). French doors always have two. */
+  leaves: z.number().int().min(1).max(2).optional(),
+  /** Insulated glass unit (3/4in), single 1/8in glass, or none. */
+  glass: z.enum(['igu', 'single', 'none']),
+  glassSwatch: zSwatch.optional(),
+  slab: z.strictObject({ thickness_mm: posMm, swatch: zSwatch }).optional(),
+  /** Exterior casing (brickmould) round a door, on the sheathing face. */
+  casing: z.strictObject({ width_mm: posMm, thickness_mm: posMm, swatch: zSwatch.optional() }).optional(),
+});
+export type OpeningUnit = z.infer<typeof zOpeningUnit>;
+
 export const zMaterial = z.strictObject({
   id: kebabId,
   name: z.string().min(1),
@@ -137,6 +180,8 @@ export const zMaterial = z.strictObject({
   priceKey: z.string().optional(),
   /** Citation for the property numbers, e.g. "NDS 2018 Supplement Table 4A, No.2". */
   source: z.string().min(1).optional(),
+  /** Openings only: how the window or door unit is drawn (frame, sashes, glass, slabs). */
+  unit: zOpeningUnit.optional(),
 });
 export type Material = z.infer<typeof zMaterial>;
 

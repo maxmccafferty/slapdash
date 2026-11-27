@@ -52,6 +52,26 @@ export function validateCatalog(raw: unknown): CatalogResult {
     }
   }
 
+  for (const m of catalog.materials) {
+    const u = m.unit;
+    if (!u) continue;
+    if (m.category !== 'opening') {
+      errors.push(`Material "${m.id}" has a window or door "unit", but it is ${m.category}, not an opening.`);
+      continue;
+    }
+    const style = u.style;
+    const glazed = style !== undefined && style !== 'entry';
+    if (glazed && (!u.sash || u.glass === 'none')) {
+      errors.push(`Opening "${m.id}" is a ${style} unit, so it needs a "sash" and glass.`);
+    }
+    if ((style === 'entry' || style === undefined) && u.lites === 0 && !u.slab) {
+      errors.push(`Opening "${m.id}" is a solid door (no lites), so it needs a "slab".`);
+    }
+    if ((style === 'single-hung' || style === 'double-hung') && u.sash?.meetingRail_mm === undefined) {
+      errors.push(`Opening "${m.id}" is a ${style} window, so its sash needs "meetingRail_mm".`);
+    }
+  }
+
   const materials = new Map(catalog.materials.map((m) => [m.id, m]));
   for (const j of catalog.jointTypes) {
     if (j.hardwareId === undefined) continue;
