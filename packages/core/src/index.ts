@@ -31,6 +31,7 @@ export {
   type ConvexPiece,
   type CutPartLike,
 } from './geometry/cuts.ts';
+export { partFaces, faceContact, contactGap, facingFace, faceToward, type PlanarFace, type FaceContact, type FacePartLike } from './geometry/faces.ts';
 export { placeMember, placeOriented, boxInFrame, toWorld, toFrame, type PlanFrame, type FrameBox } from './geometry/frame.ts';
 export { findClashes, findAllClashes, describeClashes, CLASH_TOLERANCE_MM, type Clash, type ClashCandidate } from './model/clash.ts';
 export { BUILDER_DEFAULTS } from './builders/defaults.ts';
