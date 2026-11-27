@@ -8,7 +8,10 @@ import { MUTATING_TOOLS } from '@slapdash/agent';
 import {
   aabbOf,
   checkJoint,
+  contactGap,
   describeCuts,
+  faceToward,
+  facingFace,
   hasCuts,
   findAllClashes,
   formatFeetInches,
@@ -191,6 +194,41 @@ export function rafterCuts(p: Project, roofId: string, rise: number): Fail {
   return bad.length === 0
     ? null
     : `common rafters should have plumb cuts at ${theta.toFixed(2)}° and a birdsmouth (${bad.length} don't, e.g. ${bad[0]!.id})`;
+}
+
+/**
+ * Every common rafter's ridge-end cut face lands on the ridge board (LOC-120), measured in
+ * world space on the faces the renderer draws: the rafter's face opposed to the ridge's side
+ * face toward it must be parallel (within 0.01°), every vertex within 0.5 mm of that face's
+ * plane, and share area with it. Catches rafters that stop short (the V gap at the ridge),
+ * run into the board, or are cut at the wrong angle, which an angle-only check would miss.
+ */
+export function rafterFlushAtRidge(p: Project, roofId: string, tolMm = 0.5): Fail {
+  const parts = partsIn(p, roofId);
+  const ridge = parts.find((x) => x.role === 'ridge');
+  if (!ridge) return 'the roof should have a ridge board for the rafters to meet';
+  const rafters = parts.filter((x) => x.role === 'rafter' && x.tags.includes('common'));
+  if (rafters.length === 0) return 'there should be common rafters';
+  const box = partBox(ridge);
+  const across = box.axes[1]; // the ridge board's width axis: its side faces face along it
+  const bad: string[] = [];
+  let worst = 0;
+  for (const rf of rafters) {
+    const c = partBox(rf).center;
+    const sign = Math.sign((c.x - box.center.x) * across.x + (c.y - box.center.y) * across.y + (c.z - box.center.z) * across.z) || 1;
+    // The ridge's side face that looks at this rafter.
+    const face = faceToward(ridge, { x: sign * across.x, y: sign * across.y, z: sign * across.z });
+    const hit = facingFace(rf, face, 0.01);
+    if (!hit) {
+      bad.push(`${rf.id} has no face parallel to the ridge board`);
+      continue;
+    }
+    const gap = contactGap(hit.contact);
+    worst = Math.max(worst, gap);
+    if (gap > tolMm) bad.push(`${rf.id} is ${gap.toFixed(1)} mm ${hit.contact.minGapMm + hit.contact.maxGapMm > 0 ? 'short of' : 'into'} the ridge board`);
+    else if (hit.contact.overlapArea < 1) bad.push(`${rf.id}'s plumb cut doesn't meet the ridge board`);
+  }
+  return bad.length === 0 ? null : `common rafters should sit flush on the ridge board, within ${tolMm} mm (${bad.length} don't, e.g. ${bad[0]}; worst ${worst.toFixed(1)} mm)`;
 }
 
 /** World bounding box of an assembly's parts. */

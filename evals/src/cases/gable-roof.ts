@@ -1,4 +1,4 @@
-import { assembliesOf, rafterCuts, boundsOf, partsIn } from '../checks.ts';
+import { assembliesOf, rafterCuts, rafterFlushAtRidge, boundsOf, partsIn } from '../checks.ts';
 import { defineScenario } from '../scenario.ts';
 import { POOL_HOUSE_WALLS } from '../seeds.ts';
 import { expectSoundStep, buildInOneTurn } from './common.ts';
@@ -29,5 +29,6 @@ export const gableRoof = defineScenario({
     const rafters = parts.filter((x) => x.role === 'rafter' && x.tags.includes('common')).length;
     ctx.expect(rafters > 0 && rafters % 2 === 0 ? null : `common rafters should come in pairs (got ${rafters})`);
     ctx.expect(rafterCuts(p, roof.id, 6));
+    ctx.expect(rafterFlushAtRidge(p, roof.id));
   },
 });

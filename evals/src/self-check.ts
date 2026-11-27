@@ -41,6 +41,7 @@ import {
   pergolaPolycarbonate,
   poolFence,
   rafterCuts,
+  rafterFlushAtRidge,
   slabFootprint,
   soundBuild,
 } from './checks.ts';
@@ -129,6 +130,7 @@ const goodModels = section('Checks pass on correct builder output', () => {
   check('the gable ridge runs along x', (shell.assemblies.R1?.builder?.params as { ridgeAxis?: string } | undefined)?.ridgeAxis === 'x');
   passesCheck('gable rafters have plumb cuts and birdsmouths', rafterCuts(shell, 'R1', 6));
   check('rafterCuts catches the wrong pitch', rafterCuts(shell, 'R1', 4) !== null);
+  passesCheck('gable rafters sit flush on the ridge board', rafterFlushAtRidge(shell, 'R1'));
 
   // fence
   const fence = build([['build_fence', { path: [{ x: 0, z: 0 }, { x: '40ft', z: 0 }], height: '6ft' }]]);
@@ -139,6 +141,7 @@ const goodModels = section('Checks pass on correct builder output', () => {
   const shed = build([...SHED_WALLS_8x10, ['build_roof', { type: 'shed', from: { x: 0, z: 0 }, to: { x: '10ft', z: '8ft' }, pitch: '3 in 12', lowSide: 'north' }]]);
   passesCheck('shed roof is sound', soundBuild(shed, catalog));
   passesCheck('shed rafters have plumb cuts and birdsmouths', rafterCuts(shed, 'R1', 3));
+  check('rafterFlushAtRidge needs a ridge (a shed has none)', rafterFlushAtRidge(shed, 'R1') !== null);
   passesCheck('8ft walls have 91 1/2in studs', commonStudLength(build([...SHED_WALLS_8x10.slice(0, 2)]), 91.5));
 
   // pergola-polycarbonate (LOC-117)
@@ -290,6 +293,20 @@ const badModels = section('Checks catch known-bad models', () => {
 
   const loose: Project = { ...good, joints: Object.fromEntries(Object.entries(good.joints).filter(([, j]) => !j.partIds.includes(stud.id))) };
   failsCheck('a stud with no joints', framingConnected(loose));
+
+  // Rafters that miss the ridge board: the V gap the angle-only rafterCuts check can't see.
+  const gable = build([...POOL_HOUSE_WALLS, ['build_roof', { type: 'gable', from: { x: 0, z: 0 }, to: { x: '20ft', z: '16ft' }, pitch: '6 in 12' }]]);
+  const rafter = Object.values(gable.parts).find((p) => p.role === 'rafter' && p.tags.includes('common') && p.tags.includes('side:north'))!;
+  const withRafter = (r: typeof rafter): Project => ({ ...gable, parts: { ...gable.parts, [r.id]: r } });
+  const nudged = (dz: number) => withRafter({ ...rafter, position: { ...rafter.position, z: rafter.position.z + dz } });
+  failsCheck('a rafter 1 mm short of the ridge', rafterFlushAtRidge(nudged(-1), 'R1'));
+  failsCheck('a rafter 1 mm into the ridge', rafterFlushAtRidge(nudged(1), 'R1'));
+  passesCheck('a rafter 0.3 mm off the ridge is still flush', rafterFlushAtRidge(nudged(-0.3), 'R1'));
+  const squareEnd = withRafter({ ...rafter, cuts: { ...rafter.cuts!, end: undefined } });
+  check('a square-cut rafter end fails rafterFlushAtRidge', rafterFlushAtRidge(squareEnd, 'R1') !== null);
+  const fourTwelve = withRafter({ ...rafter, cuts: { ...rafter.cuts!, end: { slope: -(Math.atan(4 / 12) * 180) / Math.PI, name: 'plumb' } } });
+  failsCheck('a 6/12 rafter plumb-cut at 4/12', rafterFlushAtRidge(fourTwelve, 'R1'));
+  passesCheck('rafterCuts alone misses a rafter short of the ridge', rafterCuts(nudged(-5), 'R1', 6));
 
   const empty = createProject({ name: 'Empty' });
   failsCheck('no slab', slabFootprint(empty, 16, 20));
