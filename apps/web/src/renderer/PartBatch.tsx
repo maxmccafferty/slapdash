@@ -19,7 +19,7 @@ import { BoxGeometry, Color, InstancedBufferAttribute, InstancedMesh, Matrix4 } 
 import type { CatalogIndex, Part } from '@slapdash/core';
 import { partMatrix, partVariation, type Batch } from './batches.ts';
 import type { CutUniforms } from './CutFaces.ts';
-import { entranceFrame, type EntranceSchedule } from './entrances.ts';
+import { DROP_HEIGHT_M, entranceFrame, type EntranceSchedule } from './entrances.ts';
 import { getPartMaterials, holdTransparent, type PartMaterials } from './materials.ts';
 import type { QualityTier } from './quality.ts';
 import type { SceneMode } from './snapshot/types.ts';
@@ -66,6 +66,16 @@ export const STRESS_FILL: Record<StressBand, string> = {
 
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
+/** Grow `mesh`'s bounds to also cover every instance raised by `lift` metres. */
+function liftBounds(mesh: InstancedMesh, lift: number): void {
+  if (!mesh.boundingSphere) mesh.computeBoundingSphere();
+  if (!mesh.boundingBox) mesh.computeBoundingBox();
+  const sphere = mesh.boundingSphere!;
+  sphere.center.y += lift / 2;
+  sphere.radius += lift / 2;
+  mesh.boundingBox!.max.y += lift;
+}
+
 export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mode, stress, tier, cut, catalog, entrances = null }: PartBatchProps) {
   const gl = useThree((s) => s.gl);
   const invalidate = useThree((s) => s.invalidate);
@@ -99,6 +109,8 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
   const entering = useRef(new Set<string>());
   /** The materials this batch holds transparent while parts enter. */
   const held = useRef<PartMaterials | null>(null);
+  /** Whether the current bounds already include the drop (see `liftBounds`). */
+  const liftedBounds = useRef(false);
   useEffect(
     () => () => {
       if (held.current) holdTransparent(held.current, false);
@@ -137,6 +149,7 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
       enter.needsUpdate = true;
       mesh.computeBoundingSphere();
       mesh.computeBoundingBox();
+      liftedBounds.current = false;
       invalidate();
     }
     slots.current = { mesh, parts: [...parts], cuttable: isCuttable };
@@ -199,10 +212,17 @@ export const PartBatch = memo(function PartBatch({ batch, parts, isCuttable, mod
       holdTransparent(mats, busy);
       held.current = busy ? mats : null;
     }
+    // While parts fall, stretch the settled bounds up by the drop, so a part high in its
+    // fall is neither frustum-culled nor skipped by a raycast's bounding-sphere test.
+    if (busy && !liftedBounds.current) {
+      liftBounds(mesh, DROP_HEIGHT_M);
+      liftedBounds.current = true;
+    }
     // Bounds come from the settled matrices; refresh them once everything has landed.
     if (touched && !busy) {
       mesh.computeBoundingSphere();
       mesh.computeBoundingBox();
+      liftedBounds.current = false;
     }
     if (touched || busy) state.invalidate();
   });
