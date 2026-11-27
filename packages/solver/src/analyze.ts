@@ -2,10 +2,10 @@
  * `analyze`: project + catalog → utilisation for every part and joint.
  *
  * build the analytical model → basic load cases → one factorisation, one solve per case
- * → combinations by superposition → NDS member, bearing, deflection, panel and joint
- * checks. Pure: no DOM, no Node, no clock other than `performance.now` for timing.
+ * → combinations by superposition → NDS member, bearing, notch-shear, deflection, panel
+ * and joint checks. Pure: no DOM, no Node, no clock other than `performance.now` for timing.
  */
-import { GROUND, indexCatalog, isCatalogIndex, type Catalog, type CatalogIndex } from '@slapdash/core';
+import { GROUND, describeCuts, indexCatalog, isCatalogIndex, type Catalog, type CatalogIndex } from '@slapdash/core';
 import { REPETITIVE_MAX_SPACING_MM, REPETITIVE_ROLES, deflectionRule, memberCapacity, stationUtilization, unbracedLength, type MemberCapacity, type StationUtilization } from './checks/nds.ts';
 import { checkJoint, jointCapacity, resolveJointForce } from './checks/joints.ts';
 import { panelUnitShear } from './checks/panels.ts';
@@ -32,6 +32,34 @@ export const DEFAULT_PERF_BUDGET_MS = 1000;
 const UTIL_CAP = 1e3;
 /** Share of a case's work stored in pinned joints' stabilising springs that marks a mechanism. */
 export const MECHANISM_ENERGY_SHARE = 0.5;
+/**
+ * How far outside a birdsmouth's x range a joint point still counts as bearing on it, and
+ * how far outside it the shear across the notch is taken, mm.
+ */
+export const NOTCH_STATION_TOL_MM = 5;
+
+/** NDS 3.4.3.2(a), notched on the tension face at a support: V'r = ⅔·F'v·b·dn·(dn/d)², N. */
+export function notchShearCapacity(Fv: number, b: number, d: number, dn: number): number {
+  return (2 / 3) * Fv * b * dn * (dn / d) ** 2;
+}
+
+/**
+ * NDS 3.4.3.2(b), notched on the compression face at a support: V'r = ⅔·F'v·b·[d − ((d − dn)/dn)·e],
+ * e (≤ dn) how far the notch runs past the support, N.
+ */
+export function notchShearCapacityCompression(Fv: number, b: number, d: number, dn: number, e: number): number {
+  return (2 / 3) * Fv * b * (d - ((d - dn) / dn) * Math.min(e, dn));
+}
+
+/**
+ * Is a notch on the member's bottom (local z = 0) or top face in compression under the
+ * internal moment `My` (as `internalForces` reports it)? With that convention a member
+ * sagging under load (bottom fibre in tension, top in compression) has My < 0: the stress
+ * at height zc above the centroid is My·zc / Iy. |My| ≤ `tol` counts as tension (NDS (a)).
+ */
+export function notchedFaceInCompression(face: 'bottom' | 'top', My: number, tol = 0): boolean {
+  return face === 'bottom' ? My > tol : My < -tol;
+}
 
 const clock = (globalThis as { performance?: { now(): number } }).performance;
 const now = () => (clock ? clock.now() : Date.now());
@@ -220,6 +248,82 @@ export function analyze(project: Parameters<typeof buildModel>[0], catalog: Cata
       if (C > 0) note(checks, 'bearing', C / (face * l.tributary) / Fcp, combo.name);
     }
   });
+
+  // --- Notch shear at birdsmouths ---------------------------------------------------------
+  // NDS 3.4.3.2, a member notched at a support (dn the depth left at the notch):
+  // (a) notch on the tension face: V'r = ⅔·F'v·b·dn·(dn/d)²;
+  // (b) notch on the compression face: V'r = ⅔·F'v·b·[d − ((d − dn)/dn)·e], e ≤ dn how far
+  //     the notch runs past the support point.
+  // The shear that matters is what the member carries across its reduced section into the
+  // span or the tail, so V (and My, for which face is in tension) is taken at the member
+  // sections just outside the notch on each side, worst of the two. Load passing between
+  // two connections that both sit on the seat (a tie's heel joint to the cap plate) goes
+  // through the bearing, not across the notch, and is left out. Only a birdsmouth with a
+  // joint point in its x range (one that bears on something) is checked. A seat is usually
+  // case (b) under gravity (the tail hogs over the plate) and (a) under uplift. The clauses
+  // are written for notches at the ends of bending members, so applying them to a
+  // birdsmouth with a tail is conservative.
+  const forcesAt = (info: MemberInfo, x: number): Float64Array[] | null => {
+    const el = info.elements.find((e) => x >= e.t0 - 1e-6 && x <= e.t0 + model.fem.elements[e.index]!.L + 1e-6);
+    if (!el) return null;
+    return caseSol.map((c) => {
+      const out = new Float64Array(6);
+      internalForces(c.endForces.subarray(el.index * 12, el.index * 12 + 6), c.localLoads[el.index]!, x - el.t0, out, 0);
+      return out;
+    });
+  };
+  for (const [id, info] of model.members) {
+    if (info.section.shape !== 'rect' || !info.part.cuts?.notches?.length) continue;
+    const seats = describeCuts(info.part).notches.filter((n) => n.kind === 'birdsmouth' && n.depth_mm > 0 && n.face !== 'other');
+    if (seats.length === 0) continue;
+    const d = info.section.h;
+    const b = info.section.b;
+    const len = info.line.length;
+    const linked = info.nodes.filter((n) => info.linkNodes.has(n.node));
+    const checks = memberChecks.get(id)!;
+    for (const seat of seats) {
+      const dn = d - seat.depth_mm;
+      if (dn <= 0) continue;
+      const face = seat.face as 'bottom' | 'top';
+      const ts = linked.map((n) => n.t).filter((t) => t >= seat.x0_mm - NOTCH_STATION_TOL_MM && t <= seat.x1_mm + NOTCH_STATION_TOL_MM);
+      if (ts.length === 0) continue;
+      // The sections just outside each end of the notch, with how far the notch runs past
+      // the nearest support point on that side.
+      const sides: Array<{ F: Float64Array[]; e: number }> = [];
+      const tail = seat.x0_mm - NOTCH_STATION_TOL_MM;
+      const span = seat.x1_mm + NOTCH_STATION_TOL_MM;
+      const clampE = (e: number) => Math.min(dn, Math.max(0, e));
+      if (tail >= 0) {
+        const F = forcesAt(info, tail);
+        if (F) sides.push({ F, e: clampE(Math.min(...ts) - seat.x0_mm) });
+      }
+      if (span <= len) {
+        const F = forcesAt(info, span);
+        if (F) sides.push({ F, e: clampE(seat.x1_mm - Math.max(...ts)) });
+      }
+      if (sides.length === 0) continue;
+      for (const combo of combos) {
+        const cap = capacity(id, info, combo.CD);
+        let worst = 0;
+        for (const { F, e } of sides) {
+          let vz = 0;
+          let my = 0;
+          which.forEach((c, ci) => {
+            const f = combo.factors[c] ?? 0;
+            if (!f) return;
+            vz += f * F[ci]![2]!;
+            my += f * F[ci]![4]!;
+          });
+          const V = Math.abs(vz);
+          // A moment under V·d/1000 (e.g. near a pinned end) counts as a tension-face notch.
+          const compression = notchedFaceInCompression(face, my, V * d * 1e-3);
+          const Vr = compression ? notchShearCapacityCompression(cap.Fv, b, d, dn, e) : notchShearCapacity(cap.Fv, b, d, dn);
+          worst = Math.max(worst, V / Vr);
+        }
+        note(checks, 'notch-shear', worst, combo.name);
+      }
+    }
+  }
 
   // --- Deflection -----------------------------------------------------------------------
   const deflections = new Map<string, number>();

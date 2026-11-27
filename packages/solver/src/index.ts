@@ -4,7 +4,7 @@
  * Web Worker (`./worker`) or in Node. The Rapier stability sim ("will it tip over?") is a
  * separate entry, `@slapdash/solver/stability`, so this one never loads WASM.
  */
-export { analyze, DEFAULT_PERF_BUDGET_MS } from './analyze.ts';
+export { analyze, notchShearCapacity, notchShearCapacityCompression, notchedFaceInCompression, DEFAULT_PERF_BUDGET_MS, NOTCH_STATION_TOL_MM } from './analyze.ts';
 export { DEFAULT_WIND_SPEED_MS, exposureCKz, flatRoofSnow, slopeFactor, velocityPressure } from './loads/site.ts';
 export { LOAD_COMBINATIONS, combinationsFor, type LoadCombination } from './loads/combinations.ts';
 export { FLOOR_LIVE_KPA, ROOF_LIVE_KPA, WIND_COEFFICIENTS } from './loads/cases.ts';
