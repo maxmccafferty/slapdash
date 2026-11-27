@@ -14,6 +14,8 @@ export interface Member {
   ref: Ref;
   role: PartRole;
   box: FrameBox;
+  /** The member has cuts (`Part.cuts`), so its box isn't its shape. */
+  cut?: boolean;
 }
 
 const TOUCH = 0.05; // mm
@@ -69,6 +71,10 @@ function longest(face: FrameBox, normal: Axis): number {
  * Joints between `members` (new) and `members ∪ others` that touch. Sheets get 8d
  * nails to framing (6in on panel edges, 12in in the field); framing gets 16d nails.
  * Sheet-to-sheet contacts get nothing. Explicit pairs in `skip` are left alone.
+ *
+ * Pairs where either member is cut are skipped: frame-box contact can't see cuts, so it
+ * would find faces that aren't there (or miss a seat on a plate). No builder feeds cut
+ * parts in yet; the roof, whose parts are cut, writes its joints explicitly.
  */
 export function contactJoints(
   frame: PlanFrame,
@@ -80,6 +86,7 @@ export function contactJoints(
   const { nail16d, nail8d } = BUILDER_DEFAULTS.jointTypes;
   const consider = (a: Member, b: Member) => {
     if (isSheet(a.role) && isSheet(b.role)) return;
+    if (a.cut || b.cut) return;
     if (opts.skip?.(a, b)) return;
     const c = contactOf(a.box, b.box);
     if (!c) return;

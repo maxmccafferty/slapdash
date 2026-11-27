@@ -10,7 +10,7 @@ import type { EntityIds, EntitySnapshots } from '../commands/internal.ts';
 import { placeMember, type FrameAxis, type FrameBox, type PlanFrame, type Placed } from '../geometry/frame.ts';
 import type { Vec3 } from '../geometry/vec3.ts';
 import { GROUND, nextAssemblyId, nextJointId, nextPartId, type AssemblyKind, type IdCounters, type PartRole } from '../model/ids.ts';
-import type { Assembly, BuildStep, BuilderRecipe, Joint, Part, Project } from '../model/schema.ts';
+import type { Assembly, BuildStep, BuilderRecipe, Joint, Part, PartCuts, Project } from '../model/schema.ts';
 import { GROUND_LEVEL_ID } from '../model/create.ts';
 
 /** A key ("#w") for something this layout creates, or the ID of an existing entity. */
@@ -38,6 +38,8 @@ export interface PartSpec extends Placed {
   /** `#key` tokens inside tags are replaced by IDs. */
   tags: string[];
   buildStep: BuildStep;
+  /** Angled end cuts and notches; the box above stays the part's bound. */
+  cuts?: PartCuts;
 }
 
 export interface JointSpec {
@@ -137,6 +139,7 @@ export function emit(project: Project, layout: Layout): Emitted {
     };
     if (p.name !== undefined) part.name = p.name;
     if (p.sectionId !== undefined) part.sectionId = p.sectionId;
+    if (p.cuts !== undefined) part.cuts = p.cuts;
     return part;
   });
   const joints: Joint[] = layout.joints.map((j, i) => {

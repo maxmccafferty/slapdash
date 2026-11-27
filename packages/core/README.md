@@ -16,6 +16,17 @@ See ADR-0001 §3–4 and ADR-0002 §A1–A9, §D3, §E5 and §F7 in `docs/adr/`.
   `size.height`. `rotation` is in degrees, applied intrinsically in X, then Y, then Z.
 - A sectioned member (e.g. a `2x4`) takes width and height from the catalog section.
   Only its length is free.
+- **Cuts (schema v2).** A part is a box with optional `cuts`: planar end cuts at `start`
+  (x = 0) and `end` (x = length) given as `slope` (about local y) and `miter` (about local
+  z) in degrees from square, edge bevels (`nearEdge`/`farEdge`, slope only) and up to four
+  convex `notches` through the width (a birdsmouth, a corner trim). Cuts only remove
+  material, so `size` stays the bounding box and `size.length` is the **long point**: each
+  cut plane passes through the end face along its long-point edge and leans inward
+  (`slope` > 0 puts the long point on the bottom face, < 0 on the top). A rafter at pitch θ
+  has `start.slope = θ`, `end.slope = −θ`. `src/geometry/cuts.ts` turns `(size, cuts)` into
+  the exact solid (`partSolid`, `partSolidCorners`, `partSolidAabb`, `partFeatureEdges`,
+  `partsOverlap`, `validateCuts`, `describeCuts`); anything that only needs a bound keeps
+  using the box. `migrateProject` upgrades v1 files (no cuts) by changing the version only.
 - One ground level, `L0`, exists now. Assemblies and parts carry `levelId`, so storeys
   can be added later without a migration.
 - Every length input accepts a JSON number (mm) or text with a unit:
@@ -115,7 +126,14 @@ Header sizes come from IRC 2021 Table R602.7(1) (`HEADER_TABLE`, `pickHeader` in
 `src/builders/rules.ts`), using the project's ground snow load or 30 psf, and the building
 width (input, or the short side of the slab under the wall). `findClashes` /
 `findAllClashes` (`src/model/clash.ts`) check parts against each other with a 1 mm
-tolerance; every builder refuses to run new parts through existing ones.
+tolerance, using each part's cut shape; every builder refuses to run new parts through
+existing ones.
+
+`build_roof` cuts its members to sit flush: rafters get plumb cuts at the ridge face (or a
+shed's high tail) and the eave, and a birdsmouth on each bearing plate (heel at the outside
+of the wall sheathing, seat on the plate, at most `BIRDSMOUTH_MAX_DEPTH` = 1/3 of the
+rafter deep, at least 1 1/2in of bearing). The ridge row of gable sheathing is bevelled so
+the two sides meet on the centreline, and rafter ties are trimmed to the roof line.
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md) for how builders are put together, how to add
 one, and a reference for each.
@@ -164,7 +182,11 @@ always agree.
   (103 1/2in studs on 104 5/8in precuts); the rest go first-fit decreasing (longest first,
   ties by id) onto the longest stock with a `KERF_MM` (1/8in) kerf between cuts, and each
   board is then cut down to the shortest stock that holds it. Offcuts aren't shared across
-  steps, so each step's board counts add up to the cut list.
+  steps, so each step's board counts add up to the cut list. Cut pieces pack by their
+  long-point length; their rows carry `cuts` (`describeCuts`: angles, birdsmouth seat and
+  heel, and a label such as "plumb 26.6° both ends · birdsmouth (seat 3 15/16″, heel 2″)"),
+  so cut and square pieces of one length are separate rows. Cut sheets are listed in their
+  row's `details`.
 - **Prices.** Boards are priced at their full length per linear foot; a key with no sizes
   ignores the row's size. The person's own price wins (low = high); a per-board price
   becomes per foot for other lengths, and a per-ft² sheet price is 32 ft² a sheet. A row

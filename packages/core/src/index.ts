@@ -8,6 +8,29 @@ export * from './catalog/index.ts';
 export * from './model/index.ts';
 export * from './site/design-loads.ts';
 export { partBox, boxCorners, boxesOverlap, aabbOf, rotationAxes, type OrientedBox, type Aabb } from './geometry/obb.ts';
+export {
+  hasCuts,
+  validateCuts,
+  buildSolid,
+  partSolid,
+  solidSurfaceTriangles,
+  partSolidCorners,
+  partSolidAabb,
+  partFeatureEdges,
+  convexPiecesOverlap,
+  partsOverlap,
+  describeCuts,
+  pitchAngleDeg,
+  frameProfileToLocal,
+  shortLength,
+  type CutDescription,
+  type CutLabel,
+  type CutName,
+  type NotchDescription,
+  type Solid,
+  type ConvexPiece,
+  type CutPartLike,
+} from './geometry/cuts.ts';
 export { placeMember, placeOriented, boxInFrame, toWorld, toFrame, type PlanFrame, type FrameBox } from './geometry/frame.ts';
 export { findClashes, findAllClashes, describeClashes, CLASH_TOLERANCE_MM, type Clash, type ClashCandidate } from './model/clash.ts';
 export { BUILDER_DEFAULTS } from './builders/defaults.ts';
